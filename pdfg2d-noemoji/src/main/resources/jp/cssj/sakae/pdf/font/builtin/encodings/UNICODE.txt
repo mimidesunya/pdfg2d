@@ -1,0 +1,216 @@
+A;41
+AE;C6
+Aacute;C1
+Acircumflex;C2
+Adieresis;C4
+Agrave;C0
+Aring;C5
+Atilde;C3
+B;42
+C;43
+Ccedilla;C7
+D;44
+E;45
+Eacute;C9
+Ecircumflex;CA
+Edieresis;CB
+Egrave;C8
+Eth;D0
+Euro;80 20AC
+F;46
+G;47
+H;48
+I;49
+Iacute;CD
+Icircumflex;CE
+Idieresis;CF
+Igrave;CC
+J;4A
+K;4B
+L;4C
+M;4D
+N;4E
+Ntilde;D1
+O;4F
+OE;8C 0152
+Oacute;D3
+Ocircumflex;D4
+Odieresis;D6
+Ograve;D2
+Oslash;D8
+Otilde;D5
+P;50
+Q;51
+R;52
+S;53
+Scaron;8A 0160
+T;54
+Thorn;DE
+U;55
+Uacute;DA
+Ucircumflex;DB
+Udieresis;DC
+Ugrave;D9
+V;56
+W;57
+X;58
+Y;59
+Yacute;DD
+Ydieresis;9F 0178
+Z;5A
+Zcaron;8E 017D
+a;61
+aacute;E1
+acircumflex;E2
+acute;B4
+adieresis;E4
+ae;E6
+agrave;E0
+ampersand;26
+aring;E5
+asciicircum;5E
+asciitilde;7E
+asterisk;2A
+at;40
+atilde;E3
+b;62
+backslash;5C
+bar;7C
+braceleft;7B
+braceright;7D
+bracketleft;5B
+bracketright;5D
+brokenbar;A6
+bullet;95 2022
+c;63
+ccedilla;E7
+cedilla;B8
+cent;A2
+circumflex;88 20C6
+colon;3A
+comma;2C
+copyright;A9
+currency;A4
+d;64
+dagger;86 2020
+daggerdbl;87 2021
+degree;B0
+dieresis;A8
+divide;F7
+dollar;24
+e;65
+eacute;E9
+ecircumflex;EA
+edieresis;EB
+egrave;E8
+eight;38
+ellipsis;85 2026
+emdash;97 2014
+endash;96 2013
+equal;3D
+eth;F0
+exclam;21
+exclamdown;A1
+f;66
+five;35
+florin;83 0192
+four;34
+g;67
+germandbls;DF
+grave;60
+greater;3E
+guillemotleft;AB
+guillemotright;BB
+guilsinglleft;8B 2039
+guilsinglright;9B 203A
+h;68
+hyphen;2D
+i;69
+iacute;ED
+icircumflex;EE
+idieresis;EF
+igrave;EC
+j;6A
+k;6B
+l;6C
+less;3C
+logicalnot;AC
+m;6D
+macron;AF
+mu;B5
+multiply;D7
+n;6E
+nine;39
+ntilde;F1
+numbersign;23
+o;6F
+oacute;F3
+ocircumflex;F4
+odieresis;F6
+oe;9C 0153
+ograve;F2
+one;31
+onehalf;BD
+onequarter;BC
+onesuperior;B9
+ordfeminine;AA
+ordmasculine;BA
+oslash;F8
+otilde;F5
+p;70
+paragraph;B6
+parenleft;28
+parenright;29
+percent;25
+period;2E
+periodcentered;B7
+perthousand;89 2030
+plus;2B
+plusminus;B1
+q;71
+question;3F
+questiondown;BF
+quotedbl;22
+quotedblbase;84 201E
+quotedblleft;93 201C
+quotedblright;94 201D
+quoteleft;91 2018
+quoteright;92 2019
+quotesinglbase;82 201A
+quotesingle;27
+r;72
+registered;AE
+s;73
+scaron;9A 0161
+section;A7
+semicolon;3B
+seven;37
+six;36
+slash;2F
+space;20
+sterling;A3
+t;74
+thorn;FE
+three;33
+threequarters;BE
+threesuperior;B3
+tilde;98 02DC
+trademark;99 2122
+two;32
+twosuperior;B2
+u;75
+uacute;FA
+ucircumflex;FB
+udieresis;FC
+ugrave;F9
+underscore;5F
+v;76
+w;77
+x;78
+y;79
+yacute;FD
+ydieresis;FF
+yen;A5
+z;7A
+zcaron;9E 017E
+zero;30

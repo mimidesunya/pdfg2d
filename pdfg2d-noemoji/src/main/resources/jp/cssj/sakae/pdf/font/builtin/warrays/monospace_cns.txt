@@ -1,0 +1,11 @@
+# Adobe CNS 1-4
+
+BBox: 0 140 1000 860
+Ascent: 860
+Descent: 140
+CapHeight: 700
+xHeight: 500
+WArray:
+1
+1000
+0 95 500

@@ -1,0 +1,14 @@
+# Adobe Japan 1-6
+# UniJIS-UCS2-HW-H / UniJIS-UCS2-HW-V
+
+BBox: 0 200 1000 800
+Ascent: 800
+Descent: 200
+CapHeight: 1000
+xHeight: 500
+StemH: 28
+StemV: 59
+WArray:
+1
+1000
+0 635 500

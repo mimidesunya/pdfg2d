@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- フォント設定ファイル 最初に設定されたフォントほど優先的に使用されます。 埋め込みフォント、外部フォント、コアフォント、一般フォントの順に記述してください。 -->
+<fonts>
+	<!-- エンコーディング <encodings> <encoding> src: コードと文字名の対応表ファイル -->
+	<encodings>
+		<encoding src="encodings/WinAnsiEncoding.txt" />
+		<!-- <encoding src="encodings/StandardEncoding.txt" /> <encoding src="encodings/MacRomanEncoding.txt" 
+			/> -->
+	</encodings>
+
+	<!-- CMaps <cmaps> <cmap> src: cmapファイル java-encoding: Javaのエンコーディング名 -->
+	<cmaps>
+		<cmap src="cmaps/UniJIS-UCS2-HW-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS-UCS2-HW-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS-UCS2-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS-UCS2-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/90ms-RKSJ-H" java-encoding="MS932" />
+		<cmap src="cmaps/90ms-RKSJ-V" java-encoding="MS932" />
+		<cmap src="cmaps/EUC-H" java-encoding="EUC-JP" />
+		<cmap src="cmaps/EUC-V" java-encoding="EUC-JP" />
+		<cmap src="cmaps/UniJIS-UTF16-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS-UTF16-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS2004-UTF16-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniJIS2004-UTF16-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniCNS-UCS2-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniCNS-UCS2-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniGB-UCS2-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniGB-UCS2-V" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniKS-UCS2-H" java-encoding="UTF-16BE" />
+		<cmap src="cmaps/UniKS-UCS2-V" java-encoding="UTF-16BE" />
+	</cmaps>
+
+	<!-- コアフォント <core-fonts> encoding: デフォルトのエンコーディング unicode-src: ユニコードと文字名の対応表ファイル 
+		<letter-font> src: AFMファイル encoding: エンコーディング <symbol-font> src: AFMファイル 
+		encoding-src: ユニコードと文字コードの対応表ファイル <alias> name: 別名 -->
+	<core-fonts encoding="WinAnsiEncoding" unicode-src="encodings/UNICODE.txt">
+		<letter-font src="afms/Courier-Bold.afm">
+			<alias name="Courier-New" />
+		</letter-font>
+		<letter-font src="afms/Courier-BoldOblique.afm">
+			<alias name="Courier-New" />
+		</letter-font>
+		<letter-font src="afms/Courier-Oblique.afm">
+			<alias name="Courier-New" />
+		</letter-font>
+		<letter-font src="afms/Courier.afm">
+			<alias name="Courier-New" />
+		</letter-font>
+		<letter-font src="afms/Helvetica-Bold.afm">
+			<alias name="Arial" />
+		</letter-font>
+		<letter-font src="afms/Helvetica-BoldOblique.afm">
+			<alias name="Arial" />
+		</letter-font>
+		<letter-font src="afms/Helvetica-Oblique.afm">
+			<alias name="Arial" />
+		</letter-font>
+		<letter-font src="afms/Helvetica.afm">
+			<alias name="Arial" />
+		</letter-font>
+		<letter-font src="afms/Times-Bold.afm">
+			<alias name="Times-New-Roman" />
+		</letter-font>
+		<letter-font src="afms/Times-BoldItalic.afm">
+			<alias name="Times-New-Roman" />
+		</letter-font>
+		<letter-font src="afms/Times-Italic.afm">
+			<alias name="Times-New-Roman" />
+		</letter-font>
+		<letter-font src="afms/Times-Roman.afm">
+			<alias name="Times-New-Roman" />
+		</letter-font>
+		<symbol-font src="afms/Symbol.afm" encoding-src="encodings/symbol.txt">
+		</symbol-font>
+		<symbol-font src="afms/ZapfDingbats.afm" encoding-src="encodings/zdingbat.txt">
+			<alias name="ZapfDingbatsITC" />
+		</symbol-font>
+	</core-fonts>
+
+	<!-- CIDフォント <cid-fonts> <alias> name: 別名 -->
+	<cid-fonts>
+		<!-- CID-Keydフォント name: フォント名 italic: 斜体ならtrue weight: 太さ(100-900) panose: 
+			PANOSEコード cmap: 横書きcmapエンコーディング名 vcmap: 縦書きcmapエンコーディング名 warray: フォントメトリックス -->
+		<!-- Adobe Japan 1 7 -->
+		<cid-keyed-font name="AJ17UniJIS-Mincho" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniJIS-UTF16-H" vcmap="UniJIS-UTF16-V" warray="warrays/monospace_jis.txt">
+			<alias name="Mincho" />
+			<alias name="小塚明朝 Pr6N R" />
+			<alias name="KozMinPr6N" />
+			<alias name="Serif" />
+		</cid-keyed-font>
+		<cid-keyed-font name="AJ17UniJIS-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="UniJIS-UTF16-H" vcmap="UniJIS-UTF16-V" warray="warrays/monospace_jis.txt">
+			<alias name="Gothic" />
+			<alias name="小塚ゴシック Pr6N M" />
+			<alias name="KozGoPr6N" />
+			<alias name="SansSerif" />
+			<alias name="Monospaced" />
+			<alias name="Dialog" />
+			<alias name="DialogInput" />
+		</cid-keyed-font>
+
+		<!-- SJIS -->
+		<cid-keyed-font name="SJIS-Mincho" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="90ms-RKSJ-H" vcmap="90ms-RKSJ-V" warray="warrays/monospace_jis.txt" />
+		<cid-keyed-font name="SJIS-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="90ms-RKSJ-H" vcmap="90ms-RKSJ-V" warray="warrays/monospace_jis.txt" />
+
+		<!-- EUC -->
+		<cid-keyed-font name="EUC-Mincho" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="EUC-H" vcmap="EUC-V" warray="warrays/monospace_jis.txt" />
+		<cid-keyed-font name="EUC-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="EUC-H" vcmap="EUC-V" warray="warrays/monospace_jis.txt" />
+
+		<!-- Adobe Japan 1 4 -->
+		<cid-keyed-font name="AJ14UniJIS-Mincho" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniJIS-UCS2-HW-H" vcmap="UniJIS-UCS2-HW-V" warray="warrays/monospace_jis.txt" />
+		<cid-keyed-font name="AJ14UniJIS-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="UniJIS-UCS2-HW-H" vcmap="UniJIS-UCS2-HW-V" warray="warrays/monospace_jis.txt" />
+
+		<!-- JIS 2004 -->
+		<cid-keyed-font name="UniJIS2004-Mincho" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniJIS2004-UTF16-H" vcmap="UniJIS-UTF16-V" warray="warrays/monospace_jis.txt" />
+		<cid-keyed-font name="UniJIS2004-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="UniJIS2004-UTF16-H" vcmap="UniJIS-UTF16-V" warray="warrays/monospace_jis.txt" />
+
+		<!-- 簡体中国語 -->
+		<cid-keyed-font name="UniCNS-Ming" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniCNS-UCS2-H" vcmap="UniCNS-UCS2-V" warray="warrays/monospace_cns.txt">
+			<alias name="Adobe Ming Std L" />
+		</cid-keyed-font>
+
+		<!-- 繁體中国語 -->
+		<cid-keyed-font name="UniGB-Song" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniGB-UCS2-H" vcmap="UniGB-UCS2-V" warray="warrays/monospace_gb.txt">
+			<alias name="Adobe Song Std L" />
+		</cid-keyed-font>
+		<cid-keyed-font name="UniGB-Heiti" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="UniGB-UCS2-H" vcmap="UniGB-UCS2-V" warray="warrays/monospace_gb.txt">
+			<alias name="Adobe Heiti Std R" />
+		</cid-keyed-font>
+
+		<!-- 韓国語 -->
+		<cid-keyed-font name="UniKS-Myungjo" panose="1 5 2 2 6 9 4 2 5 8 3 4"
+			cmap="UniKS-UCS2-H" vcmap="UniKS-UCS2-V" warray="warrays/monospace_ks.txt">
+			<alias name="Adobe Myungjo Std M" />
+		</cid-keyed-font>
+		<cid-keyed-font name="UniKS-Gothic" panose="8 1 2 11 6 9 7 2 5 8 2 4"
+			cmap="UniKS-UCS2-H" vcmap="UniKS-UCS2-V" warray="warrays/monospace_ks.txt">
+			<alias name="DotumChe" />
+		</cid-keyed-font>
+
+		<!-- Javaで利用可能な全てのインストールされたフォント types: (cid-identity||embedded) cmap: 横書きcmapエンコーディング名 
+			vcmap: 縦書きcmapエンコーディング名 -->
+		<all-system-fonts types="cid-identity embedded" />
+	</cid-fonts>
+
+	<!-- 一般フォント <generic-fonts> -->
+	<generic-fonts>
+		<!-- セリフ体フォント <serif> font-family: カンマで区切ったフォント名のリスト -->
+		<serif font-family="Times-Roman,Mincho,UniKS-Myungjo,UniCNS-Ming,UniGB-Song" />
+		<!-- サンセリフ体フォント <sans-serif> font-family: カンマで区切ったフォント名のリスト -->
+		<sans-serif font-family="Helvetica,Gothic,UniKS-Gothic,UniCNS-Ming,UniGB-Heiti" />
+		<!-- 等幅フォント <monospace> font-family: カンマで区切ったフォント名のリスト -->
+		<monospace font-family="Gothic,UniKS-Gothic,UniCNS-Ming,UniGB-Heiti" />
+		<!-- 装飾体フォント <fantasy> font-family: カンマで区切ったフォント名のリスト -->
+		<fantasy font-family="Comic-Sans-MS,Gothic,UniKS-Gothic,UniCNS-Ming,UniGB-Heiti" />
+		<!-- 筆記体フォント <cursive> font-family: カンマで区切ったフォント名のリスト -->
+		<cursive font-family="Comic-Sans-MS,Mincho,UniKS-Myungjo,UniCNS-Ming,UniGB-Song" />
+	</generic-fonts>
+</fonts>
