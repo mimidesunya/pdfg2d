@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+ 	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.zamasoft</groupId>
+	<artifactId>pdfg2d</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0.0</version>
+	<name>PDFG2D-Base</name>
+	<description>縦書きテキストに対応した、シンプルなグラフィックコンテキストです。</description>
+	<url>https://github.com/mimidesunya/pdfg2d</url>
+	
+	<modules>
+		<module>zs-resolver</module>
+		<module>zs-font</module>
+		<module>zs-rsr</module>
+		<module>gc-core</module>
+		<module>pdfg2d-noemoji</module>
+		<module>pdfg2d-svg-emoji</module>
+		<module>pdfg2d-all</module>
+		<module>pdfg2d-demo</module>
+	</modules>
+	
+	<build>
+	    <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>3.0.0</version>
+            </extension>
+        </extensions>
+	</build>
+	
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	
+	<organization>
+		<name>Zamasoft</name>
+		<url>https://zamasoft.net/</url>
+	</organization>
+</project>
