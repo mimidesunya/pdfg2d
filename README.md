@@ -8,7 +8,6 @@ import java.io.File;
 import net.zamasoft.pdfg2d.PdfGraphics2D;
 
 public class DrawPdfApp {
-
 	public static void main(String[] args) throws Exception {
 		try(PdfGraphics2D g2d = new PdfGraphics2D(new File("out/drawpdf.pdf"))) {
 			g2d.setColor(Color.RED);
