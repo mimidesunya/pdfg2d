@@ -13,7 +13,7 @@ import jp.cssj.resolver.SourceValidity;
  * Source のラッパクラスです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: SourceWrapper.java 1592 2019-12-03 06:59:47Z miyabe $
+ * @since 1.0
  */
 public class SourceWrapper implements Source {
 	protected final Source source;
@@ -68,6 +68,10 @@ public class SourceWrapper implements Source {
 
 	public boolean isReader() throws IOException {
 		return this.source.isReader();
+	}
+
+	public void close() throws IOException {
+		this.source.close();
 	}
 	
 	public String toString() {

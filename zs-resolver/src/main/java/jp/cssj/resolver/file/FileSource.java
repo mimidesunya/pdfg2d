@@ -16,7 +16,7 @@ import jp.cssj.resolver.helpers.URIHelper;
  * ファイルからデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FileSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class FileSource extends AbstractSource {
 	private final File file;

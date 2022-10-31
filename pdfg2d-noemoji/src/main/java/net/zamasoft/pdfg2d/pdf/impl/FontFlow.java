@@ -9,25 +9,25 @@ import java.util.Map;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
-import net.zamasoft.pdfg2d.pdf.font.PdfFontSource;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: FontFlow.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class FontFlow {
 	private final XRefImpl xref;
 
 	private final Map<String, ObjectRef> nameToResourceRef;
 
-	private final PdfFragmentOutputImpl objectsFlow;
+	private final PDFFragmentOutputImpl objectsFlow;
 
 	/** FontKeyからPDFFontへのマッピング。 */
 	private final Map<FontSource, Font> fonts = new HashMap<FontSource, Font>();
-	private final List<PdfFont> fontList = new ArrayList<PdfFont>();
+	private final List<PDFFont> fontList = new ArrayList<PDFFont>();
 
-	public FontFlow(Map<String, ObjectRef> nameToResourceRef, PdfFragmentOutputImpl objectsFlow, XRefImpl xref)
+	public FontFlow(Map<String, ObjectRef> nameToResourceRef, PDFFragmentOutputImpl objectsFlow, XRefImpl xref)
 			throws IOException {
 		this.xref = xref;
 		this.nameToResourceRef = nameToResourceRef;
@@ -40,13 +40,13 @@ class FontFlow {
 			return font;
 		}
 
-		if (source instanceof PdfFontSource) {
+		if (source instanceof PDFFontSource) {
 			String name = "F" + this.fonts.size();
 			ObjectRef fontRef = this.xref.nextObjectRef();
 			this.nameToResourceRef.put(name, fontRef);
 
-			font = ((PdfFontSource)source).createFont(name, fontRef);
-			this.fontList.add((PdfFont)font);
+			font = ((PDFFontSource)source).createFont(name, fontRef);
+			this.fontList.add((PDFFont)font);
 		}
 		else {
 			font = source.createFont();
@@ -58,7 +58,7 @@ class FontFlow {
 
 	public void close() throws IOException {
 		for (int i = 0; i < this.fontList.size(); ++i) {
-			PdfFont font = (PdfFont) this.fontList.get(i);
+			PDFFont font = (PDFFont) this.fontList.get(i);
 			font.writeTo(this.objectsFlow, this.xref);
 		}
 	}

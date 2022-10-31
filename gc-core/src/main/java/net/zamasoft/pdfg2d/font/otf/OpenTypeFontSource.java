@@ -30,7 +30,7 @@ import net.zamasoft.pdfg2d.gc.font.Panose;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: OpenTypeFontSource.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
 public class OpenTypeFontSource extends AbstractFontSource {
 	private static final Logger LOG = Logger.getLogger(OpenTypeFontSource.class.getName());

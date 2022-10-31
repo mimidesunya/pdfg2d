@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
 
 /**
@@ -87,7 +87,7 @@ public class MissingCIDFontSource extends AbstractFontSource implements CIDFontS
 		return null;
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		return new MissingCIDFont(this, name, fontRef);
 	}
 

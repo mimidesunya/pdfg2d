@@ -7,7 +7,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * グリフ単位で分解されたテキストの送り先です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: GlyphHandler.java 1592 2019-12-03 06:59:47Z miyabe $
+ * @since 1.0
  */
 public interface GlyphHandler {
 	/**

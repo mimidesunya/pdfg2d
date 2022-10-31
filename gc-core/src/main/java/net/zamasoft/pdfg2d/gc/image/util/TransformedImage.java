@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.gc.image.WrappedImage;
  * UAの単位にスケールされた画像です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: TransformedImage.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class TransformedImage extends WrappedImage {
 	private final AffineTransform at;

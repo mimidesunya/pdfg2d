@@ -4,7 +4,7 @@ package net.zamasoft.pdfg2d.gc.text;
  * テキスト中の文字以外の埋め物です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Quad.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public abstract class Quad implements Element {
 	// U+200B ZERO WIDTH SPACE

@@ -35,7 +35,7 @@ public class GVTBuilderImpl extends GVTBuilder {
 			if (ac.getRule() != AlphaComposite.SRC_OVER || ac.getAlpha() >= 1.0) {
 				continue;
 			}
-			gn.setFilter(new PdfGraphicsNodeRable(gn, this.forceVector));
+			gn.setFilter(new PDFGraphicsNodeRable(gn, this.forceVector));
 		}
 	}
 }

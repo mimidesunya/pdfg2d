@@ -6,15 +6,15 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.io.IOException;
 
-import net.zamasoft.pdfg2d.g2d.gc.G2dGC;
+import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.image.Image;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: RasterImageImpl.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 
 public class RasterImageImpl implements RasterImage, ImageObserver {
@@ -73,16 +73,16 @@ public class RasterImageImpl implements RasterImage, ImageObserver {
 	}
 
 	public void drawTo(GC gc) throws GraphicsException {
-		if (gc instanceof PdfGC) {
+		if (gc instanceof PDFGC) {
 			try {
-				Image image = ((PdfGC) gc).getPDFGraphicsOutput().getPdfWriter().addImage(this.image);
+				Image image = ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().addImage(this.image);
 				gc.drawImage(image);
 			} catch (IOException e) {
 				throw new GraphicsException(e);
 			}
 		} else {
 			java.awt.Image image = this.image;
-			Graphics2D g2d = ((G2dGC) gc).getGraphics2D();
+			Graphics2D g2d = ((G2DGC) gc).getGraphics2D();
 			AffineTransform at = g2d.getTransform();
 			g2d.drawImage(image, null, null);
 			if (image != this.image) {
@@ -105,17 +105,5 @@ public class RasterImageImpl implements RasterImage, ImageObserver {
 		}
 		this.notifyAll();
 		return (this.width == -1 || this.height == -1);
-	}
-
-	public synchronized void dispose() {
-		if (this.image != null) {
-			this.image.flush();
-			this.image = null;
-		}
-	}
-
-	protected void finalize() throws Throwable {
-		super.finalize();
-		this.dispose();
 	}
 }

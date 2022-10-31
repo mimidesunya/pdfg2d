@@ -11,14 +11,14 @@ import jp.cssj.resolver.Source;
 import jp.cssj.resolver.SourceResolver;
 import jp.cssj.resolver.composite.CompositeSourceResolver;
 import jp.cssj.resolver.helpers.URIHelper;
-import net.zamasoft.pdfg2d.pdf.util.PdfUtils;
+import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 import net.zamasoft.pdfg2d.util.IntMap;
 
 /**
  * CMapファイルのCIDテーブルを解析します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CIDTableParser.java 1605 2020-10-01 02:10:53Z miyabe $
+ * @since 1.0
  */
 class CIDTableParser {
 	private Reader in;
@@ -188,6 +188,6 @@ class CIDTableParser {
 			throw new EOFException();
 		}
 		String s = buff.toString();
-		return PdfUtils.decodeName(s, "MS932");
+		return PDFUtils.decodeName(s, "MS932");
 	}
 }

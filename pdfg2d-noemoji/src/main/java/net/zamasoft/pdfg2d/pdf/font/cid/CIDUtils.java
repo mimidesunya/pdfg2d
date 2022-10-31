@@ -6,12 +6,12 @@ import java.io.OutputStream;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfEmbeddedFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFEmbeddedFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.ToUnicode.Unicode;
-import net.zamasoft.pdfg2d.pdf.font.type2.CffGenerator;
+import net.zamasoft.pdfg2d.pdf.font.type2.CFFGenerator;
 import net.zamasoft.pdfg2d.util.ArrayShortMapIterator;
 
 public final class CIDUtils {
@@ -49,7 +49,7 @@ public final class CIDUtils {
 		// ignore
 	}
 
-	public static void writeFlagsAndPanose(PdfOutput out, CIDFontSource source) throws IOException {
+	public static void writeFlagsAndPanose(PDFOutput out, CIDFontSource source) throws IOException {
 		int flags = CID_SYMBOLIC;
 		Panose panose = source.getPanose();
 		if (panose != null) {
@@ -113,7 +113,7 @@ public final class CIDUtils {
 	/**
 	 * WD, Wを出力します。
 	 */
-	public static void writeWArray(PdfOutput out, WArray warray) throws IOException {
+	public static void writeWArray(PDFOutput out, WArray warray) throws IOException {
 		out.writeName("DW");
 		out.writeInt(warray.getDefaultWidth());
 		out.lineBreak();
@@ -158,7 +158,7 @@ public final class CIDUtils {
 	/**
 	 * WD2, W2を出力します。 TODO vx, vy
 	 */
-	public static void writeWArray2(PdfOutput out, WArray warray) throws IOException {
+	public static void writeWArray2(PDFOutput out, WArray warray) throws IOException {
 		out.writeName("DW2");
 		out.startArray();
 		out.writeInt(DEFAULT_VERTICAL_ORIGIN);
@@ -211,7 +211,7 @@ public final class CIDUtils {
 		}
 	}
 
-	public static void writeIdentityFont(PdfFragmentOutput out, XRef xref, CIDFontSource source, ObjectRef fontRef,
+	public static void writeIdentityFont(PDFFragmentOutput out, XRef xref, CIDFontSource source, ObjectRef fontRef,
 			short[] w, short[] w2, int[] unicodeArray) throws IOException {
 		// 主フォント
 		String fontName = source.getFontName();
@@ -244,7 +244,7 @@ public final class CIDUtils {
 		out.endObject();
 
 		out.startObject(toUnicodeRef);
-		PdfOutput pout = new PdfOutput(out.startStream(PdfFragmentOutput.STREAM_ASCII), "ISO-8859-1");
+		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.STREAM_ASCII), "ISO-8859-1");
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
@@ -332,7 +332,7 @@ public final class CIDUtils {
 		out.endObject();
 	}
 
-	private static void writeIdentityToUnicode(PdfOutput pout, int[] unicodeArray) throws IOException {
+	private static void writeIdentityToUnicode(PDFOutput pout, int[] unicodeArray) throws IOException {
 		ToUnicode toUnicode = ToUnicode.buildFromChars(unicodeArray);
 
 		pout.writeName("CIDInit");
@@ -448,7 +448,7 @@ public final class CIDUtils {
 	 * @param unicodeArray CIDからユニコードへのマッピング
 	 * @throws IOException
 	 */
-	public static void writeEmbeddedFont(PdfFragmentOutput out, XRef xref, CIDFontSource source, PdfEmbeddedFont font,
+	public static void writeEmbeddedFont(PDFFragmentOutput out, XRef xref, CIDFontSource source, PDFEmbeddedFont font,
 			ObjectRef fontRef, short[] w, short[] w2, int[] unicodeArray) throws IOException {
 		// 埋め込み擬似タグ
 		String subsetName;
@@ -493,7 +493,7 @@ public final class CIDUtils {
 		out.endObject();
 
 		out.startObject(toUnicodeRef);
-		PdfOutput pout = new PdfOutput(out.startStream(PdfFragmentOutput.STREAM_ASCII), "ISO-8859-1");
+		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.STREAM_ASCII), "ISO-8859-1");
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
@@ -587,7 +587,7 @@ public final class CIDUtils {
 		// 使用するCID
 		out.startObject(cidSetRef);
 		out.startHash();
-		try (OutputStream sout = out.startStreamFromHash(PdfFragmentOutput.STREAM_BINARY)) {
+		try (OutputStream sout = out.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY)) {
 			int bytes = (int) Math.ceil(unicodeArray.length / 8.0);
 			for (int i = 0; i < bytes; ++i) {
 				int start = i * 8;
@@ -610,10 +610,10 @@ public final class CIDUtils {
 		out.writeName("CIDFontType0C");
 		out.lineBreak();
 
-		try (OutputStream cout = out.startStreamFromHash(PdfFragmentOutput.STREAM_BINARY)) {
+		try (OutputStream cout = out.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY)) {
 //			InputStream in = new InflaterInputStream(new FileInputStream("/home/miyabe/workspaces/copper/CopperPDF.dev/files/misc/fontfile.bin"));
 //			IOUtils.copy(in, cout);
-			CffGenerator cff = new CffGenerator();
+			CFFGenerator cff = new CFFGenerator();
 			cff.setSubsetName(subsetName);
 			cff.setEmbedableFont(font);
 			cff.writeTo(cout);

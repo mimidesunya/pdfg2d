@@ -3,16 +3,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.zamasoft</groupId>
+	<groupId>com.github.mimidesunya</groupId>
 	<artifactId>zs-font</artifactId>
 	<packaging>jar</packaging>
-	<version>1.2.2</version>
+	<version>1.0.0</version>
 	<name>Font Library</name>
 	<description>
-Apache Batik 1.7 のフォント読み込みライブラリ(org.apache.batik.svggen.font)から派生したフォントライブラリです。	
-TrueType, OpenType(CFF-flavor) の読み込みに対応しています。
 	</description>
-	<url>https://copper.osdn.jp/zs-font/</url>	
+	<url>https://github.com/mimidesunya/pdfg2d/zs-font/</url>	
 	
 	<build>
 	    <extensions>
@@ -65,7 +63,7 @@ TrueType, OpenType(CFF-flavor) の読み込みに対応しています。
 		</license>
 	</licenses>
 	<organization>
-		<name>座間ソフト</name>
+		<name>Zamasoft</name>
 		<url>https//zamasoft.net/</url>
 	</organization>
 </project>

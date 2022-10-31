@@ -14,7 +14,7 @@ import jp.cssj.resolver.SourceResolver;
  * HttpClientを利用してデータを所得するSourceResolverです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: HttpSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class HttpSourceResolver implements SourceResolver {
 	protected CloseableHttpClient createHttpClient() {

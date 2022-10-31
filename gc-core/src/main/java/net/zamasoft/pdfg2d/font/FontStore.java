@@ -8,7 +8,7 @@ import java.io.IOException;
  * このオブジェクトはスレッドセーフではありません。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontStore.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface FontStore {
 	public Font useFont(FontSource metaFont) throws IOException;

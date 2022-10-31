@@ -7,20 +7,20 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
-import net.zamasoft.pdfg2d.pdf.PdfGraphicsOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 
 /**
  * 標準Type1フォントです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Type1Font.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
-class Type1Font implements PdfFont {
+class Type1Font implements PDFFont {
 	private static final long serialVersionUID = 0L;
 
 	private final AbstractType1FontSource source;
@@ -66,9 +66,9 @@ class Type1Font implements PdfFont {
 	}
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
-		if (gc instanceof PdfGC) {
+		if (gc instanceof PDFGC) {
 			// PDF
-			PdfGraphicsOutput out = ((PdfGC) gc).getPDFGraphicsOutput();
+			PDFGraphicsOutput out = ((PDFGC) gc).getPDFGraphicsOutput();
 			int glen = text.getGLen();
 			int[] gids = text.getGIDs();
 			double[] xadvances = text.getXAdvances(false);
@@ -101,11 +101,11 @@ class Type1Font implements PdfFont {
 			out.endArray();
 			out.writeOperator("TJ");
 		} else {
-			PdfFontUtils.drawAwtFont(gc, this.source, this.source.getAwtFont(), text);
+			PDFFontUtils.drawAwtFont(gc, this.source, this.source.getAwtFont(), text);
 		}
 	}
 
-	public void writeTo(PdfFragmentOutput out, XRef xref) throws IOException {
+	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		out.startObject(this.fontRef);
 		out.startHash();
 		out.writeName("Type");

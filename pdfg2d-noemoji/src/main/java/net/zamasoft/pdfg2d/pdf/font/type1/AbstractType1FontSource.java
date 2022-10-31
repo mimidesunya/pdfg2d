@@ -8,19 +8,19 @@ import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
-import net.zamasoft.pdfg2d.pdf.font.PdfFontSource;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
 import net.zamasoft.pdfg2d.pdf.font.type1.AFMFontInfo.AFMGlyphInfo;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
 import net.zamasoft.pdfg2d.util.IntList;
 
 /**
  * 標準Type1フォントです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: AbstractType1FontSource.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
-public abstract class AbstractType1FontSource extends AbstractFontSource implements PdfFontSource {
+public abstract class AbstractType1FontSource extends AbstractFontSource implements PDFFontSource {
 	private static final long serialVersionUID = 1L;
 
 	protected final AFMFontInfo fontInfo;
@@ -55,7 +55,7 @@ public abstract class AbstractType1FontSource extends AbstractFontSource impleme
 
 	protected synchronized Font getAwtFont() {
 		if (this.awtFont == null) {
-			this.awtFont = PdfFontUtils.toAwtFont(this);
+			this.awtFont = PDFFontUtils.toAwtFont(this);
 		}
 		return this.awtFont;
 	}
@@ -169,7 +169,7 @@ public abstract class AbstractType1FontSource extends AbstractFontSource impleme
 		return this.spaceAdvance;
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		return new Type1Font(this, name, this.getEncoding(), fontRef);
 	}
 

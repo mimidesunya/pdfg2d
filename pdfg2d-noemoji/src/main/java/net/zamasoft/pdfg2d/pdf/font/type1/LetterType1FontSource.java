@@ -16,7 +16,7 @@ import net.zamasoft.pdfg2d.util.ShortList;
  * Type1欧文文字フォントです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: LetterType1FontSource.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
 public class LetterType1FontSource extends AbstractType1FontSource {
 	private static final Logger LOG = Logger.getLogger(LetterType1FontSource.class.getName());

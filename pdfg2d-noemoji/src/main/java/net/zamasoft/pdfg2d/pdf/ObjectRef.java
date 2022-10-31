@@ -4,7 +4,7 @@ package net.zamasoft.pdfg2d.pdf;
  * オブジェクトリファレンスです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ObjectRef.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ObjectRef {
 	public final int objectNumber, generationNumber;

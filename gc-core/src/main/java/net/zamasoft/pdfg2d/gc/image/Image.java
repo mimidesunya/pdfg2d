@@ -7,7 +7,7 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
  * 画像です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Image.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface Image {
 	/**

@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import net.zamasoft.pdfg2d.pdf.util.PdfUtils;
+import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
 /**
  * CMapファイルのCID文字セット情報を解析します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CMapParser.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CMapParser {
 	private Reader in;
@@ -116,6 +116,6 @@ public class CMapParser {
 			throw new EOFException();
 		}
 		String s = buff.toString();
-		return PdfUtils.decodeName(s, "MS932");
+		return PDFUtils.decodeName(s, "MS932");
 	}
 }

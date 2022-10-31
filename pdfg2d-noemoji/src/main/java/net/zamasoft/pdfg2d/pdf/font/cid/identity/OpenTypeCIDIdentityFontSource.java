@@ -6,7 +6,7 @@ import java.io.IOException;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.otf.OpenTypeFontSource;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
 
 /**
@@ -25,7 +25,7 @@ public class OpenTypeCIDIdentityFontSource extends OpenTypeFontSource implements
 		return TYPE_CID_IDENTITY;
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		return new OpenTypeCIDIdentityFont(this, name, fontRef);
 	}
 

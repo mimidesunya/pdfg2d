@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils;
  * 一時ファイルとしてデータをキャッシュし、アクセスできるようにします。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CachedSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CachedSourceResolver implements SourceResolver {
 	protected static class CachedSourceInfo {
@@ -165,10 +165,5 @@ public class CachedSourceResolver implements SourceResolver {
 
 	public void dispose() {
 		this.reset();
-	}
-
-	protected void finalize() throws Throwable {
-		this.dispose();
-		super.finalize();
 	}
 }

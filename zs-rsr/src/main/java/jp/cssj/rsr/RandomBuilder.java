@@ -1,5 +1,6 @@
 package jp.cssj.rsr;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -19,9 +20,9 @@ import java.io.IOException;
  * </p>
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: RandomBuilder.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
-public interface RandomBuilder {
+public interface RandomBuilder extends Closeable {
 	/**
 	 * 断片の位置情報です。
 	 */
@@ -34,8 +35,7 @@ public interface RandomBuilder {
 		 * これは getPositionInfo が呼び出された時点の値で、 その後の RandomBuilder に対する操作は影響しません。
 		 * </p>
 		 * 
-		 * @param id
-		 *            断片のID。
+		 * @param id 断片のID。
 		 * @return 断片の先頭の位置。
 		 */
 		public long getPosition(int id);
@@ -51,8 +51,7 @@ public interface RandomBuilder {
 	/**
 	 * 指定した断片の直前に断片を挿入します。
 	 * 
-	 * @param anchorId
-	 *            断片のID。
+	 * @param anchorId 断片のID。
 	 * @throws IOException
 	 */
 	public void insertBlockBefore(int anchorId) throws IOException;
@@ -60,14 +59,10 @@ public interface RandomBuilder {
 	/**
 	 * 断片にデータを追加します。
 	 * 
-	 * @param id
-	 *            断片のID。
-	 * @param b
-	 *            バイト列。
-	 * @param off
-	 *            バイト列中のデータの開始位置。
-	 * @param len
-	 *            バイト列中のデータの長さ。
+	 * @param id  断片のID。
+	 * @param b   バイト列。
+	 * @param off バイト列中のデータの開始位置。
+	 * @param len バイト列中のデータの長さ。
 	 * @throws IOException
 	 */
 	public void write(int id, byte[] b, int off, int len) throws IOException;
@@ -89,8 +84,7 @@ public interface RandomBuilder {
 	/**
 	 * 断片への書き込みを終了します。 この呼び出しは必須ではありませんが、データの構築を効率化する可能性があります。
 	 * 
-	 * @param id
-	 *            断片のID。
+	 * @param id 断片のID。
 	 * @throws IOException
 	 */
 	public void closeBlock(int id) throws IOException;
@@ -100,16 +94,5 @@ public interface RandomBuilder {
 	 * 
 	 * @throws IOException
 	 */
-	public void finish() throws IOException;
-
-	/**
-	 * <p>
-	 * 構築のためのリソースを破棄します。
-	 * </p>
-	 * <p>
-	 * RandomBuilder は処理のために一時ファイルなどのリソースを使用するため、
-	 * 不要となったオブジェクトに対しては必ずdispose()を呼び出してください。
-	 * </p>
-	 */
-	public void dispose();
+	public void close() throws IOException;
 }

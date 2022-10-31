@@ -7,7 +7,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * 描画可能なテキストです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Text.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface Text extends Element {
 	public FontStyle getFontStyle();

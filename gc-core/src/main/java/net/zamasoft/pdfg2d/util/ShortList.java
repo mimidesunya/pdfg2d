@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 任意の位置の値をセット可能なshort値の配列です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ShortList.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ShortList implements Serializable {
 	private static final long serialVersionUID = 0;

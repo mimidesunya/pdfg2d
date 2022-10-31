@@ -10,7 +10,7 @@ import jp.cssj.resolver.Source;
  * デフォルトのデータのメタ情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: MetaSourceImpl.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class MetaSourceImpl implements MetaSource {
 	private static final URI CURRENT_URI = URI.create(".");

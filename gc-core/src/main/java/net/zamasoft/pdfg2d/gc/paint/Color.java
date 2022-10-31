@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.gc.paint;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: Color.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface Color extends Paint {
 	public static final short RGB = 1;

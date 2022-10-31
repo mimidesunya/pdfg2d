@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.pdf.font.type1.AFMFontInfo.AFMGlyphInfo;
-import net.zamasoft.pdfg2d.pdf.util.PdfUtils;
+import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
 public class AFMParser {
 	private AFMFontInfo fontInfo;
@@ -318,7 +318,7 @@ public class AFMParser {
 			throw new EOFException();
 		}
 		String s = buff.toString();
-		return PdfUtils.decodeName(s, "MS932");
+		return PDFUtils.decodeName(s, "MS932");
 	}
 
 	private short parseShort() throws ParseException, IOException {

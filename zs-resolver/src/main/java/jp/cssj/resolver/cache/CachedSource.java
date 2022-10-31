@@ -18,7 +18,7 @@ import jp.cssj.resolver.helpers.UnknownSourceValidity;
  * 仮想的なURIと保存されたファイルを結びつけたデータです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CachedSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CachedSource implements Source {
 	private static final Logger LOG = Logger.getLogger(CachedSource.class
@@ -105,11 +105,6 @@ public class CachedSource implements Source {
 
 	public boolean isReader() throws IOException {
 		return this.encoding != null;
-	}
-
-	protected void finalize() {
-		// ここでファイルを消してしまうと副作用が出るので、CachedSourceResolverに任せている
-		this.close();
 	}
 
 	public SourceValidity getValidity() {

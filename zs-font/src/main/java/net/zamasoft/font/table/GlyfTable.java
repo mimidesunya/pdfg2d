@@ -25,7 +25,7 @@ import net.zamasoft.font.truetype.GlyfDescript;
 import net.zamasoft.font.truetype.GlyfSimpleDescript;
 
 /**
- * @version $Id: GlyfTable.java 1233 2014-05-10 11:57:38Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public class GlyfTable implements Table {

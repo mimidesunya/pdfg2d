@@ -20,7 +20,7 @@ import jp.cssj.resolver.helpers.URIHelper;
  * ZIPファイルからデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ZipFileSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ZipFileSource extends AbstractSource {
 	private static final Logger LOG = Logger.getLogger(ZipFileSource.class

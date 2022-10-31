@@ -4,15 +4,15 @@ import java.awt.geom.PathIterator;
 import java.io.IOException;
 import java.net.URI;
 
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
-import net.zamasoft.pdfg2d.pdf.PdfPageOutput;
-import net.zamasoft.pdfg2d.pdf.params.PdfParams;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
+import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
  * Linkアノテーションです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: LinkAnnot.java 1587 2019-06-10 01:42:25Z miyabe $
+ * @since 1.0
  */
 public class LinkAnnot extends Annot {
 	protected URI uri;
@@ -25,7 +25,7 @@ public class LinkAnnot extends Annot {
 		this.uri = uri;
 	}
 
-	public void writeTo(PdfOutput out, PdfPageOutput pageOut) throws IOException {
+	public void writeTo(PDFOutput out, PDFPageOutput pageOut) throws IOException {
 		super.writeTo(out, pageOut);
 
 		// 境界線が表示されないようにする
@@ -42,7 +42,7 @@ public class LinkAnnot extends Annot {
 		out.lineBreak();
 
 		int pdfVersion = pageOut.getPdfWriter().getParams().getVersion();
-		if (pdfVersion >= PdfParams.VERSION_1_6 && !this.shape.equals(this.shape.getBounds2D())) {
+		if (pdfVersion >= PDFParams.VERSION_1_6 && !this.shape.equals(this.shape.getBounds2D())) {
 			// 矩形以外のリンク領域
 			double[] cord = new double[6];
 

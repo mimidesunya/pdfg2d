@@ -7,16 +7,16 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.params.PdfParams;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: NameTreeFlow.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 abstract class NameTreeFlow {
-	public final PdfFragmentOutputImpl out;
+	public final PDFFragmentOutputImpl out;
 
-	private final PdfWriterImpl pdfWriter;
+	private final PDFWriterImpl pdfWriter;
 
 	private final NameDictionaryFlow nameDict;
 
@@ -24,11 +24,11 @@ abstract class NameTreeFlow {
 
 	private SortedMap<String, Object> nameToEntry = null;
 
-	public NameTreeFlow(PdfWriterImpl pdfWriter, String key) throws IOException {
+	public NameTreeFlow(PDFWriterImpl pdfWriter, String key) throws IOException {
 		this.pdfWriter = pdfWriter;
 		this.key = key;
 
-		PdfFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
 		this.out = mainFlow.forkFragment();
 		this.nameDict = pdfWriter.nameDict;
 	}
@@ -49,7 +49,7 @@ abstract class NameTreeFlow {
 			this.out.startHash();
 
 			// PDF 1.2以前ではトップレベルのNames配列がサポートされていない
-			if (this.pdfWriter.params.getVersion() <= PdfParams.VERSION_1_2) {
+			if (this.pdfWriter.params.getVersion() <= PDFParams.VERSION_1_2) {
 				this.out.writeName("Kids");
 				this.out.startArray();
 				ObjectRef destsKidRef = this.pdfWriter.xref.nextObjectRef();

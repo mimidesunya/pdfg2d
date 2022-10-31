@@ -2,14 +2,14 @@ package net.zamasoft.pdfg2d.pdf.action;
 
 import java.io.IOException;
 
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
-import net.zamasoft.pdfg2d.pdf.params.PdfParams;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 public class Action {
-	protected PdfParams params;
+	protected PDFParams params;
 	private Action[] next = null;
 
-	public void setParams(PdfParams params) {
+	public void setParams(PDFParams params) {
 		this.params = params;
 	}
 
@@ -21,7 +21,7 @@ public class Action {
 		this.next = next;
 	}
 
-	public void writeTo(PdfOutput out) throws IOException {
+	public void writeTo(PDFOutput out) throws IOException {
 		out.writeName("Type");
 		out.writeName("Action");
 		out.lineBreak();

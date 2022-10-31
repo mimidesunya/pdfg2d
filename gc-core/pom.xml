@@ -7,7 +7,7 @@
 	<packaging>jar</packaging>
 	<name>Sakae Core</name>
 	<description>Sakae(PDF出力ライブラリ)のフレームワークです。簡単なフラフィックコンテキストです。</description>
-	<url>https://copper.osdn.jp/sakae-core/</url>
+	<url>ttps://github.com/mimidesunya/pdfg2d/gc-core/</url>
 
 	<dependencies>
 		<dependency>
@@ -16,19 +16,19 @@
 			<version>[4.4,)</version>
 		</dependency>
 		<dependency>
-			<groupId>net.zamasoft</groupId>
+			<groupId>com.github.mimidesunya</groupId>
 			<artifactId>zs-resolver</artifactId>
-			<version>1.1.0</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>net.zamasoft</groupId>
+			<groupId>com.github.mimidesunya</groupId>
 			<artifactId>zs-font</artifactId>
-			<version>1.2.2</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>net.zamasoft</groupId>
+			<groupId>com.github.mimidesunya</groupId>
 			<artifactId>zs-rsr</artifactId>
-			<version>1.1.0</version>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -75,11 +75,11 @@
 		</license>
 	</licenses>
 	<organization>
-		<name>座間ソフト</name>
+		<name>Zamasoft</name>
 		<url>https://zamasoft.net/</url>
 	</organization>
 	<parent>
-		<groupId>net.zamasoft</groupId>
+		<groupId>com.github.mimidesunya</groupId>
 		<artifactId>pdfg2d</artifactId>
 		<version>1.0.0</version>
 	</parent>

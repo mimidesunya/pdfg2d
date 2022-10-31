@@ -11,16 +11,16 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDUtils;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
 
-class OpenTypeCIDIdentityFont extends OpenTypeFont implements PdfFont {
+class OpenTypeCIDIdentityFont extends OpenTypeFont implements PDFFont {
 	private static final long serialVersionUID = 0L;
 
 	protected final ObjectRef fontRef;
@@ -87,8 +87,8 @@ class OpenTypeCIDIdentityFont extends OpenTypeFont implements PdfFont {
 	}
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
-		if (gc instanceof PdfGC) {
-			PdfFontUtils.drawCIDTo(((PdfGC) gc).getPDFGraphicsOutput(), text, this.isVertical());
+		if (gc instanceof PDFGC) {
+			PDFFontUtils.drawCIDTo(((PDFGC) gc).getPDFGraphicsOutput(), text, this.isVertical());
 		} else {
 			FontUtils.drawText(gc, this, text);
 		}
@@ -105,7 +105,7 @@ class OpenTypeCIDIdentityFont extends OpenTypeFont implements PdfFont {
 		}
 	}
 
-	public void writeTo(PdfFragmentOutput out, XRef xref) throws IOException {
+	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		OpenTypeCIDIdentityFontSource source = (OpenTypeCIDIdentityFontSource) this.getFontSource();
 		short[] w = this.widths.toArray();
 		short[] w2;

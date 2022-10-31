@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
  * 
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: AESEncryptor.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class AESEncryptor implements Encryptor {
 	private final Key key;

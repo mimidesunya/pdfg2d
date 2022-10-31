@@ -7,7 +7,7 @@ import java.net.URI;
  * データのメタ情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: MetaSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface MetaSource {
 	/**

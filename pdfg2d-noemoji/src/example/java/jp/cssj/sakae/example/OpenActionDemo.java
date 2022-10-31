@@ -15,7 +15,7 @@ import jp.cssj.sakae.pdf.params.PdfParams;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: OpenActionDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class OpenActionDemo {
 	public static void main(String[] args) throws Exception {

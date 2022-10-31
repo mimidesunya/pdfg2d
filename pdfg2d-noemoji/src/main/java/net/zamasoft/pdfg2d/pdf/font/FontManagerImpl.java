@@ -25,14 +25,14 @@ import net.zamasoft.pdfg2d.pdf.font.cid.missing.SpaceCIDFontSource;
  * Implementation of FontManager for PDF.
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontManagerImpl.java 1622 2022-05-02 06:22:56Z miyabe $
+ * @since 1.0
  */
 public class FontManagerImpl implements FontManager {
 	private static final long serialVersionUID = 1L;
 
 	protected final FontSourceManager globaldb;
 
-	protected PdfFontSourceManager localdb = null;
+	protected PDFFontSourceManager localdb = null;
 
 	protected final FontStore fontStore;
 
@@ -50,7 +50,7 @@ public class FontManagerImpl implements FontManager {
 
 	public void addFontFace(FontFace face) throws IOException {
 		if (this.localdb == null) {
-			this.localdb = new PdfFontSourceManager(true);
+			this.localdb = new PDFFontSourceManager(true);
 		}
 		this.localdb.addFontFace(face);
 	}

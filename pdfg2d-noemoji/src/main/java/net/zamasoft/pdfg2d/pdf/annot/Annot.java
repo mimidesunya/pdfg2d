@@ -4,14 +4,14 @@ import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
-import net.zamasoft.pdfg2d.pdf.PdfPageOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
+import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 
 /**
  * アノテーションです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Annot.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public abstract class Annot {
 	protected Shape shape;
@@ -40,7 +40,7 @@ public abstract class Annot {
 		this.contents = contents;
 	}
 
-	public void writeTo(PdfOutput out, PdfPageOutput pageOut) throws IOException {
+	public void writeTo(PDFOutput out, PDFPageOutput pageOut) throws IOException {
 		out.writeName("Type");
 		out.writeName("Annot");
 		out.lineBreak();

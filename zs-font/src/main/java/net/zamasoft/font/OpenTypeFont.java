@@ -22,8 +22,8 @@ import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.zamasoft.font.cff.CffGlyphList;
-import net.zamasoft.font.cff.CffTable;
+import net.zamasoft.font.cff.CFFGlyphList;
+import net.zamasoft.font.cff.CFFTable;
 import net.zamasoft.font.table.DirectoryEntry;
 import net.zamasoft.font.table.GlyfTable;
 import net.zamasoft.font.table.HeadTable;
@@ -41,7 +41,7 @@ import net.zamasoft.font.truetype.TrueTypeGlyphList;
 /**
  * The TrueType font.
  * 
- * @version $Id: OpenTypeFont.java 1352 2014-12-27 02:28:47Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public class OpenTypeFont {
@@ -94,11 +94,11 @@ public class OpenTypeFont {
 			loca.init(this.maxp.getNumGlyphs(), this.head.getIndexToLocFormat() == 0);
 			this.glyphList = new TrueTypeGlyphList(glyf, this.head, this.maxp);
 		} else {
-			CffTable cff = (CffTable) getTable(Table.CFF);
+			CFFTable cff = (CFFTable) getTable(Table.CFF);
 			if (cff != null) {
 				// CFF
 				cff.init();
-				this.glyphList = new CffGlyphList(cff, this.head, this.maxp);
+				this.glyphList = new CFFGlyphList(cff, this.head, this.maxp);
 			} else {
 				throw new IOException("Unsupported font file format.");
 			}

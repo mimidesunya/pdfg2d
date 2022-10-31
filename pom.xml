@@ -6,13 +6,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
  	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.zamasoft</groupId>
+	<groupId>com.github.mimidesunya</groupId>
 	<artifactId>pdfg2d</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0</version>
 	<name>PDFG2D-Base</name>
 	<description>縦書きテキストに対応した、シンプルなグラフィックコンテキストです。</description>
-	<url>https://github.com/mimidesunya/pdfg2d</url>
+	<url>https://github.com/mimidesunya/pdfg2d/</url>
 	
 	<modules>
 		<module>zs-resolver</module>

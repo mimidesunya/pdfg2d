@@ -19,7 +19,7 @@ import net.zamasoft.pdfg2d.util.MapIntMap;
  * CIDフォントのキャラクタマッピング情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CIDTable.java 1608 2021-04-18 03:57:50Z miyabe $
+ * @since 1.0
  */
 public class CIDTable implements Serializable {
 	private static final Logger LOG = Logger.getLogger(CIDTable.class.getName());

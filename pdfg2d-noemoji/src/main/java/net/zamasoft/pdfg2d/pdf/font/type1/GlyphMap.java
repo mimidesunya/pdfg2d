@@ -13,7 +13,7 @@ import java.util.Map;
  * グリフ名とグリフコードの対応表です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: GlyphMap.java 1564 2018-07-04 11:50:51Z miyabe $
+ * @since 1.0
  */
 public class GlyphMap implements Serializable {
 	private static final long serialVersionUID = 0L;

@@ -2,14 +2,17 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.zamasoft</groupId>
+	<groupId>com.github.mimidesunya</groupId>
 	<artifactId>zs-resolver</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.0</version>
+	<version>1.0.0</version>
 	<name>Source Resolver</name>
-	<description>URLの解決のためのライブラリです。</description>
-	<url>http://copper.osdn.jp/zs-resolver/</url>
+	<description>Library for resolving URLs.</description>
+	<url>https://github.com/mimidesunya/pdfg2d/zs-resolver/</url>
 
 	<dependencies>
 		<dependency>
@@ -99,7 +102,7 @@
 		</license>
 	</licenses>
 	<organization>
-		<name>座間ソフト</name>
+		<name>Zamasoft</name>
 		<url>https://zamasoft.net/</url>
 	</organization>
 </project>

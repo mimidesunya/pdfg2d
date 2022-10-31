@@ -304,13 +304,9 @@ public abstract class AbstractRandomAccessFileBuilder implements RandomBuilder {
 		this.segment = 0;
 	}
 
-	public void dispose() {
-		this.clean();
-	}
-
-	protected void finalize() throws IOException {
+	public void close() throws IOException {
 		if (this.first != null || this.raf != null || this.file != null) {
-			this.dispose();
+			this.clean();
 		}
 	}
 }

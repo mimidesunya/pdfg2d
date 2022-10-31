@@ -108,14 +108,18 @@ public class RandomBuilderPositionSupport extends RandomBuilderWrapper implement
 		super.closeBlock(id);
 	}
 
-	public void finish() throws IOException {
-		if (DEBUG) {
-			int total = this.frgs.size();
-			System.out.println(total + "個のフラグメントが生成されました。");
+	public void close() throws IOException {
+		try {
+			if (DEBUG) {
+				int total = this.frgs.size();
+				System.out.println(total + "個のフラグメントが生成されました。");
+			}
+			this.first = null;
+			this.last = null;
+			this.frgs.clear();
+			super.close();
+		} finally {
+			this.builder.close();
 		}
-		this.first = null;
-		this.last = null;
-		this.frgs.clear();
-		super.finish();
 	}
 }

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 1文字についての情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: GlyphInfo.java 1564 2018-07-04 11:50:51Z miyabe $
+ * @since 1.0
  */
 class GlyphInfo implements Serializable {
 	private static final long serialVersionUID = 0;

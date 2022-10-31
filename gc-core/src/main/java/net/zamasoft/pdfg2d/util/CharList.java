@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 任意の位置の値をセット可能なchar値の配列です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CharList.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CharList implements Serializable {
 	private static final long serialVersionUID = 0;

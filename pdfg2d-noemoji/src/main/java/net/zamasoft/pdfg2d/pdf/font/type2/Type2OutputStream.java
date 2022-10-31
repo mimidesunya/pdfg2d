@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * Type2フォントのデータを出力します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Type2OutputStream.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class Type2OutputStream extends FilterOutputStream {
 	public static final byte[] HSTEM = { 1 };

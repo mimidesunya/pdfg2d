@@ -6,19 +6,19 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: NameDictionaryFlow.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class NameDictionaryFlow {
 	private final XRefImpl xref;
 
-	private final PdfFragmentOutputImpl out, catalogFlow;
+	private final PDFFragmentOutputImpl out, catalogFlow;
 
 	private boolean hasEntry = false;
 
-	public NameDictionaryFlow(PdfWriterImpl pdfWriter) throws IOException {
+	public NameDictionaryFlow(PDFWriterImpl pdfWriter) throws IOException {
 		this.xref = pdfWriter.xref;
 
-		PdfFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
 		this.out = mainFlow.forkFragment();
 		this.catalogFlow = pdfWriter.catalogFlow;
 	}

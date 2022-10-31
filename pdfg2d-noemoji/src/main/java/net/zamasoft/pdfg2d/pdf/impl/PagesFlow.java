@@ -6,28 +6,28 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: PagesFlow.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class PagesFlow {
-	private final PdfWriterImpl pdfWriter;
+	private final PDFWriterImpl pdfWriter;
 
 	/** ルートページリファレンス。 */
 	private final ObjectRef rootPageRef;
 
 	/** 子ページ参照フロー。 */
-	private final PdfFragmentOutputImpl pagesKidsFlow;
+	private final PDFFragmentOutputImpl pagesKidsFlow;
 
 	/** ページ数フロー。 */
-	private final PdfFragmentOutputImpl pageCountFlow;
+	private final PDFFragmentOutputImpl pageCountFlow;
 
 	/** ページ数カウンタ */
 	private int pageCount = 0;
 
-	public PagesFlow(PdfWriterImpl pdfWriter, ObjectRef rootPageRef) throws IOException {
+	public PagesFlow(PDFWriterImpl pdfWriter, ObjectRef rootPageRef) throws IOException {
 		this.pdfWriter = pdfWriter;
 		this.rootPageRef = rootPageRef;
 
-		PdfFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
 		mainFlow.startObject(rootPageRef);
 
 		mainFlow.startHash();
@@ -51,11 +51,11 @@ class PagesFlow {
 		mainFlow.endObject();
 	}
 
-	public PdfPageOutputImpl createPage(double width, double height) throws IOException {
+	public PDFPageOutputImpl createPage(double width, double height) throws IOException {
 		// ページオブジェクト
 		++this.pageCount;
 
-		return new PdfPageOutputImpl(this.pdfWriter, this.rootPageRef, this.pagesKidsFlow, width, height);
+		return new PDFPageOutputImpl(this.pdfWriter, this.rootPageRef, this.pagesKidsFlow, width, height);
 	}
 
 	public void close() throws IOException {

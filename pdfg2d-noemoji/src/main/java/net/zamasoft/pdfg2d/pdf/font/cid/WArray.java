@@ -11,7 +11,7 @@ import net.zamasoft.pdfg2d.util.ShortMapIterator;
  * フォントのDW,W属性です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: WArray.java 1608 2021-04-18 03:57:50Z miyabe $
+ * @since 1.0
  */
 public class WArray implements Serializable {
 	private static final long serialVersionUID = 0;

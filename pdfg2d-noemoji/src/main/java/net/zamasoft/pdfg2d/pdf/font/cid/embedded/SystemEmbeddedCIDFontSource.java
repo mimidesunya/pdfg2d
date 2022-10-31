@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.pdf.font.cid.embedded;
 import java.awt.Font;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.SystemCIDFontSource;
 
 /**
@@ -18,7 +18,7 @@ public class SystemEmbeddedCIDFontSource extends SystemCIDFontSource {
 		super(font);
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		return new SystemEmbeddedCIDFont(this, name, fontRef);
 	}
 

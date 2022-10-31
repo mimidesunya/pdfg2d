@@ -2,9 +2,9 @@ package net.zamasoft.pdfg2d.pdf.font.cid;
 
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 
-public abstract class CIDFont implements PdfFont {
+public abstract class CIDFont implements PDFFont {
 	private static final long serialVersionUID = 0L;
 
 	protected final FontSource source;

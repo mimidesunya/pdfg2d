@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * @version $Id: CmapFormat.java 1263 2014-06-10 14:40:37Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public abstract class CmapFormat {

@@ -6,7 +6,7 @@ import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: JapaneseBindingRule.java 1570 2018-07-11 05:50:15Z miyabe $
+ * @since 1.0
  */
 public class JapaneseHyphenation implements Hyphenation {
 	private static final CharacterSet ASCII = new BitSetCharacterSet(

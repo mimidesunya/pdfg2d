@@ -216,13 +216,13 @@ public class PNGImage extends SimpleRenderedImage {
 
 	private boolean emitProperties = true;
 
-	private double fileGamma = 45455 / 100000.0F;
+	private float fileGamma = 45455 / 100000.0F;
 
-	private double userExponent = 1.0F;
+	private float userExponent = 1.0F;
 
-	private double displayExponent = 2.2F;
+	private float displayExponent = 2.2F;
 
-	private double[] chromaticity = null;
+	private float[] chromaticity = null;
 
 	private int sRGBRenderingIntent = -1;
 
@@ -359,8 +359,8 @@ public class PNGImage extends SimpleRenderedImage {
 		this.output8BitGray = decodeParam.getOutput8BitGray();
 		this.expandGrayAlpha = decodeParam.getExpandGrayAlpha();
 		if (decodeParam.getPerformGammaCorrection()) {
-			this.userExponent = decodeParam.getUserExponent();
-			this.displayExponent = decodeParam.getDisplayExponent();
+			this.userExponent = (float)decodeParam.getUserExponent();
+			this.displayExponent = (float)decodeParam.getDisplayExponent();
 			this.performGammaCorrection = true;
 			this.output8BitGray = true;
 		}
@@ -550,9 +550,9 @@ public class PNGImage extends SimpleRenderedImage {
 
 		if (this.performGammaCorrection) {
 			// Assume file gamma is 1/2.2 unless we get a gAMA chunk
-			double gamma = (1.0F / 2.2F) * (this.displayExponent / this.userExponent);
+			float gamma = (1.0F / 2.2F) * (this.displayExponent / this.userExponent);
 			if (this.emitProperties) {
-				this.properties.put("gamma", new Float(gamma));
+				this.properties.put("gamma", Float.valueOf(gamma));
 			}
 		}
 
@@ -956,7 +956,7 @@ public class PNGImage extends SimpleRenderedImage {
 			return;
 		}
 
-		this.chromaticity = new double[8];
+		this.chromaticity = new float[8];
 		this.chromaticity[0] = chunk.getInt4(0) / 100000.0F;
 		this.chromaticity[1] = chunk.getInt4(4) / 100000.0F;
 		this.chromaticity[2] = chunk.getInt4(8) / 100000.0F;
@@ -967,14 +967,14 @@ public class PNGImage extends SimpleRenderedImage {
 		this.chromaticity[7] = chunk.getInt4(28) / 100000.0F;
 
 		if (this.emitProperties) {
-			this.properties.put("white_point_x", new Float(this.chromaticity[0]));
-			this.properties.put("white_point_y", new Float(this.chromaticity[1]));
-			this.properties.put("red_x", new Float(this.chromaticity[2]));
-			this.properties.put("red_y", new Float(this.chromaticity[3]));
-			this.properties.put("green_x", new Float(this.chromaticity[4]));
-			this.properties.put("green_y", new Float(this.chromaticity[5]));
-			this.properties.put("blue_x", new Float(this.chromaticity[6]));
-			this.properties.put("blue_y", new Float(this.chromaticity[7]));
+			this.properties.put("white_point_x", Float.valueOf(this.chromaticity[0]));
+			this.properties.put("white_point_y", Float.valueOf(this.chromaticity[1]));
+			this.properties.put("red_x", Float.valueOf(this.chromaticity[2]));
+			this.properties.put("red_y", Float.valueOf(this.chromaticity[3]));
+			this.properties.put("green_x", Float.valueOf(this.chromaticity[4]));
+			this.properties.put("green_y", Float.valueOf(this.chromaticity[5]));
+			this.properties.put("blue_x", Float.valueOf(this.chromaticity[6]));
+			this.properties.put("blue_y", Float.valueOf(this.chromaticity[7]));
 		}
 	}
 
@@ -986,9 +986,9 @@ public class PNGImage extends SimpleRenderedImage {
 
 		this.fileGamma = chunk.getInt4(0) / 100000.0F;
 
-		double exp = this.performGammaCorrection ? this.displayExponent / this.userExponent : 1.0F;
+		float exp = this.performGammaCorrection ? this.displayExponent / this.userExponent : 1.0F;
 		if (this.emitProperties) {
-			this.properties.put("gamma", new Float(this.fileGamma * exp));
+			this.properties.put("gamma", Float.valueOf(this.fileGamma * exp));
 		}
 	}
 
@@ -1022,7 +1022,7 @@ public class PNGImage extends SimpleRenderedImage {
 		if (this.emitProperties) {
 			this.properties.put("x_pixels_per_unit", NumberUtils.intValue(xPixelsPerUnit));
 			this.properties.put("y_pixels_per_unit", NumberUtils.intValue(yPixelsPerUnit));
-			this.properties.put("pixel_aspect_ratio", new Float((double) xPixelsPerUnit / yPixelsPerUnit));
+			this.properties.put("pixel_aspect_ratio", Float.valueOf((float) xPixelsPerUnit / yPixelsPerUnit));
 			if (unitSpecifier == 1) {
 				this.properties.put("pixel_units", "Meters");
 			} else if (unitSpecifier != 0) {
@@ -1061,7 +1061,7 @@ public class PNGImage extends SimpleRenderedImage {
 		// settings for gamma and chroma.
 		this.fileGamma = 45455 / 100000.0F;
 
-		this.chromaticity = new double[8];
+		this.chromaticity = new float[8];
 		this.chromaticity[0] = 31270 / 10000.0F;
 		this.chromaticity[1] = 32900 / 10000.0F;
 		this.chromaticity[2] = 64000 / 10000.0F;
@@ -1073,17 +1073,17 @@ public class PNGImage extends SimpleRenderedImage {
 
 		if (this.performGammaCorrection) {
 			// File gamma is 1/2.2
-			double gamma = this.fileGamma * (this.displayExponent / this.userExponent);
+			float gamma = this.fileGamma * (this.displayExponent / this.userExponent);
 			if (this.emitProperties) {
-				this.properties.put("gamma", new Float(gamma));
-				this.properties.put("white_point_x", new Float(this.chromaticity[0]));
-				this.properties.put("white_point_y", new Float(this.chromaticity[1]));
-				this.properties.put("red_x", new Float(this.chromaticity[2]));
-				this.properties.put("red_y", new Float(this.chromaticity[3]));
-				this.properties.put("green_x", new Float(this.chromaticity[4]));
-				this.properties.put("green_y", new Float(this.chromaticity[5]));
-				this.properties.put("blue_x", new Float(this.chromaticity[6]));
-				this.properties.put("blue_y", new Float(this.chromaticity[7]));
+				this.properties.put("gamma", Float.valueOf(gamma));
+				this.properties.put("white_point_x", Float.valueOf(this.chromaticity[0]));
+				this.properties.put("white_point_y", Float.valueOf(this.chromaticity[1]));
+				this.properties.put("red_x", Float.valueOf(this.chromaticity[2]));
+				this.properties.put("red_y", Float.valueOf(this.chromaticity[3]));
+				this.properties.put("green_x", Float.valueOf(this.chromaticity[4]));
+				this.properties.put("green_y", Float.valueOf(this.chromaticity[5]));
+				this.properties.put("blue_x", Float.valueOf(this.chromaticity[6]));
+				this.properties.put("blue_y", Float.valueOf(this.chromaticity[7]));
 			}
 		}
 	}

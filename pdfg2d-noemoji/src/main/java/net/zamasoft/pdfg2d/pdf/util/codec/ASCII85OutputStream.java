@@ -55,7 +55,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
 
 /**
  * This class applies a ASCII85 encoding to the stream.
@@ -128,7 +128,7 @@ public class ASCII85OutputStream extends FilterOutputStream {
 			int firstpart = (nosplit ? 0 : len - (this.posinline + len - 80));
 			if (firstpart > 0)
 				this.out.write(buf, 0, firstpart);
-			this.out.write(PdfOutput.EOL);
+			this.out.write(PDFOutput.EOL);
 			int rest = len - firstpart;
 			if (rest > 0)
 				this.out.write(buf, firstpart, rest);

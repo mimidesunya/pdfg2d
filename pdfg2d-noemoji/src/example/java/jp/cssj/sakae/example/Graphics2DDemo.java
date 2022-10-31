@@ -26,7 +26,7 @@ import jp.cssj.sakae.pdf.impl.PdfWriterImpl;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: Graphics2DDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class Graphics2DDemo {
 	public static void main(String[] args) throws Exception {

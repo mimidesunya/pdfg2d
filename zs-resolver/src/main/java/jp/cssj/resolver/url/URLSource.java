@@ -21,7 +21,7 @@ import jp.cssj.resolver.helpers.AbstractSource;
  * java.net.URLからデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: URLSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class URLSource extends AbstractSource {
 	private static final Logger LOG = Logger.getLogger(URLSource.class

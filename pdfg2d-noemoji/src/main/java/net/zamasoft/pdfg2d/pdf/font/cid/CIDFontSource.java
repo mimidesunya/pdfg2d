@@ -1,13 +1,13 @@
 package net.zamasoft.pdfg2d.pdf.font.cid;
 
 import net.zamasoft.pdfg2d.gc.font.Panose;
-import net.zamasoft.pdfg2d.pdf.font.PdfFontSource;
+import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: CIDFontSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
-public interface CIDFontSource extends PdfFontSource {
+public interface CIDFontSource extends PDFFontSource {
 	/**
 	 * PANOSE-1コードを返します。
 	 * 

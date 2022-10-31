@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
 import net.zamasoft.pdfg2d.pdf.params.EncryptionParams;
 import net.zamasoft.pdfg2d.pdf.params.Permissions;
@@ -53,7 +53,7 @@ public class Encryption {
 
 	private Encryptor encryptor;
 
-	public Encryption(PdfFragmentOutput mainFlow, XRef xref, byte[][] fileid, EncryptionParams params)
+	public Encryption(PDFFragmentOutput mainFlow, XRef xref, byte[][] fileid, EncryptionParams params)
 			throws IOException {
 		try {
 			this.md5 = MessageDigest.getInstance("MD5");

@@ -9,7 +9,7 @@ import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: Font.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
 public interface Font extends Serializable {
 	/**

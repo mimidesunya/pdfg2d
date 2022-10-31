@@ -11,7 +11,7 @@ import jp.cssj.resolver.SourceResolver;
  * ZIPファイルをデータ源とするSourceResolverです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ZipFileSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ZipFileSourceResolver implements SourceResolver {
 	protected final ZipFile zip;

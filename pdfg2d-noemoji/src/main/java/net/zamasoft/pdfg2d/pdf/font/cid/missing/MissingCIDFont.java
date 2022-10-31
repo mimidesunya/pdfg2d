@@ -18,17 +18,17 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfEmbeddedFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFEmbeddedFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDUtils;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
 
-class MissingCIDFont extends CIDFont implements PdfEmbeddedFont, ShapedFont {
+class MissingCIDFont extends CIDFont implements PDFEmbeddedFont, ShapedFont {
 	private static final long serialVersionUID = 2L;
 
 	protected final ShortList advances = new ShortList(Short.MIN_VALUE);
@@ -85,15 +85,15 @@ class MissingCIDFont extends CIDFont implements PdfEmbeddedFont, ShapedFont {
 	}
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
-		if (gc instanceof PdfGC) {
-			PdfFontUtils.drawCIDTo(((PdfGC) gc).getPDFGraphicsOutput(), text,
+		if (gc instanceof PDFGC) {
+			PDFFontUtils.drawCIDTo(((PDFGC) gc).getPDFGraphicsOutput(), text,
 					this.source.getDirection() == FontStyle.DIRECTION_TB);
 		} else {
 			FontUtils.drawText(gc, this, text);
 		}
 	}
 
-	public void writeTo(PdfFragmentOutput out, XRef xref) throws IOException {
+	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		MissingCIDFontSource source = (MissingCIDFontSource) this.source;
 		int[] unicodeArray = this.unicodes.toArray();
 		short[] w = this.advances.toArray();

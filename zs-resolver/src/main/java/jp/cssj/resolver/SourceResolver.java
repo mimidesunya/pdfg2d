@@ -8,7 +8,7 @@ import java.net.URI;
  * URIに対応するソースを取得します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: SourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface SourceResolver {
 	/**

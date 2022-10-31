@@ -13,7 +13,7 @@ import jp.cssj.resolver.SourceResolver;
  * SourcResolverをラップし、ワイルドカードパターンでアクセスを許可・禁止します。 デフォルトでは全てのURIへのアクセスが禁止された状態です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: RestrictedSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class RestrictedSourceResolver implements SourceResolver {
 	private SourceResolver enclosedSourceResolver;

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * データの更新情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: SourceValidity.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface SourceValidity extends Serializable {
 	/** データが更新されている。 */

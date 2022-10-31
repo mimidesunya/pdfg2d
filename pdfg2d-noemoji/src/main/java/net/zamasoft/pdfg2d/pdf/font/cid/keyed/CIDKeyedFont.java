@@ -11,15 +11,15 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
-import net.zamasoft.pdfg2d.pdf.PdfGraphicsOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDUtils;
 import net.zamasoft.pdfg2d.pdf.font.cid.CMap;
 import net.zamasoft.pdfg2d.pdf.font.cid.WArray;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 
 class CIDKeyedFont extends CIDFont {
 	private static final long serialVersionUID = 1L;
@@ -42,8 +42,8 @@ class CIDKeyedFont extends CIDFont {
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
 		assert text.getCLen() > 0;
-		if (gc instanceof PdfGC) {
-			PdfGraphicsOutput out = ((PdfGC) gc).getPDFGraphicsOutput();
+		if (gc instanceof PDFGC) {
+			PDFGraphicsOutput out = ((PDFGC) gc).getPDFGraphicsOutput();
 			// ネイティブの文字コード
 			char[] ch = text.getChars();
 			int clen = text.getCLen();
@@ -82,11 +82,11 @@ class CIDKeyedFont extends CIDFont {
 			}
 		} else {
 			CIDKeyedFontSource source = (CIDKeyedFontSource) this.getFontSource();
-			PdfFontUtils.drawAwtFont(gc, source, source.getAwtFont(), text);
+			PDFFontUtils.drawAwtFont(gc, source, source.getAwtFont(), text);
 		}
 	}
 
-	private void writeByte8(PdfGraphicsOutput out, char[] ch, int off, int len) throws IOException {
+	private void writeByte8(PDFGraphicsOutput out, char[] ch, int off, int len) throws IOException {
 		if (this.charsetEncoder == null) {
 			this.charsetEncoder = this.cmap.getCIDTable().getCharset().newEncoder();
 			this.cbuff = CharBuffer.allocate(CALLOC);
@@ -116,7 +116,7 @@ class CIDKeyedFont extends CIDFont {
 		this.bbuff.clear();
 	}
 
-	public void writeTo(PdfFragmentOutput out, XRef xref) throws IOException {
+	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		CIDKeyedFontSource source = (CIDKeyedFontSource) this.source;
 
 		// 主フォント

@@ -10,13 +10,13 @@ import java.util.TreeMap;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 class ResourceFlow {
-	private final PdfFragmentOutputImpl out;
+	private final PDFFragmentOutputImpl out;
 
-	private final Map<String, PdfFragmentOutputImpl> typeToFlow = new TreeMap<String, PdfFragmentOutputImpl>();
-	private final List<PdfFragmentOutputImpl> flowList = new ArrayList<PdfFragmentOutputImpl>();
+	private final Map<String, PDFFragmentOutputImpl> typeToFlow = new TreeMap<String, PDFFragmentOutputImpl>();
+	private final List<PDFFragmentOutputImpl> flowList = new ArrayList<PDFFragmentOutputImpl>();
 	private final Map<String, ObjectRef> idToObjectRef = new HashMap<String, ObjectRef>();
 
-	public ResourceFlow(PdfFragmentOutputImpl flow) throws IOException {
+	public ResourceFlow(PDFFragmentOutputImpl flow) throws IOException {
 		flow.startHash();
 		flow.writeName("ProcSet");
 		flow.startArray();
@@ -31,8 +31,8 @@ class ResourceFlow {
 		flow.endHash();
 	}
 
-	private PdfFragmentOutputImpl getFlow(String type) throws IOException {
-		PdfFragmentOutputImpl flow = (PdfFragmentOutputImpl) this.typeToFlow.get(type);
+	private PDFFragmentOutputImpl getFlow(String type) throws IOException {
+		PDFFragmentOutputImpl flow = (PDFFragmentOutputImpl) this.typeToFlow.get(type);
 		if (flow == null) {
 			flow = this.out.forkFragment();
 			this.typeToFlow.put(type, flow);
@@ -59,7 +59,7 @@ class ResourceFlow {
 	 */
 	public void put(String type, String name, ObjectRef objectRef) throws IOException {
 		assert !this.contains(name);
-		PdfFragmentOutputImpl flow = this.getFlow(type);
+		PDFFragmentOutputImpl flow = this.getFlow(type);
 		flow.writeName(name);
 		flow.writeObjectRef(objectRef);
 		this.idToObjectRef.put(name, objectRef);
@@ -67,7 +67,7 @@ class ResourceFlow {
 
 	public void close() throws IOException {
 		for (int i = 0; i < this.flowList.size(); ++i) {
-			try (PdfFragmentOutputImpl flow = (PdfFragmentOutputImpl) this.flowList.get(i)) {
+			try (PDFFragmentOutputImpl flow = (PDFFragmentOutputImpl) this.flowList.get(i)) {
 				flow.endHash();
 			}
 		}

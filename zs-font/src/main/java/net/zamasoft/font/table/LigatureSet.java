@@ -23,7 +23,7 @@ import java.io.RandomAccessFile;
 /**
  * 
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
- * @version $Id: LigatureSet.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  */
 public class LigatureSet {
 

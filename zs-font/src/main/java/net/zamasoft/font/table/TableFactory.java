@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import net.zamasoft.font.OpenTypeFont;
-import net.zamasoft.font.cff.CffTable;
+import net.zamasoft.font.cff.CFFTable;
 
 /**
  * 
- * @version $Id: TableFactory.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public class TableFactory {
@@ -37,7 +37,7 @@ public class TableFactory {
 		case Table.BASE:
 			break;
 		case Table.CFF:
-			t = new CffTable(de, raf);
+			t = new CFFTable(de, raf);
 			break;
 		case Table.DSIG:
 			break;

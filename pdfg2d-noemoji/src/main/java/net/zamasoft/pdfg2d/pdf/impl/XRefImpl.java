@@ -9,13 +9,13 @@ import java.util.Map;
 
 import jp.cssj.rsr.RandomBuilder.PositionInfo;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
 import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: XRefImpl.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class XRefImpl implements XRef {
 	/** クロスリファレンステーブル。 */
@@ -23,13 +23,13 @@ class XRefImpl implements XRef {
 
 	private final ObjectRef rootRef;
 
-	protected final PdfFragmentOutputImpl mainFlow;
+	protected final PDFFragmentOutputImpl mainFlow;
 
 	private Map<String, Object> attributes;
 
 	private static final byte[] EOF = { '%', '%', 'E', 'O', 'F' };
 
-	XRefImpl(PdfFragmentOutputImpl mainFlow) throws IOException {
+	XRefImpl(PDFFragmentOutputImpl mainFlow) throws IOException {
 		this.mainFlow = mainFlow;
 		this.rootRef = this.nextObjectRef();
 		this.mainFlow.startObject(rootRef);
@@ -52,7 +52,7 @@ class XRefImpl implements XRef {
 
 		// Trailer
 		ByteArrayOutputStream buff = new ByteArrayOutputStream();
-		try (PdfOutput trailerFlow = new PdfOutput(buff, "ISO-8859-1")) {
+		try (PDFOutput trailerFlow = new PDFOutput(buff, "ISO-8859-1")) {
 			trailerFlow.writeOperator("trailer");
 			trailerFlow.startHash();
 
@@ -117,7 +117,7 @@ class XRefImpl implements XRef {
 
 	private final byte[] work = new byte[10];
 
-	private void writeXrefEntry(PdfFragmentOutputImpl out, long byteOffset, int generationNum, boolean inUse)
+	private void writeXrefEntry(PDFFragmentOutputImpl out, long byteOffset, int generationNum, boolean inUse)
 			throws IOException {
 		out.breakBefore();
 		{

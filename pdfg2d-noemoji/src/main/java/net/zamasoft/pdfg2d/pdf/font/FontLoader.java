@@ -182,7 +182,7 @@ public final class FontLoader {
 	 * @return
 	 * @throws IOException
 	 */
-	public static PdfFontSource readSystemFont(FontFace face, byte type, java.awt.Font awtFont,
+	public static PDFFontSource readSystemFont(FontFace face, byte type, java.awt.Font awtFont,
 			Map<String, CMap> nameToCMap) throws IOException {
 		CIDFontSource source;
 		switch (type) {
@@ -242,11 +242,11 @@ public final class FontLoader {
 	 * @return
 	 * @throws IOException
 	 */
-	public static PdfFontSource[] readCIDKeyedFont(Source warrayData, FontFace face, Map<String, CMap> nameToCMap)
+	public static PDFFontSource[] readCIDKeyedFont(Source warrayData, FontFace face, Map<String, CMap> nameToCMap)
 			throws IOException {
 		CMap cmapObj = (CMap) nameToCMap.get(face.cmap);
 		CMap vcmapObj = (face.vcmap == null ? null : (CMap) nameToCMap.get(face.vcmap));
-		PdfFontSource[] result = new PdfFontSource[vcmapObj == null ? 1 : 2];
+		PDFFontSource[] result = new PDFFontSource[vcmapObj == null ? 1 : 2];
 
 		for (int k = 0; k < result.length; ++k) {
 			CIDKeyedFontSource source = new CIDKeyedFontSource(cmapObj, k == 0 ? vcmapObj : null);
@@ -355,7 +355,7 @@ public final class FontLoader {
 	 * @throws ParseException
 	 * @throws IOException
 	 */
-	public static PdfFontSource readLetterType1Font(GlyphMap unicodeEncoding, Encoding pdfEncoding, InputStream in)
+	public static PDFFontSource readLetterType1Font(GlyphMap unicodeEncoding, Encoding pdfEncoding, InputStream in)
 			throws ParseException, IOException {
 		AFMFontInfo font = parseAFM(in);
 		LetterType1FontSource source = new LetterType1FontSource(unicodeEncoding, pdfEncoding, font);
@@ -372,7 +372,7 @@ public final class FontLoader {
 	 * @throws ParseException
 	 * @throws IOException
 	 */
-	public static PdfFontSource readSymbolType1Font(InputStream in, Source toUnicodeFile)
+	public static PDFFontSource readSymbolType1Font(InputStream in, Source toUnicodeFile)
 			throws ParseException, IOException {
 		AFMFontInfo font = parseAFM(in);
 		SymbolicType1FontSource source = new SymbolicType1FontSource(font, toUnicodeFile);

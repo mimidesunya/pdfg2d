@@ -18,7 +18,7 @@
 package net.zamasoft.font.table;
 
 /**
- * @version $Id: Table.java 1263 2014-06-10 14:40:37Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public interface Table {

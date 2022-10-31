@@ -25,7 +25,7 @@ import jp.cssj.resolver.helpers.AbstractSource;
  * HTTP/HTTPS接続からデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: HttpSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class HttpSource extends AbstractSource {
 	private final CloseableHttpClient httpClient;

@@ -17,7 +17,7 @@ import jp.cssj.resolver.url.URLSourceResolver;
  * 複数のSourceResolverを合わせ、複数のスキーマを処理できるようにしたSourceResolverです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CompositeSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CompositeSourceResolver implements SourceResolver {
 	private Map<String, SourceResolver> schemeToResolver = new HashMap<String, SourceResolver>();

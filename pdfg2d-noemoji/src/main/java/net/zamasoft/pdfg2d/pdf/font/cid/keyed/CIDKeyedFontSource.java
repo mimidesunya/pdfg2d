@@ -9,11 +9,11 @@ import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
 import net.zamasoft.pdfg2d.pdf.font.cid.CMap;
 import net.zamasoft.pdfg2d.pdf.font.cid.WArray;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
 
 /**
  * 等幅の一般フォントです。 このフォントはプラットフォームによって書体が変わります。
@@ -142,7 +142,7 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 
 	protected synchronized Font getAwtFont() {
 		if (this.awtFont == null) {
-			this.awtFont = PdfFontUtils.toAwtFont(this);
+			this.awtFont = PDFFontUtils.toAwtFont(this);
 		}
 		return this.awtFont;
 	}
@@ -159,7 +159,7 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 		return this.panose;
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		switch (this.getDirection()) {
 		case FontStyle.DIRECTION_LTR:
 		case FontStyle.DIRECTION_RTL:// TODO RTL

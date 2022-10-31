@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: CMYKColor.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class CMYKColor implements Color, Serializable {
 	private static final long serialVersionUID = 1L;

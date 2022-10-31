@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 任意の位置に値をセット可能なint値の配列です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: IntList.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class IntList implements Serializable {
 	private static final long serialVersionUID = 0;

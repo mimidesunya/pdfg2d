@@ -8,7 +8,7 @@ import jp.cssj.rsr.RandomBuilder;
  * 何も生成しないRandomBuilderです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: NopRandomBuilder.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class NopRandomBuilder implements RandomBuilder {
 	private static final PositionInfo NULL_INFO = new PositionInfo() {
@@ -47,11 +47,7 @@ public class NopRandomBuilder implements RandomBuilder {
 		// ignore
 	}
 
-	public void finish() throws IOException {
-		// ignore
-	}
-
-	public void dispose() {
+	public void close() throws IOException {
 		// ignore
 	}
 }

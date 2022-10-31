@@ -18,7 +18,7 @@ import jp.cssj.resolver.helpers.UnknownSourceValidity;
  * ストリームからデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: StreamSource.java 1577 2018-12-21 02:07:20Z miyabe $
+ * @since 1.0
  */
 public class StreamSource extends AbstractSource {
 	private static final int MARK_LIMIT = 8192;

@@ -4,7 +4,7 @@ package net.zamasoft.pdfg2d.gc.text;
  * 描画可能なテキストです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: AbstractText.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public abstract class AbstractText implements Text {
 	public short getElementType() {

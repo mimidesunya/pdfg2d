@@ -21,10 +21,8 @@ public class RandomBuilderOutputStream extends OutputStream {
 
 	/**
 	 * 
-	 * @param builder
-	 *            書き込み先の RandomBuider。
-	 * @param fragmentId
-	 *            書き込み先の断片ID。
+	 * @param builder    書き込み先の RandomBuider。
+	 * @param fragmentId 書き込み先の断片ID。
 	 */
 	public RandomBuilderOutputStream(RandomBuilder builder, int fragmentId) {
 		if (builder == null) {

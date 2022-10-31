@@ -21,7 +21,7 @@ import org.apache.commons.codec.net.URLCodec;
  * RFC2397,data:スキーマからデータを取得するSourceです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: DataSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class DataSource extends AbstractSource {
 	private String mimeType = null;

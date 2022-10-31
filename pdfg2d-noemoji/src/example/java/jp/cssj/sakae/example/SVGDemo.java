@@ -32,7 +32,7 @@ import jp.cssj.sakae.svg.SVGImage;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: SVGDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class SVGDemo {
 	public static void main(String[] args) throws Exception {

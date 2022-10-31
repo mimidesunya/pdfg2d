@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.pdf.font.cid.missing;
 
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 
 /**
  * 
@@ -58,7 +58,7 @@ public class SpaceCIDFontSource extends MissingCIDFontSource {
 		return false;
 	}
 
-	public PdfFont createFont(String name, ObjectRef fontRef) {
+	public PDFFont createFont(String name, ObjectRef fontRef) {
 		return new SpaceCIDFont(this, name, fontRef);
 	}
 }

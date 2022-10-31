@@ -12,7 +12,7 @@ import jp.cssj.resolver.SourceResolver;
  * java.net.URLを利用してリソースを所得します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: URLSourceResolver.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class URLSourceResolver implements SourceResolver {
 	public Source resolve(URI uri) throws IOException {

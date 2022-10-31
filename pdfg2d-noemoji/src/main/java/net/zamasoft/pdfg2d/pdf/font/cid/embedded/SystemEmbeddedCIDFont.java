@@ -13,17 +13,17 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfFragmentOutput;
+import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
-import net.zamasoft.pdfg2d.pdf.font.PdfEmbeddedFont;
+import net.zamasoft.pdfg2d.pdf.font.PDFEmbeddedFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDUtils;
-import net.zamasoft.pdfg2d.pdf.font.util.PdfFontUtils;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
+import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
 
-class SystemEmbeddedCIDFont extends CIDFont implements PdfEmbeddedFont, ShapedFont {
+class SystemEmbeddedCIDFont extends CIDFont implements PDFEmbeddedFont, ShapedFont {
 	private static final long serialVersionUID = 0L;
 
 	protected final ShortList advances = new ShortList(Short.MIN_VALUE);
@@ -77,15 +77,15 @@ class SystemEmbeddedCIDFont extends CIDFont implements PdfEmbeddedFont, ShapedFo
 	}
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
-		if (gc instanceof PdfGC) {
-			PdfFontUtils.drawCIDTo(((PdfGC) gc).getPDFGraphicsOutput(), text, false);
+		if (gc instanceof PDFGC) {
+			PDFFontUtils.drawCIDTo(((PDFGC) gc).getPDFGraphicsOutput(), text, false);
 		} else {
 			SystemEmbeddedCIDFontSource source = (SystemEmbeddedCIDFontSource) this.getFontSource();
-			PdfFontUtils.drawAwtFont(gc, source, source.getAwtFont(), text);
+			PDFFontUtils.drawAwtFont(gc, source, source.getAwtFont(), text);
 		}
 	}
 
-	public void writeTo(PdfFragmentOutput out, XRef xref) throws IOException {
+	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		SystemEmbeddedCIDFontSource metaFont = (SystemEmbeddedCIDFontSource) this.source;
 		int[] unicodea = this.unicodes.toArray();
 		this.unicodes = null;

@@ -10,11 +10,11 @@
 	<packaging>jar</packaging>
 	<name>pdfg2d SVG Emoji Support</name>
 	<description>Sakae(PDF出力ライブラリ)のPDF出力実装です。</description>
-	<url>https://copper.osdn.jp/sakae-pdf/</url>
+	<url>https://github.com/mimidesunya/pdfg2d/pdfg2d-svg-emoji/</url>
 
 	<dependencies>
 		<dependency>
-			<groupId>net.zamasoft</groupId>
+			<groupId>com.github.mimidesunya</groupId>
 			<artifactId>pdfg2d-noemoji</artifactId>
 			<version>1.0.0</version>
 		</dependency>
@@ -138,7 +138,7 @@
 	</organization>
 
 	<parent>
-		<groupId>net.zamasoft</groupId>
+		<groupId>com.github.mimidesunya</groupId>
 		<artifactId>pdfg2d</artifactId>
 		<version>1.0.0</version>
 	</parent>

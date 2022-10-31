@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * @version $Id: GlyfCompositeComp.java 1356 2014-12-27 08:56:49Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
 public class GlyfCompositeComp {

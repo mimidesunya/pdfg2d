@@ -4,7 +4,7 @@ package net.zamasoft.pdfg2d.pdf.params;
  * 表示設定です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ViewerPreferences.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ViewerPreferences {
 	private boolean hideToolbar = false;

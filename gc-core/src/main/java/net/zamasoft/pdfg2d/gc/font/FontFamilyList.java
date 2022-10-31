@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 1つまたは複数のフォントファミリーです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontFamilyList.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class FontFamilyList implements Serializable {
 	private static final long serialVersionUID = 0;

@@ -19,7 +19,7 @@ import net.zamasoft.pdfg2d.gc.text.Text;
  * テキスト描画・フォント関連のユーティリティです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontUtils.java 1631 2022-05-15 05:43:49Z miyabe $
+ * @since 1.0
  */
 public final class FontUtils {
 	private FontUtils() {

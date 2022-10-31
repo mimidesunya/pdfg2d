@@ -18,7 +18,7 @@ import net.zamasoft.pdfg2d.util.ShortList;
  * Type1シンボリックフォントです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: SymbolicType1FontSource.java 1601 2020-04-18 03:42:26Z miyabe $
+ * @since 1.0
  */
 public class SymbolicType1FontSource extends AbstractType1FontSource {
 	private static final Logger LOG = Logger.getLogger(SymbolicType1FontSource.class.getName());

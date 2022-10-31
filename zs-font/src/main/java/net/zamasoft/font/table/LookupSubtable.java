@@ -20,7 +20,7 @@ package net.zamasoft.font.table;
 /**
  * 
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
- * @version $Id: LookupSubtable.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  */
 public abstract class LookupSubtable {
 

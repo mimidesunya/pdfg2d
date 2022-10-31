@@ -9,7 +9,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * 描画可能なテキストです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: TextImpl.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class TextImpl extends AbstractText implements Serializable {
 	private static final long serialVersionUID = 0L;

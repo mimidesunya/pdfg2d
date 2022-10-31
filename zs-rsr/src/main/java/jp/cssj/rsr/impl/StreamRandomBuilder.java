@@ -9,7 +9,7 @@ import jp.cssj.rsr.Sequential;
  * ストリームに対して結果を構築する RandomBuilder です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: StreamRandomBuilder.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class StreamRandomBuilder extends AbstractRandomAccessFileBuilder implements Sequential {
 	protected final OutputStream out;
@@ -28,16 +28,12 @@ public class StreamRandomBuilder extends AbstractRandomAccessFileBuilder impleme
 		this.out.write(b, off, len);
 	}
 
-	public void finish() throws IOException {
-		this.finish(this.out);
-	}
-
-	public void dispose() {
-		super.dispose();
+	public void close() throws IOException {
 		try {
+			this.finish(this.out);
 			this.out.close();
-		} catch (IOException e) {
-			// ignore
+		} finally {
+			super.close();
 		}
 	}
 }

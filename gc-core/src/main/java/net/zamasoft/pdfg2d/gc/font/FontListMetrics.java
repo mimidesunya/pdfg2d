@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 複数のフォントのメトリックス情報です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontListMetrics.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class FontListMetrics implements Serializable {
 	private static final long serialVersionUID = -1L;

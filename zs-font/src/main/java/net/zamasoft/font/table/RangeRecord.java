@@ -24,7 +24,7 @@ import java.io.RandomAccessFile;
  * Coverage Index (GlyphID) = StartCoverageIndex + GlyphID - Start GlyphID
  * 
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
- * @version $Id: RangeRecord.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  */
 public class RangeRecord {
 

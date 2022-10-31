@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.gc.paint;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: RGBColor.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class RGBColor implements Color {
 	public static final int R = 0, G = 1, B = 2;

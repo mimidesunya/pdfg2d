@@ -32,7 +32,7 @@ import jp.cssj.sakae.pdf.params.PdfParams;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: TextDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class TextDemo {
 	public static void main(String[] args) throws Exception {

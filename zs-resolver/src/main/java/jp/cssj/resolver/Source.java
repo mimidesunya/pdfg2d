@@ -1,5 +1,6 @@
 package jp.cssj.resolver;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,9 +11,9 @@ import java.net.URI;
  * ファイル、ウェブ上の文書等のデータの源です。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Source.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
-public interface Source extends MetaSource {
+public interface Source extends MetaSource, Closeable {
 	/**
 	 * データのURIを返します。
 	 * 

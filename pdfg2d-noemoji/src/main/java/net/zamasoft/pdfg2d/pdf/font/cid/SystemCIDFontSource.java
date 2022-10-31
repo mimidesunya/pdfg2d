@@ -16,7 +16,7 @@ import net.zamasoft.pdfg2d.gc.font.Panose;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: SystemCIDFontSource.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public abstract class SystemCIDFontSource extends AbstractFontSource implements CIDFontSource {
 	private static final long serialVersionUID = 1L;

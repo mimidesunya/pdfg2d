@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: VorgTable.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  */
 public class VorgTable implements Table {
 
@@ -60,7 +60,7 @@ public class VorgTable implements Table {
 				for (int i = 0; i < this.numVertOriginYMetrics; ++i) {
 					int glyphIndex = this.raf.readUnsignedShort();
 					short vertOriginY = this.raf.readShort();
-					this.indexToVertY.put(new Integer(glyphIndex), new Short(vertOriginY));
+					this.indexToVertY.put(Integer.valueOf(glyphIndex), Short.valueOf(vertOriginY));
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -76,7 +76,7 @@ public class VorgTable implements Table {
 
 	public short getVertOrigunY(int ix) {
 		this.load();
-		Short y = (Short) this.indexToVertY.get(new Integer(ix));
+		Short y = (Short) this.indexToVertY.get(Integer.valueOf(ix));
 		if (y == null) {
 			return this.defaultVertOriginY;
 		}

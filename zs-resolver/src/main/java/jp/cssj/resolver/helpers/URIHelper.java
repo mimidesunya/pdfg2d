@@ -16,7 +16,7 @@ import java.util.BitSet;
  * URI解析の補助クラスです。 JavaのURIクラスよりも柔軟に解析します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: URIHelper.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public final class URIHelper {
 	private static final char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',

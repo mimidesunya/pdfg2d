@@ -8,7 +8,7 @@ import jp.cssj.rsr.RandomBuilder;
  * RandomBuilder のラッパークラスです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: RandomBuilderWrapper.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class RandomBuilderWrapper implements RandomBuilder {
 	protected final RandomBuilder builder;
@@ -33,12 +33,8 @@ public class RandomBuilderWrapper implements RandomBuilder {
 		this.builder.closeBlock(id);
 	}
 
-	public void finish() throws IOException {
-		this.builder.finish();
-	}
-
-	public void dispose() {
-		this.builder.dispose();
+	public void close() throws IOException {
+		this.builder.close();
 	}
 
 	public PositionInfo getPositionInfo() {

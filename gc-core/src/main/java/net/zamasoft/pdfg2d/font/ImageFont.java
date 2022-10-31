@@ -9,7 +9,7 @@ import net.zamasoft.pdfg2d.gc.GC;
  * これは絵文字の描画を想定したものであり、テキストの装飾、色、変形は適用しません。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ShapedFont.java 1552 2018-04-26 01:43:24Z miyabe $
+ * @since 1.0
  */
 public interface ImageFont extends DrawableFont {
 	/**

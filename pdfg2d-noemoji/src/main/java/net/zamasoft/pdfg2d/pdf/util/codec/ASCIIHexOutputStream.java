@@ -4,7 +4,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import net.zamasoft.pdfg2d.pdf.PdfOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput;
 
 /**
  * 
@@ -27,7 +27,7 @@ public class ASCIIHexOutputStream extends FilterOutputStream {
 		this.out.write(HEX[((b >> 4) & 0x0F)]);
 		this.out.write(HEX[(b & 0x0F)]);
 		if (++this.pos > 40) {
-			this.out.write(PdfOutput.EOL);
+			this.out.write(PDFOutput.EOL);
 			this.pos = 0;
 		}
 	}

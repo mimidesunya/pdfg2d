@@ -12,7 +12,7 @@ import net.zamasoft.pdfg2d.gc.text.Text;
  * グラフィックコンテキストです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: GC.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface GC {
 	public static final short LINE_JOIN_MITER = 0;

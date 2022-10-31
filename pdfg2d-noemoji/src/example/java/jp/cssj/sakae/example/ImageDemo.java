@@ -16,7 +16,7 @@ import jp.cssj.sakae.pdf.params.PdfParams;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: ImageDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ImageDemo {
 	public static void main(String[] args) throws Exception {

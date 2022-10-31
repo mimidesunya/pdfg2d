@@ -6,7 +6,7 @@ import jp.cssj.resolver.SourceValidity;
  * 常にUNKNOWNを返すSourceValidityです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: UnknownSourceValidity.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class UnknownSourceValidity implements SourceValidity {
 	private static final long serialVersionUID = 0L;

@@ -4,7 +4,7 @@ package net.zamasoft.pdfg2d.gc.text.hyphenation;
  * 言語ごとのハイフネーションです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: Hyphenation.java 1572 2018-07-11 07:22:55Z miyabe $
+ * @since 1.0
  */
 public interface Hyphenation {
 	/**

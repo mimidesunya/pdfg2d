@@ -3,22 +3,22 @@ package net.zamasoft.pdfg2d.pdf.impl;
 import java.io.IOException;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
-import net.zamasoft.pdfg2d.pdf.PdfOutput.Destination;
+import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: OutlineFlow.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 class OutlineFlow {
 	private final XRefImpl xref;
 
-	private final PdfFragmentOutputImpl out, catalogFlow;
+	private final PDFFragmentOutputImpl out, catalogFlow;
 
 	private OutlineEntry firstOutline = null, lastOutline = null, currentOutline = null;
 
 	private int rootOutlineCount = 0;
 
-	public OutlineFlow(PdfWriterImpl pdfWriter) throws IOException {
+	public OutlineFlow(PDFWriterImpl pdfWriter) throws IOException {
 		this.xref = pdfWriter.xref;
 		this.out = pdfWriter.mainFlow.forkFragment();
 		this.catalogFlow = pdfWriter.catalogFlow;

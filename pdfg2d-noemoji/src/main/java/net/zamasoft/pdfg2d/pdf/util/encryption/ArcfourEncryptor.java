@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * 
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: ArcfourEncryptor.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ArcfourEncryptor implements Encryptor {
 	private final int[] orgSalt = new int[256];

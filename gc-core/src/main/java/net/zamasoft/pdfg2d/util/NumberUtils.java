@@ -1,9 +1,9 @@
 package net.zamasoft.pdfg2d.util;
 
 public final class NumberUtils {
-	private static final Short[] S = { new Short((short) 0), new Short((short) 1), new Short((short) 2),
-			new Short((short) 3), };
-	private static final Integer[] I = { new Integer(0), new Integer(1), new Integer(2), new Integer(3), };
+	private static final Short[] S = { Short.valueOf((short) 0), Short.valueOf((short) 1), Short.valueOf((short) 2),
+			Short.valueOf((short) 3), };
+	private static final Integer[] I = { Integer.valueOf(0), Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3), };
 
 	private NumberUtils() {
 		// unused
@@ -13,14 +13,14 @@ public final class NumberUtils {
 		if (a >= 0 && a < I.length) {
 			return I[a];
 		}
-		return new Integer(a);
+		return Integer.valueOf(a);
 	}
 
 	public static Short shortValue(short a) {
 		if (a >= 0 && a < S.length) {
 			return S[a];
 		}
-		return new Short(a);
+		return Short.valueOf(a);
 	}
 
 	public static double parseDouble(String str) {

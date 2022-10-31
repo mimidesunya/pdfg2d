@@ -37,7 +37,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import net.zamasoft.pdfg2d.g2d.image.RasterImageImpl;
-import net.zamasoft.pdfg2d.g2d.util.G2dUtils;
+import net.zamasoft.pdfg2d.g2d.util.G2DUtils;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
@@ -53,7 +53,7 @@ import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
  * SakaeグラフィックコンテキストにJavaグラフィックコンテキストによりアクセスするためのクラスです。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: BridgeGraphics2D.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 	protected GC gc;
@@ -95,7 +95,7 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 
 	private void restoreState() {
 		this.gc.resetState();
-		Color gcolor = G2dUtils.fromAwtColor(this.foreground);
+		Color gcolor = G2DUtils.fromAwtColor(this.foreground);
 		this.gc.setStrokePaint(gcolor);
 		this.gc.setFillPaint(gcolor);
 		if (this.stroke instanceof BasicStroke) {
@@ -179,7 +179,7 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		if (paint instanceof java.awt.Color) {
 			this.foreground = (java.awt.Color) paint;
 		}
-		Paint spaint = G2dUtils.fromAwtPaint(paint);
+		Paint spaint = G2DUtils.fromAwtPaint(paint);
 		if (spaint != null) {
 			this.gc.setStrokePaint(spaint);
 			this.gc.setFillPaint(spaint);
@@ -553,9 +553,9 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 	}
 
 	public void clearRect(int x, int y, int width, int height) {
-		this.gc.setFillPaint(G2dUtils.fromAwtColor(this.getBackground()));
+		this.gc.setFillPaint(G2DUtils.fromAwtColor(this.getBackground()));
 		this.gc.fill(new Rectangle(x, y, width, height));
-		this.gc.setStrokePaint(G2dUtils.fromAwtColor(this.getColor()));
+		this.gc.setStrokePaint(G2DUtils.fromAwtColor(this.getColor()));
 
 	}
 

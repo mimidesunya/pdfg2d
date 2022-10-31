@@ -25,19 +25,19 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGC;
-import net.zamasoft.pdfg2d.pdf.gc.PdfGroupImage;
-import net.zamasoft.pdfg2d.pdf.params.PdfParams;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.svg.Dimension2DImpl;
 import net.zamasoft.pdfg2d.svg.GVTBuilderImpl;
-import net.zamasoft.pdfg2d.svg.SvgBridgeGraphics2D;
-import net.zamasoft.pdfg2d.svg.UserAgentImpl;
+import net.zamasoft.pdfg2d.svg.SVGBridgeGraphics2D;
+import net.zamasoft.pdfg2d.svg.SVGUserAgentImpl;
 
 class EmojiFont implements ImageFont {
 	private static final long serialVersionUID = 2L;
 	protected final EmojiFontSource source;
 	protected final Map<Integer, GraphicsNode> gidToNode = new HashMap<Integer, GraphicsNode>();
-	protected final Map<Integer, PdfGroupImage> gidToImage = new HashMap<Integer, PdfGroupImage>();
+	protected final Map<Integer, PDFGroupImage> gidToImage = new HashMap<Integer, PDFGroupImage>();
 	protected static final Dimension2D VIEWPORT = new Dimension2DImpl(128, 128);
 
 	public EmojiFont(EmojiFontSource source) {
@@ -93,7 +93,7 @@ class EmojiFont implements ImageFont {
 
 	public void drawGlyphForGid(GC gc, int gid, AffineTransform at) {
 		GraphicsNode gvtRoot = null;
-		PdfGroupImage image = this.gidToImage.get(gid);
+		PDFGroupImage image = this.gidToImage.get(gid);
 		if (image == null) {
 			gvtRoot = this.gidToNode.get(gid);
 			if (gvtRoot == null) {
@@ -109,18 +109,18 @@ class EmojiFont implements ImageFont {
 					SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(
 							XMLResourceDescriptor.getXMLParserClassName());
 					SVGOMDocument doc = (SVGOMDocument) factory.createDocument(null, in);
-					UserAgent ua = new UserAgentImpl(VIEWPORT);
+					UserAgent ua = new SVGUserAgentImpl(VIEWPORT);
 					DocumentLoader loader = new DocumentLoader(ua);
 					BridgeContext ctx = new BridgeContext(ua, loader);
 					ctx.setDynamic(false);
 					GVTBuilder gvt = new GVTBuilderImpl();
 					gvtRoot = gvt.build(ctx, doc);
-					if (gc instanceof PdfGC && ((PdfGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams().getVersion() >= PdfParams.VERSION_1_4) {
-						image = ((PdfGC) gc).getPDFGraphicsOutput().getPdfWriter().createGroupImage(1000, 1000);
-						PdfGC gc2 = new PdfGC(image);
+					if (gc instanceof PDFGC && ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams().getVersion() >= PDFParams.VERSION_1_4) {
+						image = ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().createGroupImage(1000, 1000);
+						PDFGC gc2 = new PDFGC(image);
 						gc2.transform(AffineTransform.getScaleInstance(1000.0 / VIEWPORT.getWidth(), 1000.0 / VIEWPORT.getHeight()));
 						gc2.begin();
-						Graphics2D g2d = new SvgBridgeGraphics2D(gc2);
+						Graphics2D g2d = new SVGBridgeGraphics2D(gc2);
 						gvtRoot.paint(g2d);
 						g2d.dispose();
 						gc2.end();
@@ -146,7 +146,7 @@ class EmojiFont implements ImageFont {
 		} else {
 			gc.transform(AffineTransform.getScaleInstance(1000.0 / VIEWPORT.getWidth(), 1000.0 / VIEWPORT.getHeight()));
 			gc.begin();
-			Graphics2D g2d = new SvgBridgeGraphics2D(gc);
+			Graphics2D g2d = new SVGBridgeGraphics2D(gc);
 			gvtRoot.paint(g2d);
 			g2d.dispose();
 		}

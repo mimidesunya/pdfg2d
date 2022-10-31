@@ -16,7 +16,7 @@ import jp.cssj.sakae.pdf.params.ViewerPreferences;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: ViewerPreferencesDemo.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public class ViewerPreferencesDemo {
 	public static void main(String[] args) throws Exception {

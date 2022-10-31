@@ -6,7 +6,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * 文字列からグリフに変換するために文字列を処理します。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: CharacterHandler.java 1592 2019-12-03 06:59:47Z miyabe $
+ * @since 1.0
  */
 public interface CharacterHandler {
 	/**

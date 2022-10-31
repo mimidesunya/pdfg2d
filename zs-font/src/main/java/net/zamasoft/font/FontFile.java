@@ -16,7 +16,7 @@ import net.zamasoft.font.util.BufferedRandomAccessFile;
  * TTCまたはTTFファイルへアクセスするためのクラスです。 このクラスはTTC/TTFファイルの判定を行います。
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: FontFile.java 1352 2014-12-27 02:28:47Z miyabe $
+ * @since 1.0
  */
 public class FontFile {
 	public final long timestamp;

@@ -11,7 +11,7 @@ import net.zamasoft.pdfg2d.font.FontSource;
 /**
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: MultimapUtils.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public final class MultimapUtils {
 	private MultimapUtils() {

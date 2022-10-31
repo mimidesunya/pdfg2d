@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * 
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
- * @version $Id: Coverage.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  */
 public abstract class Coverage implements Serializable {
 	private static final long serialVersionUID = 0L;

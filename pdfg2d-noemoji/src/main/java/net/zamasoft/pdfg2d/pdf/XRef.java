@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.pdf;
 
 /**
  * @author MIYABE Tatsuhiko
- * @version $Id: XRef.java 1565 2018-07-04 11:51:25Z miyabe $
+ * @since 1.0
  */
 public interface XRef {
 	/**

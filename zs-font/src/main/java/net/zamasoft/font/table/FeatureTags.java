@@ -20,7 +20,7 @@ package net.zamasoft.font.table;
 /**
  * Definition of Feature tags
  * 
- * @version $Id: FeatureTags.java 1034 2013-10-23 05:51:57Z miyabe $
+ * @since 1.0
  * @author <a href="mailto:vincent.hardy@eng.sun.com">Vincent Hardy</a>
  */
 public interface FeatureTags {
