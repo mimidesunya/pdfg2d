@@ -49,7 +49,7 @@ abstract class NameTreeFlow {
 			this.out.startHash();
 
 			// PDF 1.2以前ではトップレベルのNames配列がサポートされていない
-			if (this.pdfWriter.params.getVersion() <= PDFParams.VERSION_1_2) {
+			if (this.pdfWriter.params.getVersion().v <= PDFParams.Version.V_1_2.v) {
 				this.out.writeName("Kids");
 				this.out.startArray();
 				ObjectRef destsKidRef = this.pdfWriter.xref.nextObjectRef();

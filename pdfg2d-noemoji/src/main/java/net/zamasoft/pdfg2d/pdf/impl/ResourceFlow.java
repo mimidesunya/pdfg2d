@@ -50,10 +50,8 @@ class ResourceFlow {
 	/**
 	 * オブジェクトを追加します。 既に同じ名前のIDがあれば何もしません。
 	 * 
-	 * @param type
-	 *            タイプ("Font","XObject"など)
-	 * @param name
-	 *            参照に使う名前
+	 * @param type      タイプ("Font","XObject"など)
+	 * @param name      参照に使う名前
 	 * @param objectRef
 	 * @throws IOException
 	 */

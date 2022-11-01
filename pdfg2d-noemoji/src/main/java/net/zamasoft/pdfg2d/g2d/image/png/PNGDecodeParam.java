@@ -227,8 +227,7 @@ public class PNGDecodeParam {
 	 * <p>
 	 * This parameter affects the decoding of all image types.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if <code>userExponent</code> is negative.
+	 * @throws IllegalArgumentException if <code>userExponent</code> is negative.
 	 */
 	public void setUserExponent(double userExponent) {
 		if (userExponent <= 0.0F) {
@@ -280,8 +279,7 @@ public class PNGDecodeParam {
 	 * <p>
 	 * This parameter affects the decoding of all image types.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if <code>userExponent</code> is negative.
+	 * @throws IllegalArgumentException if <code>userExponent</code> is negative.
 	 */
 	public void setDisplayExponent(double displayExponent) {
 		if (displayExponent <= 0.0F) {

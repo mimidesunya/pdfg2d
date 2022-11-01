@@ -33,12 +33,9 @@ public class ToUnicode implements Serializable {
 		/**
 		 * ある範囲の文字に対するエントリを構築します。
 		 * 
-		 * @param firstCode
-		 *            最初の文字のコード。
-		 * @param lastCode
-		 *            最後の文字のコード。
-		 * @param unicodes
-		 *            文字の幅のリスト。
+		 * @param firstCode 最初の文字のコード。
+		 * @param lastCode  最後の文字のコード。
+		 * @param unicodes  文字の幅のリスト。
 		 */
 		public Unicode(int firstCode, int lastCode, int[] unicodes) {
 			this.firstCode = firstCode;

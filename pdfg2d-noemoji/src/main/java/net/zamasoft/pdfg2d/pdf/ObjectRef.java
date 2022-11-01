@@ -11,10 +11,8 @@ public class ObjectRef {
 
 	/**
 	 * 
-	 * @param objectNumber
-	 *            参照のためのオブジェクト番号です。
-	 * @param generationNumber
-	 *            修正時に使われるジェネレーション番号です。
+	 * @param objectNumber     参照のためのオブジェクト番号です。
+	 * @param generationNumber 修正時に使われるジェネレーション番号です。
 	 */
 	protected ObjectRef(int objectNumber, int generationNumber) {
 		this.objectNumber = objectNumber;

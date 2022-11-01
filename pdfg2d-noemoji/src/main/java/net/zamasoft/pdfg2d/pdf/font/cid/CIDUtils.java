@@ -244,7 +244,7 @@ public final class CIDUtils {
 		out.endObject();
 
 		out.startObject(toUnicodeRef);
-		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.STREAM_ASCII), "ISO-8859-1");
+		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.Mode.ASCII), "ISO-8859-1");
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
@@ -493,7 +493,7 @@ public final class CIDUtils {
 		out.endObject();
 
 		out.startObject(toUnicodeRef);
-		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.STREAM_ASCII), "ISO-8859-1");
+		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.Mode.ASCII), "ISO-8859-1");
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
@@ -587,7 +587,7 @@ public final class CIDUtils {
 		// 使用するCID
 		out.startObject(cidSetRef);
 		out.startHash();
-		try (OutputStream sout = out.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY)) {
+		try (OutputStream sout = out.startStreamFromHash(PDFFragmentOutput.Mode.BINARY)) {
 			int bytes = (int) Math.ceil(unicodeArray.length / 8.0);
 			for (int i = 0; i < bytes; ++i) {
 				int start = i * 8;
@@ -610,7 +610,7 @@ public final class CIDUtils {
 		out.writeName("CIDFontType0C");
 		out.lineBreak();
 
-		try (OutputStream cout = out.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY)) {
+		try (OutputStream cout = out.startStreamFromHash(PDFFragmentOutput.Mode.BINARY)) {
 //			InputStream in = new InflaterInputStream(new FileInputStream("/home/miyabe/workspaces/copper/CopperPDF.dev/files/misc/fontfile.bin"));
 //			IOUtils.copy(in, cout);
 			CFFGenerator cff = new CFFGenerator();

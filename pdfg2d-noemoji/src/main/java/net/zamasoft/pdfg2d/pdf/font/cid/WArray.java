@@ -24,10 +24,8 @@ public class WArray implements Serializable {
 
 	/**
 	 * 
-	 * @param defaultWidth
-	 *            デフォルト幅(DW)
-	 * @param widths
-	 *            W要素の配列(W)
+	 * @param defaultWidth デフォルト幅(DW)
+	 * @param widths       W要素の配列(W)
 	 */
 	public WArray(short defaultWidth, Width[] widths) {
 		this.defaultWidth = defaultWidth;

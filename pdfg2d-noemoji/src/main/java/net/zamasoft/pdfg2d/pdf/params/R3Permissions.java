@@ -9,8 +9,8 @@ public class R3Permissions extends R2Permissions {
 
 	public static final int PRINT_HIGH = 1 << 11;
 
-	public short getType() {
-		return TYPE_R3;
+	public Type getType() {
+		return Type.R3;
 	}
 
 	public int getFlags() {

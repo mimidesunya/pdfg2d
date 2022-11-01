@@ -5,8 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>gc-core</artifactId>
 	<packaging>jar</packaging>
-	<name>Sakae Core</name>
-	<description>Sakae(PDF出力ライブラリ)のフレームワークです。簡単なフラフィックコンテキストです。</description>
+	<name>Simple graphic context</name>
 	<url>ttps://github.com/mimidesunya/pdfg2d/gc-core/</url>
 
 	<dependencies>

@@ -99,18 +99,17 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 
 			this.configURI = this.config.getURI();
 			this.configValidity = this.config.getValidity();
-			
-			
+
 			try {
 				Class<?> clazz = Class.forName("net.zamasoft.pdfg2d.font.emoji.EmojiFontSource");
 				clazz.getField("INSTANCES_LTR").get(null);
-				FontLoader.add((FontSource)clazz.getField("INSTANCES_LTR").get(null), handler.nameToFonts);
-				FontLoader.add((FontSource)clazz.getField("INSTANCES_TB").get(null), handler.nameToFonts);
+				FontLoader.add((FontSource) clazz.getField("INSTANCES_LTR").get(null), handler.nameToFonts);
+				FontLoader.add((FontSource) clazz.getField("INSTANCES_TB").get(null), handler.nameToFonts);
 			} catch (Exception e) {
 				e.printStackTrace();
 				// ignore
 			}
-			
+
 			this.nameToFonts = MultimapUtils.unmodifiableMap(handler.nameToFonts);
 			this.genericToFamily = Collections.unmodifiableMap(handler.genericToFamily);
 			this.allFonts = handler.allFonts;

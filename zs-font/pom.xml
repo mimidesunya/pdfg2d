@@ -8,8 +8,6 @@
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
 	<name>Font Library</name>
-	<description>
-	</description>
 	<url>https://github.com/mimidesunya/pdfg2d/zs-font/</url>	
 	
 	<build>

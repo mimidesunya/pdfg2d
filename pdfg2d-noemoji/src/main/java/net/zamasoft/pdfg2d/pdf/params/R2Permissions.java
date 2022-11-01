@@ -9,8 +9,8 @@ public class R2Permissions extends Permissions {
 
 	public static final int ADD = 1 << 5;
 
-	public short getType() {
-		return TYPE_R2;
+	public Type getType() {
+		return Type.R2;
 	}
 
 	public int getFlags() {

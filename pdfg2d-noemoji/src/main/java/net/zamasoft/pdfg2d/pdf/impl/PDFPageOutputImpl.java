@@ -42,7 +42,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 		if (width > PDFWriter.MAX_PAGE_WIDTH || height > PDFWriter.MAX_PAGE_HEIGHT) {
 			throw new IllegalArgumentException("ページサイズが14400ptを超えています: width=" + width + ",height=" + height);
 		}
-		if (pdfWriter.getParams().getVersion() == PDFParams.VERSION_PDFX1A) {
+		if (pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
 			this.artBox = new Rectangle2D.Double(0, 0, width, height);
 		}
 
@@ -82,7 +82,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 		this.pageFlow = mainFlow.forkFragment();
 		this.pageFlow.startObject(contentsRef);
 
-		this.out = this.pageFlow.startStream(PDFFragmentOutput.STREAM_ASCII);
+		this.out = this.pageFlow.startStream(PDFFragmentOutput.Mode.ASCII);
 	}
 
 	private PDFWriterImpl getPDFWriterImpl() {
@@ -109,7 +109,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	 * アノテーションを追加します。
 	 */
 	public void addAnnotation(Annot annot) throws IOException {
-		if (this.pdfWriter.getParams().getVersion() == PDFParams.VERSION_PDFX1A) {
+		if (this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
 			throw new UnsupportedOperationException("アノテーションは PDF/X では利用できません。");
 		}
 
@@ -130,8 +130,8 @@ class PDFPageOutputImpl extends PDFPageOutput {
 			// 詳細出力
 			annot.writeTo(objectsFlow, this);
 
-			if (this.pdfWriter.getParams().getVersion() == PDFParams.VERSION_PDFA1B
-					|| this.pdfWriter.getParams().getVersion() == PDFParams.VERSION_PDFX1A) {
+			if (this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFA1B
+					|| this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
 				// フラグ
 				objectsFlow.writeName("F");
 				objectsFlow.writeInt(0x04);
@@ -204,21 +204,21 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	}
 
 	public void setBleedBox(Rectangle2D bleedBox) {
-		if (bleedBox != null && this.pdfWriter.getParams().getVersion() < PDFParams.VERSION_1_3) {
+		if (bleedBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("BleedBoxはPDF 1.4 以降で使用できます。");
 		}
 		this.bleedBox = bleedBox;
 	}
 
 	public void setTrimBox(Rectangle2D trimBox) {
-		if (trimBox != null && this.pdfWriter.getParams().getVersion() < PDFParams.VERSION_1_3) {
+		if (trimBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("TrimBoxはPDF 1.4 以降で使用できます。");
 		}
 		this.trimBox = trimBox;
 	}
 
 	public void setArtBox(Rectangle2D artBox) {
-		if (artBox != null && this.pdfWriter.getParams().getVersion() < PDFParams.VERSION_1_3) {
+		if (artBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("ArtBoxはPDF 1.4 以降で使用できます。");
 		}
 		this.artBox = artBox;

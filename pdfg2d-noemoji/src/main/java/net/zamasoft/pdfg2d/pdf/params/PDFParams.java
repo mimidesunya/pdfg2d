@@ -9,48 +9,38 @@ public class PDFParams {
 	private FontSourceManager fsm;
 
 	/** バージョン */
-	private int version = VERSION_1_4;
+	private Version version = Version.V_1_4;
 
-	public static final int VERSION_1_2 = 1200;
+	public enum Version {
+		V_1_2(1200), V_1_3(1300), V_1_4(1400), V_PDFA1B(1412), V_PDFX1A(1421), V_1_5(1500), V_1_6(1600), V_1_7(1700);
 
-	public static final int VERSION_1_3 = 1300;
+		public final int v;
 
-	public static final int VERSION_1_4 = 1400;
-
-	public static final int VERSION_PDFA1B = 1412;
-
-	public static final int VERSION_PDFX1A = 1421;
-
-	public static final int VERSION_1_5 = 1500;
-
-	public static final int VERSION_1_6 = 1600;
-
-	public static final int VERSION_1_7 = 1700;
+		private Version(int v) {
+			this.v = v;
+		}
+	}
 
 	/** 圧縮方法。 */
-	private short compression = COMPRESSION_BINARY;
+	private Compression compression = Compression.BINARY;
 
-	public static final short COMPRESSION_NONE = 0;
-
-	public static final short COMPRESSION_BINARY = 1;
-
-	public static final short COMPRESSION_ASCII = 2;
+	public enum Compression {
+		NONE, BINARY, ASCII;
+	}
 
 	/** JPEG画像の扱い。 */
-	private short jpegImage = JPEG_IMAGE_RAW;
+	private JPEGImage jpegImage = JPEGImage.RAW;
 
-	public static final short JPEG_IMAGE_RAW = 0;
-
-	public static final short JPEG_IMAGE_RECOMPRESS = 1;
+	public enum JPEGImage {
+		RAW, RECOMPRESS;
+	}
 
 	/** 画像の変換。 */
-	private short imageCompression = IMAGE_COMPRESSION_FLATE;
+	private ImageCompression imageCompression = ImageCompression.FLATE;
 
-	public static final short IMAGE_COMPRESSION_FLATE = 0;
-
-	public static final short IMAGE_COMPRESSION_JPEG = 1;
-
-	public static final short IMAGE_COMPRESSION_JPEG2000 = 2;
+	public enum ImageCompression {
+		FLATE, JPEG, JPEG2000;
+	}
 
 	private int imageCompressionLossless = 200;
 
@@ -62,13 +52,11 @@ public class PDFParams {
 
 	private EncryptionParams encription = null;
 
-	private short colorMode = COLOR_MODE_PRESERVE;
+	private ColorMode colorMode = ColorMode.PRESERVE;
 
-	public static final short COLOR_MODE_PRESERVE = 0;
-
-	public static final short COLOR_MODE_GRAY = 1;
-
-	public static final short COLOR_MODE_CMYK = 2;
+	public enum ColorMode {
+		PRESERVE, GRAY, CMYK;
+	}
 
 	private int maxImageWidth = 0, maxImageHeight = 0;
 
@@ -96,7 +84,7 @@ public class PDFParams {
 		this.fsm = fsm;
 	}
 
-	public short getCompression() {
+	public Compression getCompression() {
 		return this.compression;
 	}
 
@@ -105,7 +93,7 @@ public class PDFParams {
 	 * 
 	 * @param compression
 	 */
-	public void setCompression(short compression) {
+	public void setCompression(Compression compression) {
 		this.compression = compression;
 	}
 
@@ -114,24 +102,24 @@ public class PDFParams {
 	 * 
 	 * @param jpegImage
 	 */
-	public void setJEGImage(short jpegImage) {
+	public void setJPEGImage(JPEGImage jpegImage) {
 		this.jpegImage = jpegImage;
 	}
 
-	public short getJPEGImage() {
+	public JPEGImage getJPEGImage() {
 		return this.jpegImage;
 	}
 
 	/**
-	 * 画像の再圧縮形式を設定します。 IMAGE_COMPRESSION_XXXの値を使用してください。
+	 * 画像の再圧縮形式を設定します。
 	 * 
 	 * @param imageCompression
 	 */
-	public void setImageCompression(short imageCompression) {
+	public void setImageCompression(ImageCompression imageCompression) {
 		this.imageCompression = imageCompression;
 	}
 
-	public short getImageCompression() {
+	public ImageCompression getImageCompression() {
 		return this.imageCompression;
 	}
 
@@ -164,16 +152,16 @@ public class PDFParams {
 		this.maxImageHeight = maxImageHeight;
 	}
 
-	public int getVersion() {
+	public Version getVersion() {
 		return this.version;
 	}
 
 	/**
-	 * PDFのバージョンを設定します。 VERSION_XXXの値を使用してください。
+	 * PDFのバージョンを設定します。
 	 * 
 	 * @param version
 	 */
-	public void setVersion(int version) {
+	public void setVersion(Version version) {
 		this.version = version;
 	}
 
@@ -219,7 +207,7 @@ public class PDFParams {
 		this.encription = encription;
 	}
 
-	public short getColorMode() {
+	public ColorMode getColorMode() {
 		return this.colorMode;
 	}
 
@@ -228,7 +216,7 @@ public class PDFParams {
 	 * 
 	 * @param colorMode
 	 */
-	public void setColorMode(short colorMode) {
+	public void setColorMode(ColorMode colorMode) {
 		this.colorMode = colorMode;
 	}
 

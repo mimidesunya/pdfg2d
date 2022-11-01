@@ -47,7 +47,7 @@ public class Encryption {
 
 	private final int length;
 
-	private final short cfm;
+	private final V4EncryptionParams.CFM cfm;
 
 	private ObjectRef keyRef;
 
@@ -70,26 +70,26 @@ public class Encryption {
 		mainFlow.writeName("Standard");
 		mainFlow.lineBreak();
 
-		short v = params.getType();
+		EncryptionParams.Type v = params.getType();
 		mainFlow.writeName("V");
-		mainFlow.writeInt(v);
+		mainFlow.writeInt(v.v);
 		mainFlow.lineBreak();
 
 		Permissions permissions;
 		int length;
 		switch (v) {
-		case EncryptionParams.TYPE_V1: {
+		case V1: {
 			// v1暗号のパーミッション
-			this.cfm = V4EncryptionParams.CFM_V2;
+			this.cfm = V4EncryptionParams.CFM.V2;
 			V1EncryptionParams v1Params = (V1EncryptionParams) params;
 			permissions = v1Params.getPermissions();
 			length = 40;
 		}
 			break;
 
-		case EncryptionParams.TYPE_V2: {
+		case V2: {
 			// v2暗号のパーミッション
-			this.cfm = V4EncryptionParams.CFM_V2;
+			this.cfm = V4EncryptionParams.CFM.V2;
 			V2EncryptionParams v2Params = (V2EncryptionParams) params;
 			permissions = v2Params.getPermissions();
 
@@ -102,7 +102,7 @@ public class Encryption {
 		}
 			break;
 
-		case EncryptionParams.TYPE_V4: {
+		case V4: {
 			// v4暗号のパーミッション
 			V4EncryptionParams v4Params = (V4EncryptionParams) params;
 			permissions = v4Params.getPermissions();
@@ -123,18 +123,9 @@ public class Encryption {
 			mainFlow.writeName("CryptFilter");
 			mainFlow.lineBreak();
 
-			this.cfm = v4Params.getCfm();
+			this.cfm = v4Params.getCFM();
 			mainFlow.writeName("CFM");
-			switch (this.cfm) {
-			case V4EncryptionParams.CFM_V2:
-				mainFlow.writeName("V2");
-				break;
-			case V4EncryptionParams.CFM_AESV2:
-				mainFlow.writeName("AESV2");
-				break;
-			default:
-				throw new IllegalStateException();
-			}
+			mainFlow.writeName(this.cfm.name);
 			mainFlow.lineBreak();
 
 			length = v4Params.getLength();
@@ -162,9 +153,9 @@ public class Encryption {
 		}
 		this.length = length / 8;
 
-		short r = permissions.getType();
+		Permissions.Type r = permissions.getType();
 		mainFlow.writeName("R");
-		mainFlow.writeInt(r);
+		mainFlow.writeInt(r.r);
 		mainFlow.lineBreak();
 
 		int pflags = permissions.getFlags();
@@ -183,7 +174,7 @@ public class Encryption {
 		this.md5.reset();
 		this.md5.update(truncate32(ownerPass));
 		{
-			if (r >= Permissions.TYPE_R3) {
+			if (r.r >= Permissions.Type.R3.r) {
 				// Revision 3以上ではMD5ハッシュを50回更新する
 				for (int i = 0; i < 50; ++i) {
 					byte[] key = this.md5.digest();
@@ -194,7 +185,7 @@ public class Encryption {
 			ownerKey = truncate32(userPass);
 			ArcfourEncryptor arcfour = new ArcfourEncryptor(key, this.length);
 			ownerKey = arcfour.encrypt(ownerKey);
-			if (r >= Permissions.TYPE_R3) {
+			if (r.r >= Permissions.Type.R3.r) {
 				// Revision 3以上ではキーを19回Arcfour暗号化する
 				byte[] key2 = new byte[this.length];
 				for (int i = 1; i <= 19; ++i) {
@@ -220,7 +211,7 @@ public class Encryption {
 			this.md5.update(key);
 		}
 		this.md5.update(fileid[0]);
-		if (r >= Permissions.TYPE_R3) {
+		if (r.r >= Permissions.Type.R3.r) {
 			// Revision 3以上ではMD5ハッシュを50回更新する
 			for (int i = 0; i < 50; ++i) {
 				byte[] key = this.md5.digest();
@@ -232,7 +223,7 @@ public class Encryption {
 		// ユーザーキーの生成
 		byte[] userKey;
 		switch (r) {
-		case Permissions.TYPE_R2: {
+		case R2: {
 			// Revision 2ではキーをArcfour暗号化する
 			userKey = new byte[PADDING.length];
 			System.arraycopy(PADDING, 0, userKey, 0, PADDING.length);
@@ -241,8 +232,8 @@ public class Encryption {
 		}
 			break;
 
-		case Permissions.TYPE_R3:
-		case Permissions.TYPE_R4: {
+		case R3:
+		case R4: {
 			// Revision 3以上ではキーのMD5ハッシュを得る
 			this.md5.reset();
 			this.md5.update(PADDING);
@@ -283,7 +274,7 @@ public class Encryption {
 		if (this.keyRef != keyRef) {
 			int keyLen = Math.min(this.length + 5, 16);
 			switch (this.cfm) {
-			case V4EncryptionParams.CFM_V2: {
+			case V2: {
 				byte[] work = new byte[this.length + 5];
 				System.arraycopy(this.key, 0, work, 0, this.length);
 				work[this.length] = (byte) (keyRef.objectNumber & 0xFF);
@@ -299,7 +290,7 @@ public class Encryption {
 				break;
 			}
 
-			case V4EncryptionParams.CFM_AESV2: {
+			case AESV2: {
 				byte[] work = new byte[this.length + 5 + 4];
 				System.arraycopy(this.key, 0, work, 0, this.length);
 				work[this.length] = (byte) (keyRef.objectNumber & 0xFF);

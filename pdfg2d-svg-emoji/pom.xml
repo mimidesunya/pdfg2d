@@ -8,8 +8,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>pdfg2d-svg-emoji</artifactId>
 	<packaging>jar</packaging>
-	<name>pdfg2d SVG Emoji Support</name>
-	<description>Sakae(PDF出力ライブラリ)のPDF出力実装です。</description>
+	<name>pdfg2d with SVG and Emoji Support</name>
 	<url>https://github.com/mimidesunya/pdfg2d/pdfg2d-svg-emoji/</url>
 
 	<dependencies>

@@ -73,10 +73,8 @@ public interface PDFWriter extends Closeable {
 	 * 返されたストリームを使って直ちにファイルの内容を出力し、ストリームを閉じてください。
 	 * </p>
 	 * 
-	 * @param name
-	 *            名前
-	 * @param attachment
-	 *            添付ファイル
+	 * @param name       名前
+	 * @param attachment 添付ファイル
 	 * @return
 	 * @throws IOException
 	 */
@@ -115,8 +113,7 @@ public interface PDFWriter extends Closeable {
 	 * このメソッドが返すPDFNamedOutputは、パターンを書き出した後、必ずクローズしてください。
 	 * </p>
 	 * 
-	 * @param at
-	 *            TODO
+	 * @param at TODO
 	 * @return パターンの出力先。getNameで返される名前は、グラフィック命令からの参照に利用できます。
 	 * @throws IOException
 	 */

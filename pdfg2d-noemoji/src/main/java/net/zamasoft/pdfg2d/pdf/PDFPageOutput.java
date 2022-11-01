@@ -35,10 +35,8 @@ public abstract class PDFPageOutput extends PDFGraphicsOutput {
 	/**
 	 * ドキュメントフラグメントを追加します。
 	 * 
-	 * @param id
-	 *            文書中でユニークな名前。
-	 * @param location
-	 *            場所。
+	 * @param id       文書中でユニークな名前。
+	 * @param location 場所。
 	 * @throws IOException
 	 */
 	public abstract void addFragment(String id, Point2D location) throws IOException;

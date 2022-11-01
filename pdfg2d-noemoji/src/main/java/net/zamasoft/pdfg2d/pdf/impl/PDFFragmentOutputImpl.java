@@ -8,7 +8,6 @@ import java.util.zip.DeflaterOutputStream;
 import jp.cssj.rsr.helpers.RandomBuilderOutputStream;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
-import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCII85OutputStream;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCIIHexOutputStream;
 import net.zamasoft.pdfg2d.pdf.util.encryption.Encryptor;
@@ -113,7 +112,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	 * 
 	 * @throws IOException
 	 */
-	public OutputStream startStream(short mode) throws IOException {
+	public OutputStream startStream(Mode mode) throws IOException {
 		if (this.streamLengthFlow != null) {
 			throw new IllegalStateException("ストリームをネストすることはできません:" + this.streamLengthFlow);
 		}
@@ -123,20 +122,20 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	}
 
 	@SuppressWarnings("resource")
-	public OutputStream startStreamFromHash(short mode) throws IOException {
+	public OutputStream startStreamFromHash(Mode mode) throws IOException {
 		if (this.streamLengthFlow != null) {
 			throw new IllegalStateException("ストリームをネストすることはできません:" + this.streamLengthFlow);
 		}
 
 		switch (mode) {
-		case STREAM_RAW:
+		case RAW:
 			break;
 
-		case STREAM_ASCII:
+		case ASCII:
 			switch (this.pdfWriter.params.getCompression()) {
-			case PDFParams.COMPRESSION_NONE:
+			case NONE:
 				break;
-			case PDFParams.COMPRESSION_ASCII:
+			case ASCII:
 				this.writeName("Filter");
 				this.startArray();
 				this.writeName("ASCII85Decode");
@@ -144,7 +143,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 				this.endArray();
 				this.breakBefore();
 				break;
-			case PDFParams.COMPRESSION_BINARY:
+			case BINARY:
 				this.writeName("Filter");
 				this.startArray();
 				this.writeName("FlateDecode");
@@ -154,16 +153,16 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			}
 			break;
 
-		case STREAM_BINARY:
+		case BINARY:
 			switch (this.pdfWriter.params.getCompression()) {
-			case PDFParams.COMPRESSION_NONE:
+			case NONE:
 				this.writeName("Filter");
 				this.startArray();
 				this.writeName("ASCIIHexDecode");
 				this.endArray();
 				this.breakBefore();
 				break;
-			case PDFParams.COMPRESSION_ASCII:
+			case ASCII:
 				this.writeName("Filter");
 				this.startArray();
 				this.writeName("ASCII85Decode");
@@ -171,7 +170,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 				this.endArray();
 				this.breakBefore();
 				break;
-			case PDFParams.COMPRESSION_BINARY:
+			case BINARY:
 				this.writeName("Filter");
 				this.startArray();
 				this.writeName("FlateDecode");
@@ -208,17 +207,17 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 		// 各種符号化
 		switch (mode) {
-		case STREAM_RAW:
+		case RAW:
 			break;
 
-		case STREAM_ASCII:
+		case ASCII:
 			switch (this.pdfWriter.params.getCompression()) {
-			case PDFParams.COMPRESSION_NONE:
+			case NONE:
 				break;
-			case PDFParams.COMPRESSION_ASCII:
+			case ASCII:
 				out = new DeflaterOutputStream(new ASCII85OutputStream(out));
 				break;
-			case PDFParams.COMPRESSION_BINARY:
+			case BINARY:
 				out = new DeflaterOutputStream(out);
 				break;
 			default:
@@ -227,15 +226,15 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			out = new FastBufferedOutputStream(out, this.getBuff());
 			break;
 
-		case STREAM_BINARY:
+		case BINARY:
 			switch (this.pdfWriter.params.getCompression()) {
-			case PDFParams.COMPRESSION_NONE:
+			case NONE:
 				out = new ASCIIHexOutputStream(out);
 				break;
-			case PDFParams.COMPRESSION_ASCII:
+			case ASCII:
 				out = new DeflaterOutputStream(new ASCII85OutputStream(out));
 				break;
-			case PDFParams.COMPRESSION_BINARY:
+			case BINARY:
 				out = new DeflaterOutputStream(out);
 				break;
 			default:

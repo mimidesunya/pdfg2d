@@ -444,7 +444,7 @@ public class PDFGC implements GC {
 
 	private int qDepth = 0;
 
-	private final int pdfVersion;
+	private final PDFParams.Version pdfVersion;
 
 	private PDFGC(PDFGraphicsOutput out, Map<PatternKey, Object> patterns) {
 		this.out = out;
@@ -859,7 +859,8 @@ public class PDFGC implements GC {
 
 			FontMetricsImpl fm = (FontMetricsImpl) text.getFontMetrics();
 			PDFFontSource source = (PDFFontSource) fm.getFontSource();
-			if (this.pdfVersion == PDFParams.VERSION_PDFA1B || this.pdfVersion == PDFParams.VERSION_PDFX1A) {
+			if (this.pdfVersion.v == PDFParams.Version.V_PDFA1B.v
+					|| this.pdfVersion.v == PDFParams.Version.V_PDFX1A.v) {
 				byte type = source.getType();
 				if (type != PDFFontSource.TYPE_EMBEDDED && type != PDFFontSource.TYPE_MISSING) {
 					throw new IllegalStateException("PDF/A-1またはPDF/X-1aで埋め込みフォント以外は使用できません。");
@@ -978,7 +979,7 @@ public class PDFGC implements GC {
 			}
 
 			// フォント名とサイズ
-			String name = ((PDFFont)font).getName();
+			String name = ((PDFFont) font).getName();
 			this.out.useResource("Font", name);
 			this.out.writeName(name);
 			this.out.writeReal(size);
@@ -1124,7 +1125,7 @@ public class PDFGC implements GC {
 		}
 		case Paint.LINEAR_GRADIENT: {
 			// PDF Axial(Type 2) Shading
-			if (this.pdfVersion < PDFParams.VERSION_1_3) {
+			if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				return null;
 			}
 			LinearGradient gradient = (LinearGradient) paint;
@@ -1162,7 +1163,7 @@ public class PDFGC implements GC {
 		}
 		case Paint.RADIAL_GRADIENT: {
 			// PDF Radial(Type 3) Shading
-			if (this.pdfVersion < PDFParams.VERSION_1_3) {
+			if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				return null;
 			}
 			RadialGradient gp = (RadialGradient) paint;
@@ -1220,9 +1221,9 @@ public class PDFGC implements GC {
 		// TODO alphaグラデーション
 		sout.writeName("ColorSpace");
 		short colorType;
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_GRAY) {
+		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
 			colorType = Color.GRAY;
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_CMYK) {
+		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
 			colorType = Color.CMYK;
 		} else {
 			colorType = colors[0].getColorType();
@@ -1510,8 +1511,9 @@ public class PDFGC implements GC {
 		}
 
 		// 不透明度
-		boolean supportAlpha = this.pdfVersion >= PDFParams.VERSION_1_4 && this.pdfVersion != PDFParams.VERSION_PDFA1B
-				&& this.pdfVersion != PDFParams.VERSION_PDFX1A;
+		boolean supportAlpha = this.pdfVersion.v >= PDFParams.Version.V_1_4.v
+				&& this.pdfVersion.v != PDFParams.Version.V_PDFA1B.v
+				&& this.pdfVersion.v != PDFParams.Version.V_PDFX1A.v;
 		// 透明化処理がサポートされる場合。
 		if ((supportAlpha && (this.strokeAlpha != this.xstrokeAlpha || this.fillAlpha != this.xfillAlpha))
 				|| (this.strokeOverprint != this.xstrokeOverprint || this.fillOverprint != this.xfillOverprint)) {
@@ -1598,7 +1600,7 @@ public class PDFGC implements GC {
 
 	private void q() throws IOException {
 		++this.qDepth;
-		if (this.pdfVersion == PDFParams.VERSION_PDFA1B) {
+		if (this.pdfVersion.v == PDFParams.Version.V_PDFA1B.v) {
 			if (this.qDepth > 28) {
 				throw new IllegalStateException("PDF/A-1ではグラフィックステートを28以上入れ子にできません。");
 			}

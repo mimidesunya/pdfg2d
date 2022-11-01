@@ -11,7 +11,6 @@
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
 	<name>Source Resolver</name>
-	<description>Library for resolving URLs.</description>
 	<url>https://github.com/mimidesunya/pdfg2d/zs-resolver/</url>
 
 	<dependencies>

@@ -265,8 +265,7 @@ public class PDFFontSourceManager implements FontSourceManager {
 					if (order == 0) {
 						continue;
 					}
-				}
-				else {
+				} else {
 					order = 1;
 				}
 

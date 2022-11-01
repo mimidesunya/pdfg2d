@@ -97,7 +97,7 @@ public class CFFGenerator {
 				cout2.writeOperator(CFFOutputStream.CHARSETS);
 
 				cout1.writeCard8((byte) 2); // format=2
-				cout1.writeCard16(1); 
+				cout1.writeCard16(1);
 				cout1.writeCard16(this.font.getCharCount() - 1);
 
 				// CharStrings INDEX

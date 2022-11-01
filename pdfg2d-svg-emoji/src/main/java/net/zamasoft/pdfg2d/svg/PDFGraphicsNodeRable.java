@@ -34,9 +34,9 @@ class PDFGraphicsNodeRable extends GraphicsNodeRable8Bit {
 		try {
 			PDFGraphicsOutput pdfgo = pgc.getPDFGraphicsOutput();
 			if (!this.forceVector) {
-				int pdfVersion = pdfgo.getPdfWriter().getParams().getVersion();
-				if (pdfVersion < PDFParams.VERSION_1_4 || pdfVersion == PDFParams.VERSION_PDFA1B
-						|| pdfVersion == PDFParams.VERSION_PDFX1A) {
+				PDFParams.Version pdfVersion = pdfgo.getPdfWriter().getParams().getVersion();
+				if (pdfVersion.v < PDFParams.Version.V_1_4.v || pdfVersion.v == PDFParams.Version.V_PDFA1B.v
+						|| pdfVersion.v == PDFParams.Version.V_PDFX1A.v) {
 					// 透明化処理がサポートされない場合。
 					return super.paintRable(g2d);
 				}

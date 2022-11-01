@@ -20,80 +20,88 @@ public class ViewerPreferences {
 	// PDF 1.4
 	private boolean displayDocTitle = false;
 
-	/**
-	 * しおりかサムネイルパネルを表示します。
-	 */
-	public static final byte NONE_FULL_SCREEN_PAGE_MODE_USE_NONE = 1;
-	/**
-	 * しおりパネルを表示します。
-	 */
-	public static final byte NONE_FULL_SCREEN_PAGE_MODE_USE_OUTLINES = 2;
-	/**
-	 * サムネイルパネルを表示します。
-	 */
-	public static final byte NONE_FULL_SCREEN_PAGE_MODE_USE_THUMBS = 3;
-	/**
-	 * レイヤーパネルを表示します。
-	 */
-	public static final byte NONE_FULL_SCREEN_PAGE_MODE_USE_OC = 4;
+	private NonFullScreenPageMode nonFullScreenPageMode = NonFullScreenPageMode.NONE;
 
-	private byte nonFullScreenPageMode = NONE_FULL_SCREEN_PAGE_MODE_USE_NONE;
+	public enum NonFullScreenPageMode {
+		/**
+		 * しおりかサムネイルパネルを表示します。
+		 */
+		NONE,
+		/**
+		 * しおりパネルを表示します。
+		 */
+		OUTLINES,
+		/**
+		 * サムネイルパネルを表示します。
+		 */
+		THUMBS,
+		/**
+		 * レイヤーパネルを表示します。
+		 */
+		OC;
 
-	/**
-	 * 左綴じ（日本語横書き、欧文など）の定数です。
-	 */
-	public static final byte DIRECTION_L2R = 1;
-	/**
-	 * 右綴じ（日本語縦書き、アラビア語など）定数です。
-	 */
-	public static final byte DIRECTION_R2L = 2;
+	}
 
 	// PDF 1.3
-	private byte direction = DIRECTION_L2R;
+	private Direction direction = Direction.L2R;
 
-	public static final byte AREA_MEDIA_BOX = 1;
-	public static final byte AREA_CROP_BOX = 2;
-	public static final byte AREA_BLEED_BOX = 3;
-	public static final byte AREA_TRIM_BOX = 4;
-	public static final byte AREA_ART_BOX = 5;
+	public enum Direction {
+		/**
+		 * 左綴じ（日本語横書き、欧文など）の定数です。
+		 */
+		L2R,
+		/**
+		 * 右綴じ（日本語縦書き、アラビア語など）定数です。
+		 */
+		R2L;
+
+	}
 
 	// PDF 1.4
-	private byte viewArea = AREA_CROP_BOX;
-	private byte viewClip = AREA_CROP_BOX;
-	private byte printArea = AREA_CROP_BOX;
-	private byte printClip = AREA_CROP_BOX;
+	private AreaBox viewArea = AreaBox.CROP;
+	private AreaBox viewClip = AreaBox.CROP;
+	private AreaBox printArea = AreaBox.CROP;
+	private AreaBox printClip = AreaBox.CROP;
 
-	/**
-	 * 拡大縮小をしない定数です。
-	 */
-	public static final byte PRINT_SCALING_NONE = 1;
-	/**
-	 * 拡大縮小をビューワに任せる定数です。
-	 */
-	public static final byte PRINT_SCALING_APP_DEFAULT = 2;
+	public enum AreaBox {
+		MEDIA, CROP, BLEED, TRIM, ART
+	}
 
 	// PDF 1.6
-	private byte printScaling = PRINT_SCALING_APP_DEFAULT;
+	private PrintScaling printScaling = PrintScaling.APP_DEFAULT;
 
-	/**
-	 * ビューワのデフォルトの定数です。
-	 */
-	public static final byte DUPLEX_NONE = 1;
-	/**
-	 * 片面印刷の定数です。
-	 */
-	public static final byte DUPLEX_SIMPLEX = 2;
-	/**
-	 * 短辺綴じで両面印刷をする定数です。
-	 */
-	public static final byte DUPLEX_DUPLEX_FLIP_SHORT_EDGE = 3;
-	/**
-	 * 長辺綴じで両面印刷をする定数です。
-	 */
-	public static final byte DUPLEX_DUPLEX_FLIP_LONG_EDGE = 4;
+	public enum PrintScaling {
+		/**
+		 * 拡大縮小をしない定数です。
+		 */
+		NONE,
+		/**
+		 * 拡大縮小をビューワに任せる定数です。
+		 */
+		APP_DEFAULT;
+	}
 
 	// PDF 1.7
-	private byte duplex = DUPLEX_NONE;
+	private Duplex duplex = Duplex.NONE;
+
+	public enum Duplex {
+		/**
+		 * ビューワのデフォルトの定数です。
+		 */
+		NONE,
+		/**
+		 * 片面印刷の定数です。
+		 */
+		SIMPLEX,
+		/**
+		 * 短辺綴じで両面印刷をする定数です。
+		 */
+		FLIP_SHORT_EDGE,
+		/**
+		 * 長辺綴じで両面印刷をする定数です。
+		 */
+		FLIP_LONG_EDGE;
+	}
 
 	// PDF 1.7
 	private boolean pickTrayByPDFSize;
@@ -109,7 +117,7 @@ public class ViewerPreferences {
 	 * 
 	 * @return
 	 */
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 
@@ -118,7 +126,7 @@ public class ViewerPreferences {
 	 * 
 	 * @param direction
 	 */
-	public void setDirection(byte direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 
@@ -127,7 +135,9 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * <p>ビューワアプリケーションのツールバーの非表示、表示を設定します。</p>
+	 * <p>
+	 * ビューワアプリケーションのツールバーの非表示、表示を設定します。
+	 * </p>
 	 * ※Adobe Readerでは動作はあまりあてにならないようです。
 	 * 
 	 * @param hideToolbar
@@ -201,53 +211,55 @@ public class ViewerPreferences {
 		this.displayDocTitle = displayDocTitle;
 	}
 
-	public byte getNonFullScreenPageMode() {
+	public NonFullScreenPageMode getNonFullScreenPageMode() {
 		return this.nonFullScreenPageMode;
 	}
 
 	/**
-	 * <p>サイドパネルの表示内容を設定します。 </p>
+	 * <p>
+	 * サイドパネルの表示内容を設定します。
+	 * </p>
 	 * ※Adobe Readerでは動作はあまりあてにならないようです。
 	 * 
 	 * @param nonFullScreenPageMode
 	 */
-	public void setNonFullScreenPageMode(byte nonFullScreenPageMode) {
+	public void setNonFullScreenPageMode(NonFullScreenPageMode nonFullScreenPageMode) {
 		this.nonFullScreenPageMode = nonFullScreenPageMode;
 	}
 
-	public byte getViewArea() {
+	public AreaBox getViewArea() {
 		return this.viewArea;
 	}
 
-	public void setViewArea(byte viewArea) {
+	public void setViewArea(AreaBox viewArea) {
 		this.viewArea = viewArea;
 	}
 
-	public byte getViewClip() {
+	public AreaBox getViewClip() {
 		return this.viewClip;
 	}
 
-	public void setViewClip(byte viewClip) {
+	public void setViewClip(AreaBox viewClip) {
 		this.viewClip = viewClip;
 	}
 
-	public byte getPrintArea() {
+	public AreaBox getPrintArea() {
 		return this.printArea;
 	}
 
-	public void setPrintArea(byte printArea) {
+	public void setPrintArea(AreaBox printArea) {
 		this.printArea = printArea;
 	}
 
-	public byte getPrintClip() {
+	public AreaBox getPrintClip() {
 		return this.printClip;
 	}
 
-	public void setPrintClip(byte printClip) {
+	public void setPrintClip(AreaBox printClip) {
 		this.printClip = printClip;
 	}
 
-	public byte getPrintScaling() {
+	public PrintScaling getPrintScaling() {
 		return this.printScaling;
 	}
 
@@ -256,11 +268,11 @@ public class ViewerPreferences {
 	 * 
 	 * @param printScaling
 	 */
-	public void setPrintScaling(byte printScaling) {
+	public void setPrintScaling(PrintScaling printScaling) {
 		this.printScaling = printScaling;
 	}
 
-	public byte getDuplex() {
+	public Duplex getDuplex() {
 		return this.duplex;
 	}
 
@@ -269,7 +281,7 @@ public class ViewerPreferences {
 	 * 
 	 * @param duplex
 	 */
-	public void setDuplex(byte duplex) {
+	public void setDuplex(Duplex duplex) {
 		this.duplex = duplex;
 	}
 

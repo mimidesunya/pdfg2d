@@ -1,19 +1,26 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public class V4EncryptionParams extends EncryptionParams {
-	public static final short CFM_V2 = 1;
-	public static final short CFM_AESV2 = 2;
+	public enum CFM {
+		V2("V2"), AESV2("AESV2");
+
+		public final String name;
+
+		private CFM(String name) {
+			this.name = name;
+		}
+	}
 
 	private final R4Permissions permissions = new R4Permissions();
 
 	private int length = 128;
 
-	private short cfm = CFM_V2;
+	private CFM cfm = CFM.V2;
 
 	private boolean enctyptMetadata = true;
 
-	public short getType() {
-		return TYPE_V4;
+	public Type getType() {
+		return Type.V4;
 	}
 
 	public R4Permissions getPermissions() {
@@ -31,14 +38,11 @@ public class V4EncryptionParams extends EncryptionParams {
 		this.length = length;
 	}
 
-	public short getCfm() {
+	public CFM getCFM() {
 		return this.cfm;
 	}
 
-	public void setCfm(short cfm) {
-		if (cfm != CFM_V2 && cfm != CFM_AESV2) {
-			throw new IllegalArgumentException("CFMはCFM_V2またはCFM_AESV2である必要があります。: " + cfm);
-		}
+	public void setCFM(CFM cfm) {
 		this.cfm = cfm;
 	}
 

@@ -115,11 +115,11 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	 * @throws IOException
 	 */
 	public void writeFillColor(Color color) throws IOException {
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_GRAY) {
+		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
 			if (color.getColorType() != Color.GRAY) {
 				color = ColorUtils.toGray(color);
 			}
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_CMYK) {
+		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
 			if (color.getColorType() != Color.CMYK) {
 				color = ColorUtils.toCMYK(color);
 			}
@@ -159,12 +159,12 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	 * @throws IOException
 	 */
 	public void writeStrokeColor(Color color) throws IOException {
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_GRAY) {
+		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
 			// グレイカラーモード
 			if (color.getColorType() != Color.GRAY) {
 				color = ColorUtils.toGray(color);
 			}
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.COLOR_MODE_CMYK) {
+		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
 			// CMYKカラーモード
 			if (color.getColorType() != Color.CMYK) {
 				color = ColorUtils.toCMYK(color);

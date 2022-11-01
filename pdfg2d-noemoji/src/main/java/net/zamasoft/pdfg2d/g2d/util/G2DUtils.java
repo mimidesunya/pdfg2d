@@ -219,7 +219,7 @@ public final class G2DUtils {
 	}
 
 	public static final void setFontAttributes(Map<TextAttribute, Object> atts, FontStyle fontStyle) {
-		atts.put(TextAttribute.SIZE, Float.valueOf((float)fontStyle.getSize()));
+		atts.put(TextAttribute.SIZE, Float.valueOf((float) fontStyle.getSize()));
 
 		Float weight;
 		switch (fontStyle.getWeight()) {

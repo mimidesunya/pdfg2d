@@ -5,8 +5,8 @@ public class V2EncryptionParams extends EncryptionParams {
 
 	private int length = 128;
 
-	public short getType() {
-		return TYPE_V2;
+	public Type getType() {
+		return Type.V2;
 	}
 
 	public R3Permissions getPermissions() {

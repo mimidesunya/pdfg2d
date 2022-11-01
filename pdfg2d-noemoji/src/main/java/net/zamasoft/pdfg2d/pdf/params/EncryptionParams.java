@@ -1,15 +1,19 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public abstract class EncryptionParams {
-	public static final short TYPE_V1 = 1;
+	public enum Type {
+		V1(1), V2(2), V4(4);
 
-	public static final short TYPE_V2 = 2;
+		public final int v;
 
-	public static final short TYPE_V4 = 4;
+		private Type(int v) {
+			this.v = v;
+		}
+	}
 
 	private String userPassword = "", ownerPassword = "";
 
-	public abstract short getType();
+	public abstract Type getType();
 
 	public String getOwnerPassword() {
 		return this.ownerPassword;

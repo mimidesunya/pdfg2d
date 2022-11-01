@@ -1,15 +1,19 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public abstract class Permissions {
-	public static final short TYPE_R2 = 2;
+	public enum Type {
+		R2(2), R3(3), R4(4);
 
-	public static final short TYPE_R3 = 3;
+		public final int r;
 
-	public static final short TYPE_R4 = 4;
+		private Type(int r) {
+			this.r = r;
+		}
+	}
 
 	protected int flags = 0xFFFFFFFC;
 
-	public abstract short getType();
+	public abstract Type getType();
 
 	public abstract int getFlags();
 }

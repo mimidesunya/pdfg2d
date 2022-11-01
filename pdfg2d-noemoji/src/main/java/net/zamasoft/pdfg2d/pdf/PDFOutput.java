@@ -52,14 +52,10 @@ public class PDFOutput extends FilterOutputStream {
 
 		/**
 		 * 
-		 * @param pageRef
-		 *            リンク先ページ。
-		 * @param x
-		 *            X座標。
-		 * @param y
-		 *            Y座標。
-		 * @param zoom
-		 *            拡大率。
+		 * @param pageRef リンク先ページ。
+		 * @param x       X座標。
+		 * @param y       Y座標。
+		 * @param zoom    拡大率。
 		 */
 		public Destination(ObjectRef pageRef, double x, double y, double zoom) {
 			this.pageRef = pageRef;

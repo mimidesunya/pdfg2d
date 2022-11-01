@@ -11,7 +11,7 @@ public final class PDFUtils {
 	private PDFUtils() {
 		// unused
 	}
-	
+
 	/** 1インチ辺りのポイント数。 */
 	public static final double POINTS_PER_INCH = 72.0;
 
@@ -26,7 +26,7 @@ public final class PDFUtils {
 	public static final double PAPER_A4_HEIGHT_MM = 297.0;
 
 	public static final double CUTTING_MARGIN_MM = 3.0;
-	
+
 	public static double mmToPt(double mm) {
 		return mm * POINTS_PER_MM;
 	}

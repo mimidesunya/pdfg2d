@@ -33,7 +33,7 @@ public class SpaceCIDFontSource extends MissingCIDFontSource {
 		case 0x001D:
 		case 0x001E:
 		case 0x001F:
-		// ゼロ幅空白
+			// ゼロ幅空白
 		case 0x200B:
 		case 0x200C:
 		case 0x200D:
@@ -46,7 +46,7 @@ public class SpaceCIDFontSource extends MissingCIDFontSource {
 		case 0x202E:
 		case 0x2060:
 		case 0xFEFF:
-		// スペース文字
+			// スペース文字
 		case 0x007F:
 		case 0x0020:
 		case 0x00A0:

@@ -45,10 +45,9 @@ class FontFlow {
 			ObjectRef fontRef = this.xref.nextObjectRef();
 			this.nameToResourceRef.put(name, fontRef);
 
-			font = ((PDFFontSource)source).createFont(name, fontRef);
-			this.fontList.add((PDFFont)font);
-		}
-		else {
+			font = ((PDFFontSource) source).createFont(name, fontRef);
+			this.fontList.add((PDFFont) font);
+		} else {
 			font = source.createFont();
 		}
 		this.fonts.put(source, font);

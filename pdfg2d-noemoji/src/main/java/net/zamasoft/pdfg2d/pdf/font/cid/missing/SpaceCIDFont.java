@@ -26,11 +26,11 @@ class SpaceCIDFont extends MissingCIDFont {
 		case 0x202F:
 			return (short) 500;
 		}
-		return (short)0;
+		return (short) 0;
 	}
 
 	public short getWidth(int gid) {
-		return (short)0;
+		return (short) 0;
 	}
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {

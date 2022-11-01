@@ -21,8 +21,7 @@ public abstract class Annot {
 	 * アノテーションの領域を設定します。 cmオペレータ(あるいはPDF_GCのtransformメソッド)による 座標変換が適用されません。
 	 * そのため、shapeに対してはアプリケーションが明示的に座標変換を適用する必要があります。
 	 * 
-	 * @param shape
-	 *            アクティブな範囲です。ただし、PDF1.5以前では、バウンディングボックスが指定範囲となります。
+	 * @param shape アクティブな範囲です。ただし、PDF1.5以前では、バウンディングボックスが指定範囲となります。
 	 */
 	public void setShape(Shape shape) {
 		this.shape = shape;

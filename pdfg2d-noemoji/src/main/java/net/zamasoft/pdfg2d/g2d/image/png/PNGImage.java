@@ -359,8 +359,8 @@ public class PNGImage extends SimpleRenderedImage {
 		this.output8BitGray = decodeParam.getOutput8BitGray();
 		this.expandGrayAlpha = decodeParam.getExpandGrayAlpha();
 		if (decodeParam.getPerformGammaCorrection()) {
-			this.userExponent = (float)decodeParam.getUserExponent();
-			this.displayExponent = (float)decodeParam.getDisplayExponent();
+			this.userExponent = (float) decodeParam.getUserExponent();
+			this.displayExponent = (float) decodeParam.getDisplayExponent();
 			this.performGammaCorrection = true;
 			this.output8BitGray = true;
 		}

@@ -14,12 +14,9 @@ public class Width implements Serializable {
 	/**
 	 * ある範囲の文字に対するエントリを構築します。
 	 * 
-	 * @param firstCode
-	 *            最初の文字のコード。
-	 * @param lastCode
-	 *            最後の文字のコード。
-	 * @param widths
-	 *            文字の幅のリスト。
+	 * @param firstCode 最初の文字のコード。
+	 * @param lastCode  最後の文字のコード。
+	 * @param widths    文字の幅のリスト。
 	 */
 	public Width(int firstCode, int lastCode, short[] widths) {
 		this.firstCode = firstCode;

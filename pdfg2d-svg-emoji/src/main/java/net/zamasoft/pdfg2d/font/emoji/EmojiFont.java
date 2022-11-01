@@ -115,7 +115,7 @@ class EmojiFont implements ImageFont {
 					ctx.setDynamic(false);
 					GVTBuilder gvt = new GVTBuilderImpl();
 					gvtRoot = gvt.build(ctx, doc);
-					if (gc instanceof PDFGC && ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams().getVersion() >= PDFParams.VERSION_1_4) {
+					if (gc instanceof PDFGC && ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams().getVersion().v >= PDFParams.Version.V_1_4.v) {
 						image = ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().createGroupImage(1000, 1000);
 						PDFGC gc2 = new PDFGC(image);
 						gc2.transform(AffineTransform.getScaleInstance(1000.0 / VIEWPORT.getWidth(), 1000.0 / VIEWPORT.getHeight()));

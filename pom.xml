@@ -10,8 +10,7 @@
 	<artifactId>pdfg2d</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0</version>
-	<name>PDFG2D-Base</name>
-	<description>縦書きテキストに対応した、シンプルなグラフィックコンテキストです。</description>
+	<name>pdfg2d</name>
 	<url>https://github.com/mimidesunya/pdfg2d/</url>
 	
 	<modules>

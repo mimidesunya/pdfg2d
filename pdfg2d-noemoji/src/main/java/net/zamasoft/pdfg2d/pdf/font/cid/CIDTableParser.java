@@ -67,13 +67,12 @@ class CIDTableParser {
 			this.in.close();
 		}
 	}
-	
+
 	private static int parseCode(String a) {
 		int code;
 		if (a.length() <= 4) {
 			code = Integer.parseInt(a, 16);
-		}
-		else {
+		} else {
 			// サロゲートペア
 			int h = Integer.parseInt(a.substring(0, 4), 16);
 			int l = Integer.parseInt(a.substring(4, 8), 16);

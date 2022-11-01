@@ -216,8 +216,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * not recognized, <code>java.awt.Image.UndefinedProperty</code> will be
 	 * returned.
 	 * 
-	 * @param name
-	 *            the name of the property to get, as a <code>String</code>.
+	 * @param name the name of the property to get, as a <code>String</code>.
 	 * @return a reference to the property <code>Object</code>, or the value
 	 *         <code>java.awt.Image.UndefinedProperty.</code>
 	 */
@@ -316,8 +315,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * Converts a pixel's X coordinate into a horizontal tile index. This is a
 	 * convenience method. No attempt is made to detect out-of-range coordinates.
 	 * 
-	 * @param x
-	 *            the X coordinate of a pixel.
+	 * @param x the X coordinate of a pixel.
 	 * @return the X index of the tile containing the pixel.
 	 */
 	public int XToTileX(int x) {
@@ -328,8 +326,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * Converts a pixel's Y coordinate into a vertical tile index. This is a
 	 * convenience method. No attempt is made to detect out-of-range coordinates.
 	 * 
-	 * @param y
-	 *            the Y coordinate of a pixel.
+	 * @param y the Y coordinate of a pixel.
 	 * @return the Y index of the tile containing the pixel.
 	 */
 	public int YToTileY(int y) {
@@ -359,8 +356,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * pixel. This is a convenience method. No attempt is made to detect
 	 * out-of-range indices.
 	 * 
-	 * @param tx
-	 *            the horizontal index of a tile.
+	 * @param tx the horizontal index of a tile.
 	 * @return the X coordinate of the tile's upper left pixel.
 	 */
 	public int tileXToX(int tx) {
@@ -372,8 +368,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * This is a convenience method. No attempt is made to detect out-of-range
 	 * indices.
 	 * 
-	 * @param ty
-	 *            the vertical index of a tile.
+	 * @param ty the vertical index of a tile.
 	 * @return the Y coordinate of the tile's upper left pixel.
 	 */
 	public int tileYToY(int ty) {
@@ -417,8 +412,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * or obtaining and modifying its DataBuffer) may result in undefined behavior.
 	 * The copyData method should be used if the returned Raster is to be modified.
 	 * 
-	 * @param bounds
-	 *            the region of the RenderedImage to be returned.
+	 * @param bounds the region of the RenderedImage to be returned.
 	 */
 	public Raster getData(Rectangle bounds) {
 		int startX = XToTileX(bounds.x);
@@ -461,8 +455,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
 	 * newly-created WritableRaster with a SampleModel that is compatible with that
 	 * of the image.
 	 * 
-	 * @param dest
-	 *            a WritableRaster to hold the returned portion of the image.
+	 * @param dest a WritableRaster to hold the returned portion of the image.
 	 * @return a reference to the supplied WritableRaster, or to a new
 	 *         WritableRaster if the supplied one was null.
 	 */

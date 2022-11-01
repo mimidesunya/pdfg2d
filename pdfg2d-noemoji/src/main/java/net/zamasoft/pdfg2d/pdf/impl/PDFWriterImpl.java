@@ -41,9 +41,9 @@ import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.PDFMetaInfo;
 import net.zamasoft.pdfg2d.pdf.PDFNamedGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFNamedOutput;
+import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
-import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
 import net.zamasoft.pdfg2d.pdf.action.Action;
 import net.zamasoft.pdfg2d.pdf.font.FontManagerImpl;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
@@ -182,23 +182,23 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
 		// ヘッダ
-		final int pdfVersion = this.params.getVersion();
+		final PDFParams.Version pdfVersion = this.params.getVersion();
 		this.mainFlow.write(HEADER);
 		switch (pdfVersion) {
-		case PDFParams.VERSION_1_2:
+		case V_1_2:
 			this.mainFlow.write(PDF12);
 			break;
 
-		case PDFParams.VERSION_1_3:
+		case V_1_3:
 			this.mainFlow.write(PDF13);
 			break;
 
-		case PDFParams.VERSION_1_4:
-		case PDFParams.VERSION_PDFX1A:
+		case V_1_4:
+		case V_PDFX1A:
 			this.mainFlow.write(PDF14);
 			break;
 
-		case PDFParams.VERSION_PDFA1B:
+		case V_PDFA1B:
 			this.mainFlow.write(PDF14);
 			this.mainFlow.lineBreak();
 			// PDF/A-1 6.1.2 バイナリと識別するためのマーカ
@@ -208,15 +208,15 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			}
 			break;
 
-		case PDFParams.VERSION_1_5:
+		case V_1_5:
 			this.mainFlow.write(PDF15);
 			break;
 
-		case PDFParams.VERSION_1_6:
+		case V_1_6:
 			this.mainFlow.write(PDF16);
 			break;
 
-		case PDFParams.VERSION_1_7:
+		case V_1_7:
 			this.mainFlow.write(PDF17);
 			break;
 		default:
@@ -234,24 +234,24 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow.lineBreak();
 
 		// バージョン
-		if (pdfVersion >= PDFParams.VERSION_1_4) {
+		if (pdfVersion.v >= PDFParams.Version.V_1_4.v) {
 			this.mainFlow.writeName("Version");
 			switch (pdfVersion) {
-			case PDFParams.VERSION_1_4:
-			case PDFParams.VERSION_PDFA1B:
-			case PDFParams.VERSION_PDFX1A:
+			case V_1_4:
+			case V_PDFA1B:
+			case V_PDFX1A:
 				this.mainFlow.writeName("1.4");
 				break;
 
-			case PDFParams.VERSION_1_5:
+			case V_1_5:
 				this.mainFlow.writeName("1.5");
 				break;
 
-			case PDFParams.VERSION_1_6:
+			case V_1_6:
 				this.mainFlow.writeName("1.6");
 				break;
 
-			case PDFParams.VERSION_1_7:
+			case V_1_7:
 				this.mainFlow.writeName("1.7");
 				break;
 			default:
@@ -268,7 +268,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		// XMPメタデータ
 		ObjectRef xmpmetaRef = null;
-		if (params.getVersion() >= PDFParams.VERSION_1_4) {
+		if (params.getVersion().v >= PDFParams.Version.V_1_4.v) {
 			xmpmetaRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("Metadata");
 			this.mainFlow.writeObjectRef(xmpmetaRef);
@@ -277,7 +277,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		// OutputIntents
 		ObjectRef outputIntentRef = null;
-		if (params.getVersion() >= PDFParams.VERSION_1_4) {
+		if (params.getVersion().v >= PDFParams.Version.V_1_4.v) {
 			outputIntentRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("OutputIntents");
 			this.mainFlow.startArray();
@@ -318,19 +318,19 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		// 暗号化
 		EncryptionParams encriptionParams = this.params.getEncription();
 		if (encriptionParams != null) {
-			if (pdfVersion == PDFParams.VERSION_PDFA1B) {
+			if (pdfVersion == PDFParams.Version.V_PDFA1B) {
 				throw new IllegalArgumentException("PDF/A-1では暗号化は使用できません。");
 			}
-			int encType = encriptionParams.getType();
-			if (encType == EncryptionParams.TYPE_V2 && pdfVersion < PDFParams.VERSION_1_3) {
+			EncryptionParams.Type encType = encriptionParams.getType();
+			if (encType == EncryptionParams.Type.V2 && pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				throw new IllegalArgumentException("V2暗号化はPDF 1.3以降で使用できます。");
 			}
-			if (encType == EncryptionParams.TYPE_V4) {
-				if (pdfVersion < PDFParams.VERSION_1_5) {
+			if (encType == EncryptionParams.Type.V4) {
+				if (pdfVersion.v < PDFParams.Version.V_1_5.v) {
 					throw new IllegalArgumentException("V4暗号化はPDF 1.5以降で使用できます。");
 				}
-				if (((V4EncryptionParams) encriptionParams).getCfm() == V4EncryptionParams.CFM_AESV2) {
-					if (pdfVersion < PDFParams.VERSION_1_6) {
+				if (((V4EncryptionParams) encriptionParams).getCFM() == V4EncryptionParams.CFM.AESV2) {
+					if (pdfVersion.v < PDFParams.Version.V_1_6.v) {
 						throw new IllegalArgumentException("AESV2暗号化はPDF 1.6以降で使用できます。");
 					}
 				}
@@ -359,7 +359,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.lineBreak();
 
 			this.mainFlow.writeName("S");
-			if (params.getVersion() == PDFParams.VERSION_PDFA1B) {
+			if (params.getVersion() == PDFParams.Version.V_PDFA1B) {
 				this.mainFlow.writeName("GTS_PDFA1");
 			} else {
 				this.mainFlow.writeName("GTS_PDFX");
@@ -368,7 +368,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 			String iccName, iccFile;
 			int colors;
-			if (pdfVersion == PDFParams.VERSION_PDFX1A) {
+			if (pdfVersion == PDFParams.Version.V_PDFX1A) {
 				iccName = "Probe Profile";
 				iccFile = "Probev1_ICCv2.icc";
 				colors = 4;
@@ -397,7 +397,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.writeInt(colors);
 			this.mainFlow.lineBreak();
 
-			try (OutputStream pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY);
+			try (OutputStream pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
 					InputStream in = PDFWriterImpl.class.getResourceAsStream(iccFile)) {
 				byte[] buff = this.mainFlow.getBuff();
 				for (int len = in.read(buff); len != -1; len = in.read(buff)) {
@@ -425,7 +425,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		};
 
 		// 添付ファイル
-		if (pdfVersion >= PDFParams.VERSION_1_4 && pdfVersion != PDFParams.VERSION_PDFA1B) {
+		if (pdfVersion.v >= PDFParams.Version.V_1_4.v && pdfVersion.v != PDFParams.Version.V_PDFA1B.v) {
 			this.embeddedFiles = new NameTreeFlow(this, "EmbeddedFiles") {
 				protected void writeEntry(Object entry) throws IOException {
 					this.out.startHash();
@@ -441,7 +441,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.out.writeFileName(new String[] { spec.name }, PDFWriterImpl.this.params.getPlatformEncoding());
 					this.out.lineBreak();
 
-					if (pdfVersion >= PDFParams.VERSION_1_7 && att.description != null) {
+					if (pdfVersion.v >= PDFParams.Version.V_1_7.v && att.description != null) {
 						this.out.writeName("UF");
 						this.out.writeUTF16(att.description);
 						this.out.lineBreak();
@@ -580,7 +580,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	public PDFGroupImage createGroupImage(double width, double height) throws IOException {
 		// グループ
-		if (this.getParams().getVersion() < PDFParams.VERSION_1_4) {
+		if (this.getParams().getVersion().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("Form Type 1 Group feature requres PDF >= 1.4.");
 		}
 		ObjectRef imageRef = this.xref.nextObjectRef();
@@ -637,7 +637,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		PDFFragmentOutput formFlow = objectsFlow.forkFragment();
 		PDFFragmentOutput groupFlow = objectsFlow.forkFragment();
-		OutputStream groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.STREAM_ASCII);
+		OutputStream groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFGroupImageImpl(this, groupOut, groupFlow, newResourceFlow, width, height, name, imageRef,
@@ -723,7 +723,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.lineBreak();
 
 		PDFFragmentOutput patternFlow = objectsFlow.forkFragment();
-		OutputStream patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.STREAM_ASCII);
+		OutputStream patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFNamedGraphicsOutputImpl(this, patternOut, patternFlow, newResourceFlow, width, height, name);
@@ -796,13 +796,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		if (attachment.description == null && name == null) {
 			throw new NullPointerException();
 		}
-		if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("ファイルの添付は PDF 1.4 以降で使用できます。");
 		}
-		if (this.params.getVersion() == PDFParams.VERSION_PDFA1B) {
+		if (this.params.getVersion() == PDFParams.Version.V_PDFA1B) {
 			throw new UnsupportedOperationException("ファイルの添付は PDF/A では利用できません。");
 		}
-		if (this.params.getVersion() == PDFParams.VERSION_PDFX1A) {
+		if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
 			throw new UnsupportedOperationException("ファイルの添付は PDF/X では利用できません。");
 		}
 
@@ -836,7 +836,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		try {
 			final MessageDigest md5 = MessageDigest.getInstance("md5");
 
-			OutputStream out = objectsFlow.startStreamFromHash(PDFFragmentOutput.STREAM_BINARY);
+			OutputStream out = objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
 			return new FilterOutputStream(out) {
 				private int size = 0;
 
@@ -920,7 +920,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.objectsFlow.startObject(infoRef);
 			this.objectsFlow.startHash();
 
-			if (this.params.getVersion() == PDFParams.VERSION_PDFX1A) {
+			if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
 				if (title == null || title.length() == 0) {
 					title = "Untitled";
 				}
@@ -995,7 +995,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.xmpmetaFlow.writeName("XML");
 				this.xmpmetaFlow.lineBreak();
 
-				try (OutputStream xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.STREAM_RAW)) {
+				try (OutputStream xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW)) {
 					xout.write("<?xpacket begin='".getBytes("UTF-8"));
 					xout.write("\u00EF\u00BB\u00BF".getBytes("ISO-8859-1"));
 					xout.write("' id='W5M0MpCehiHzreSzNTczkc9d'?>\n".getBytes("UTF-8"));
@@ -1026,7 +1026,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					attsi.clear();
 
 					// PDF/A ID
-					if (this.params.getVersion() == PDFParams.VERSION_PDFA1B) {
+					if (this.params.getVersion() == PDFParams.Version.V_PDFA1B) {
 						attsi.addAttribute("", "pdfaid", "xmlns:pdfaid", "CDATA", pdfaidURI);
 						attsi.addAttribute(rdfURI, "about", "rdf:about", "CDATA", "");
 						handler.startElement(rdfURI, "Description", "rdf:Description", attsi);
@@ -1265,7 +1265,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.isDisplayDocTitle()) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのDisplayDocTitleは PDF 1.4 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("DisplayDocTitle");
@@ -1273,19 +1273,19 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getNonFullScreenPageMode() != ViewerPreferences.NONE_FULL_SCREEN_PAGE_MODE_USE_NONE) {
+				if (vp.getNonFullScreenPageMode() != ViewerPreferences.NonFullScreenPageMode.NONE) {
 					this.catalogFlow.writeName("NonFullScreenPageMode");
 					switch (vp.getNonFullScreenPageMode()) {
-					case ViewerPreferences.NONE_FULL_SCREEN_PAGE_MODE_USE_OUTLINES:
+					case OUTLINES:
 						this.catalogFlow.writeName("UseOutlines");
 						break;
-					case ViewerPreferences.NONE_FULL_SCREEN_PAGE_MODE_USE_THUMBS:
+					case THUMBS:
 						this.catalogFlow.writeName("UseThumbs");
 						break;
-					case ViewerPreferences.NONE_FULL_SCREEN_PAGE_MODE_USE_OC:
+					case OC:
 						this.catalogFlow.writeName("UseOC");
 						break;
-					case ViewerPreferences.NONE_FULL_SCREEN_PAGE_MODE_USE_NONE:
+					case NONE:
 						// this.catalogFlow.writeName("UseNone");
 						// break;
 					default:
@@ -1294,16 +1294,16 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getDirection() != ViewerPreferences.DIRECTION_L2R) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_3) {
+				if (vp.getDirection() != ViewerPreferences.Direction.L2R) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのDirectionは PDF 1.3 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("Direction");
 					switch (vp.getDirection()) {
-					case ViewerPreferences.DIRECTION_R2L:
+					case R2L:
 						this.catalogFlow.writeName("R2L");
 						break;
-					case ViewerPreferences.DIRECTION_L2R:
+					case L2R:
 						// this.catalogFlow.writeName("L2R");
 						// break;
 					default:
@@ -1312,8 +1312,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getViewArea() != ViewerPreferences.AREA_CROP_BOX) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+				if (vp.getViewArea() != ViewerPreferences.AreaBox.CROP) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのViewAreaは PDF 1.4 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("ViewArea");
@@ -1321,8 +1321,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getViewClip() != ViewerPreferences.AREA_CROP_BOX) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+				if (vp.getViewClip() != ViewerPreferences.AreaBox.CROP) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのViewClipは PDF 1.4 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("ViewClip");
@@ -1330,8 +1330,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getPrintArea() != ViewerPreferences.AREA_CROP_BOX) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+				if (vp.getPrintArea() != ViewerPreferences.AreaBox.CROP) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのPrintAreaは PDF 1.4 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("PrintArea");
@@ -1339,8 +1339,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getPrintClip() != ViewerPreferences.AREA_CROP_BOX) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_4) {
+				if (vp.getPrintClip() != ViewerPreferences.AreaBox.CROP) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのPrintClipは PDF 1.4 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("PrintClip");
@@ -1348,16 +1348,16 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getPrintScaling() != ViewerPreferences.PRINT_SCALING_APP_DEFAULT) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_6) {
+				if (vp.getPrintScaling() != ViewerPreferences.PrintScaling.APP_DEFAULT) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_6.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのPrintScalingは PDF 1.6 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("PrintScaling");
 					switch (vp.getPrintScaling()) {
-					case ViewerPreferences.PRINT_SCALING_NONE:
+					case NONE:
 						this.catalogFlow.writeName("None");
 						break;
-					case ViewerPreferences.PRINT_SCALING_APP_DEFAULT:
+					case APP_DEFAULT:
 						// this.catalogFlow.writeName("AppDefault");
 						// break;
 					default:
@@ -1366,22 +1366,22 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				if (vp.getDuplex() != ViewerPreferences.DUPLEX_NONE) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_7) {
+				if (vp.getDuplex() != ViewerPreferences.Duplex.NONE) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのDuplexは PDF 1.7 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("Duplex");
 					switch (vp.getDuplex()) {
-					case ViewerPreferences.DUPLEX_SIMPLEX:
+					case SIMPLEX:
 						this.catalogFlow.writeName("Simplex");
 						break;
-					case ViewerPreferences.DUPLEX_DUPLEX_FLIP_SHORT_EDGE:
+					case FLIP_SHORT_EDGE:
 						this.catalogFlow.writeName("DuplexFlipShortEdge");
 						break;
-					case ViewerPreferences.DUPLEX_DUPLEX_FLIP_LONG_EDGE:
+					case FLIP_LONG_EDGE:
 						this.catalogFlow.writeName("DuplexFlipLongEdge");
 						break;
-					case ViewerPreferences.DUPLEX_NONE:
+					case NONE:
 						// break;
 					default:
 						throw new IllegalStateException();
@@ -1390,7 +1390,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getPickTrayByPDFSize()) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_7) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreferenceのPickTrayByPDFSizeは PDF 1.7 以降で使用できます。");
 					}
@@ -1401,7 +1401,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				int[] printPageRange = vp.getPrintPageRange();
 				if (printPageRange != null) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_7) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのPrintPageRangeは PDF 1.7 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("PrintPageRange");
@@ -1415,7 +1415,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				int numCopies = vp.getNumCopies();
 				if (numCopies > 0) {
-					if (this.params.getVersion() < PDFParams.VERSION_1_7) {
+					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException("ViewerPreferenceのNumCopiesは PDF 1.7 以降で使用できます。");
 					}
 					this.catalogFlow.writeName("NumCopies");
@@ -1455,21 +1455,21 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 	}
 
-	private void writeArea(byte area) throws IOException {
+	private void writeArea(ViewerPreferences.AreaBox area) throws IOException {
 		switch (area) {
-		case ViewerPreferences.AREA_MEDIA_BOX:
+		case MEDIA:
 			this.catalogFlow.writeName("MediaBox");
 			break;
-		case ViewerPreferences.AREA_CROP_BOX:
+		case CROP:
 			// this.catalogFlow.writeName("CropBox");
 			break;
-		case ViewerPreferences.AREA_BLEED_BOX:
+		case BLEED:
 			this.catalogFlow.writeName("BleedBox");
 			break;
-		case ViewerPreferences.AREA_TRIM_BOX:
+		case TRIM:
 			this.catalogFlow.writeName("TrimBox");
 			break;
-		case ViewerPreferences.AREA_ART_BOX:
+		case ART:
 			this.catalogFlow.writeName("ArtBox");
 			break;
 		default:

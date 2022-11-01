@@ -24,7 +24,7 @@ public class JavaScriptAction extends Action {
 
 	public void writeTo(PDFOutput out) throws IOException {
 		super.writeTo(out);
-		if (this.params.getVersion() < PDFParams.VERSION_1_3) {
+		if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("JavaScript Actionは PDF 1.3 以降で使用できます。");
 		}
 		out.writeName("S");

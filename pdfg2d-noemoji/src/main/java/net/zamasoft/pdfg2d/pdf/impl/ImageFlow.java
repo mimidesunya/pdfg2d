@@ -121,7 +121,7 @@ class ImageFlow {
 						if (iti != null && iti.hasNext()) {
 							imageIn.seek(0);
 							if (ir instanceof CMYKJPEGImageReader) {
-								cir = (CMYKJPEGImageReader)ir;
+								cir = (CMYKJPEGImageReader) ir;
 								continue;
 							}
 							break;
@@ -149,32 +149,31 @@ class ImageFlow {
 			int width;
 			int height;
 
-			short colorMode = this.params.getColorMode();
-			short streamCompression = this.params.getCompression();
-			short imageCompression = this.params.getImageCompression();
-			int pdfVersion = this.params.getVersion();
-			boolean softMaskSupport = pdfVersion >= PDFParams.VERSION_1_4 && pdfVersion != PDFParams.VERSION_PDFA1B
-					&& pdfVersion != PDFParams.VERSION_PDFX1A;
-			boolean jpeg2000Support = pdfVersion >= PDFParams.VERSION_1_5;
-			short imageType = PDFParams.IMAGE_COMPRESSION_FLATE;
+			PDFParams.ColorMode colorMode = this.params.getColorMode();
+			PDFParams.Compression streamCompression = this.params.getCompression();
+			PDFParams.ImageCompression imageCompression = this.params.getImageCompression();
+			PDFParams.Version pdfVersion = this.params.getVersion();
+			boolean softMaskSupport = pdfVersion.v >= PDFParams.Version.V_1_4.v
+					&& pdfVersion.v != PDFParams.Version.V_PDFA1B.v && pdfVersion.v != PDFParams.Version.V_PDFX1A.v;
+			boolean jpeg2000Support = pdfVersion.v >= PDFParams.Version.V_1_5.v;
+			PDFParams.ImageCompression imageType = PDFParams.ImageCompression.FLATE;
 
-			if (ir != null && colorMode == PDFParams.COLOR_MODE_PRESERVE) {
+			if (ir != null && colorMode == PDFParams.ColorMode.PRESERVE) {
 				String formatName = ir.getFormatName();
-				if (this.params.getJPEGImage() == PDFParams.JPEG_IMAGE_RAW) {
+				if (this.params.getJPEGImage() == PDFParams.JPEGImage.RAW) {
 					// 元画像形式の検出
 					if (formatName.equalsIgnoreCase("jpeg")) {
-						imageType = PDFParams.IMAGE_COMPRESSION_JPEG;
+						imageType = PDFParams.ImageCompression.JPEG;
 					} else if (jpeg2000Support) {
 						if (formatName.equalsIgnoreCase("jpeg 2000")) {
-							imageType = PDFParams.IMAGE_COMPRESSION_JPEG2000;
+							imageType = PDFParams.ImageCompression.JPEG2000;
 						}
 					}
-				} else if (imageCompression == PDFParams.IMAGE_COMPRESSION_JPEG
-						&& formatName.equalsIgnoreCase("jpeg")) {
-					imageType = PDFParams.IMAGE_COMPRESSION_JPEG;
-				} else if (imageCompression == PDFParams.IMAGE_COMPRESSION_JPEG2000) {
+				} else if (imageCompression == PDFParams.ImageCompression.JPEG && formatName.equalsIgnoreCase("jpeg")) {
+					imageType = PDFParams.ImageCompression.JPEG;
+				} else if (imageCompression == PDFParams.ImageCompression.JPEG2000) {
 					if (formatName.equalsIgnoreCase("jpeg 2000")) {
-						imageType = PDFParams.IMAGE_COMPRESSION_JPEG2000;
+						imageType = PDFParams.ImageCompression.JPEG2000;
 					}
 				}
 			}
@@ -223,7 +222,7 @@ class ImageFlow {
 			boolean resize = (maxWidth > 0 && width > maxWidth) || (maxHeight > 0 && height > maxHeight);
 			double orgWidth = width;
 			double orgHeight = height;
-			if (resize || imageType == PDFParams.IMAGE_COMPRESSION_FLATE) {
+			if (resize || imageType == PDFParams.ImageCompression.FLATE) {
 				// 再圧縮します
 				if (ir != null) {
 					imageIn.seek(0);
@@ -276,11 +275,11 @@ class ImageFlow {
 					} finally {
 						scaled.flush();
 					}
-					imageType = PDFParams.IMAGE_COMPRESSION_FLATE;
+					imageType = PDFParams.ImageCompression.FLATE;
 				}
 
 				// グレースケールフィルタ
-				if (colorMode == PDFParams.COLOR_MODE_GRAY && image.getType() != BufferedImage.TYPE_BYTE_GRAY
+				if (colorMode == PDFParams.ColorMode.GRAY && image.getType() != BufferedImage.TYPE_BYTE_GRAY
 						&& image.getType() != BufferedImage.TYPE_USHORT_GRAY) {
 					for (int y = 0; y < height; ++y) {
 						for (int x = 0; x < width; ++x) {
@@ -326,7 +325,7 @@ class ImageFlow {
 				this.objectsFlow.writeInt(height);
 				this.objectsFlow.breakBefore();
 
-				if (imageType != PDFParams.IMAGE_COMPRESSION_FLATE) {
+				if (imageType != PDFParams.ImageCompression.FLATE) {
 					// 画像の生データを出力
 					try {
 						this.objectsFlow.writeName("BitsPerComponent");
@@ -387,18 +386,20 @@ class ImageFlow {
 						this.objectsFlow.writeName("Filter");
 						this.objectsFlow.startArray();
 						switch (streamCompression) {
-						case PDFParams.COMPRESSION_ASCII:
+						case ASCII:
 							this.objectsFlow.writeName("ASCII85Decode");
 							break;
-						case PDFParams.COMPRESSION_NONE:
+						case NONE:
 							this.objectsFlow.writeName("ASCIIHexDecode");
 							break;
+						default:
+							// ignore
 						}
 						switch (imageType) {
-						case PDFParams.IMAGE_COMPRESSION_JPEG:
+						case JPEG:
 							this.objectsFlow.writeName("DCTDecode");
 							break;
-						case PDFParams.IMAGE_COMPRESSION_JPEG2000:
+						case JPEG2000:
 							this.objectsFlow.writeName("JPXDecode");
 							break;
 						default:
@@ -407,15 +408,17 @@ class ImageFlow {
 						this.objectsFlow.endArray();
 						this.objectsFlow.breakBefore();
 
-						OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.STREAM_RAW);
+						OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW);
 						try {
 							switch (streamCompression) {
-							case PDFParams.COMPRESSION_ASCII:
+							case ASCII:
 								out = new ASCII85OutputStream(out);
 								break;
-							case PDFParams.COMPRESSION_NONE:
+							case NONE:
 								out = new ASCIIHexOutputStream(out);
 								break;
+							default:
+								// ignore
 							}
 							imageIn.seek(0);
 							byte[] buff = this.objectsFlow.getBuff();
@@ -441,11 +444,11 @@ class ImageFlow {
 						ImageWriter iw;
 						ImageWriteParam iwParams;
 						switch (imageType) {
-						case PDFParams.IMAGE_COMPRESSION_FLATE:
+						case FLATE:
 							iw = null;
 							iwParams = null;
 							break;
-						case PDFParams.IMAGE_COMPRESSION_JPEG: {
+						case JPEG: {
 							Iterator<?> i = ImageIO.getImageWritersByFormatName("jpeg");
 							if (i == null || !i.hasNext()) {
 								throw new IOException("この環境ではJPEGの出力をサポートしていません。");
@@ -456,7 +459,7 @@ class ImageFlow {
 							iwParams.setCompressionQuality(.8f);
 						}
 							break;
-						case PDFParams.IMAGE_COMPRESSION_JPEG2000:
+						case JPEG2000:
 							Iterator<?> i = ImageIO.getImageWritersByFormatName("jpeg 2000");
 							if (i == null || !i.hasNext()) {
 								throw new IOException(
@@ -496,28 +499,28 @@ class ImageFlow {
 						this.objectsFlow.writeName("Filter");
 						this.objectsFlow.startArray();
 						switch (streamCompression) {
-						case PDFParams.COMPRESSION_ASCII:
+						case ASCII:
 							this.objectsFlow.writeName("ASCII85Decode");
-							if (imageType == PDFParams.IMAGE_COMPRESSION_FLATE) {
+							if (imageType == PDFParams.ImageCompression.FLATE) {
 								this.objectsFlow.writeName("FlateDecode");
 							}
 							break;
-						case PDFParams.COMPRESSION_NONE:
+						case NONE:
 							this.objectsFlow.writeName("ASCIIHexDecode");
 							break;
 						default:
-							if (imageType == PDFParams.IMAGE_COMPRESSION_FLATE) {
+							if (imageType == PDFParams.ImageCompression.FLATE) {
 								this.objectsFlow.writeName("FlateDecode");
 							}
 							break;
 						}
 						switch (imageType) {
-						case PDFParams.IMAGE_COMPRESSION_FLATE:
+						case FLATE:
 							break;
-						case PDFParams.IMAGE_COMPRESSION_JPEG:
+						case JPEG:
 							this.objectsFlow.writeName("DCTDecode");
 							break;
-						case PDFParams.IMAGE_COMPRESSION_JPEG2000:
+						case JPEG2000:
 							this.objectsFlow.writeName("JPXDecode");
 							break;
 						default:
@@ -526,26 +529,26 @@ class ImageFlow {
 						this.objectsFlow.endArray();
 						this.objectsFlow.breakBefore();
 
-						OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.STREAM_RAW);
+						OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW);
 						switch (streamCompression) {
-						case PDFParams.COMPRESSION_ASCII:
+						case ASCII:
 							out = new ASCII85OutputStream(out);
-							if (imageType == PDFParams.IMAGE_COMPRESSION_FLATE) {
+							if (imageType == PDFParams.ImageCompression.FLATE) {
 								out = new DeflaterOutputStream(out);
 							}
 							break;
-						case PDFParams.COMPRESSION_NONE:
+						case NONE:
 							out = new ASCIIHexOutputStream(out);
 							break;
 						default:
-							if (imageType == PDFParams.IMAGE_COMPRESSION_FLATE) {
+							if (imageType == PDFParams.ImageCompression.FLATE) {
 								out = new DeflaterOutputStream(out);
 							}
 							break;
 						}
 						switch (imageType) {
-						case PDFParams.IMAGE_COMPRESSION_JPEG:
-						case PDFParams.IMAGE_COMPRESSION_JPEG2000: {
+						case JPEG:
+						case JPEG2000: {
 							// JPEG / JPEG 2000
 							BufferedImage ximage = image;
 							if (cm.hasAlpha()) {
@@ -575,7 +578,7 @@ class ImageFlow {
 							}
 						}
 							break;
-						case PDFParams.IMAGE_COMPRESSION_FLATE: {
+						case FLATE: {
 							// 可逆圧縮
 							Raster raster = image.getRaster();
 							out = new FastBufferedOutputStream(out, this.objectsFlow.getBuff());
@@ -652,11 +655,11 @@ class ImageFlow {
 							this.objectsFlow.writeName("Filter");
 							this.objectsFlow.startArray();
 							switch (streamCompression) {
-							case PDFParams.COMPRESSION_ASCII:
+							case ASCII:
 								this.objectsFlow.writeName("ASCII85Decode");
 								this.objectsFlow.writeName("FlateDecode");
 								break;
-							case PDFParams.COMPRESSION_NONE:
+							case NONE:
 								this.objectsFlow.writeName("ASCIIHexDecode");
 								break;
 							default:
@@ -666,12 +669,12 @@ class ImageFlow {
 							this.objectsFlow.endArray();
 							this.objectsFlow.breakBefore();
 
-							OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.STREAM_RAW);
+							OutputStream out = this.objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW);
 							switch (streamCompression) {
-							case PDFParams.COMPRESSION_ASCII:
+							case ASCII:
 								out = new DeflaterOutputStream(new ASCII85OutputStream(out));
 								break;
-							case PDFParams.COMPRESSION_NONE:
+							case NONE:
 								out = new ASCIIHexOutputStream(out);
 								break;
 							default:

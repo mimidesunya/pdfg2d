@@ -9,8 +9,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>pdfg2d-all</artifactId>
 	<packaging>jar</packaging>
-	<name>pdfg2d Single Jar Package</name>
-	<description>Sakae(PDF出力ライブラリ)のPDF出力実装です。</description>
+	<name>pdfg2d single jar package</name>
 	<url>https://github.com/mimidesunya/pdfg2d/pdfg2d-all/</url>
 
 	<dependencies>

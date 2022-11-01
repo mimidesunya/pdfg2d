@@ -144,8 +144,7 @@ public class ASCII85OutputStream extends FilterOutputStream {
 	 * in the result starts with zero at the '!' character so the resulting base85
 	 * number fits into printable ascii chars
 	 * 
-	 * @param word
-	 *            the 32 bit unsigned (hence the long datatype) word
+	 * @param word the 32 bit unsigned (hence the long datatype) word
 	 * @return 5 bytes (or a single byte of the 'z' character for word values of 0)
 	 */
 	private byte[] convertWord(long word) {

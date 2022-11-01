@@ -8,14 +8,14 @@ import java.io.OutputStream;
  * @since 1.0
  */
 public abstract class PDFFragmentOutput extends PDFOutput {
-	/** ストリームへ出力したデータをそのままPDFに書き込みます。 */
-	public static final short STREAM_RAW = 0;
-
-	/** バイナリデータに適した圧縮を行います。 */
-	public static final short STREAM_BINARY = 1;
-
-	/** テキストデータに適した圧縮を行います。 */
-	public static final short STREAM_ASCII = 2;
+	public enum Mode {
+		/** ストリームへ出力したデータをそのままPDFに書き込みます。 */
+		RAW,
+		/** バイナリデータに適した圧縮を行います。 */
+		BINARY,
+		/** テキストデータに適した圧縮を行います。 */
+		ASCII;
+	}
 
 	protected PDFFragmentOutput(OutputStream out, String nameEncoding) throws IOException {
 		super(out, nameEncoding);
@@ -40,17 +40,15 @@ public abstract class PDFFragmentOutput extends PDFOutput {
 	 * ストリームの開始を出力します。
 	 * 
 	 * @param mode
-	 *            STREAM_XXX値を渡します。
 	 * @throws IOException
 	 */
-	public abstract OutputStream startStream(short mode) throws IOException;
+	public abstract OutputStream startStream(Mode mode) throws IOException;
 
 	/**
 	 * ハッシュ内からストリームの開始を出力します。 このメソッドはハッシュを閉じます。
 	 * 
 	 * @param mode
-	 *            STREAM_XXX値を渡します。
 	 * @throws IOException
 	 */
-	public abstract OutputStream startStreamFromHash(short mode) throws IOException;
+	public abstract OutputStream startStreamFromHash(Mode mode) throws IOException;
 }

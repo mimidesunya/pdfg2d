@@ -17,8 +17,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param author
-	 *            The author to set.
+	 * @param author The author to set.
 	 */
 	public void setAuthor(String author) {
 		this.author = author;
@@ -32,8 +31,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param creator
-	 *            The creator to set.
+	 * @param creator The creator to set.
 	 */
 	public void setCreator(String creator) {
 		this.creator = creator;
@@ -47,8 +45,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param keywords
-	 *            The keywords to set.
+	 * @param keywords The keywords to set.
 	 */
 	public void setKeywords(String keywords) {
 		this.keywords = keywords;
@@ -62,8 +59,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param producer
-	 *            The producer to set.
+	 * @param producer The producer to set.
 	 */
 	public void setProducer(String producer) {
 		this.producer = producer;
@@ -77,8 +73,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param subject
-	 *            The subject to set.
+	 * @param subject The subject to set.
 	 */
 	public void setSubject(String subject) {
 		this.subject = subject;
@@ -92,8 +87,7 @@ public final class PDFMetaInfo {
 	}
 
 	/**
-	 * @param title
-	 *            The title to set.
+	 * @param title The title to set.
 	 */
 	public void setTitle(String title) {
 		this.title = title;
