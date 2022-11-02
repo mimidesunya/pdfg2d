@@ -89,7 +89,7 @@ public final class URIHelper {
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			try(Writer writer = new OutputStreamWriter(out, enc)){
+			try (Writer writer = new OutputStreamWriter(out, enc)) {
 				for (int i = 0; i < uri.length(); ++i) {
 					char c = uri.charAt(i);
 					if (!Character.isISOControl(c)) {
@@ -140,10 +140,8 @@ public final class URIHelper {
 	/**
 	 * URIを生成します。
 	 * 
-	 * @param encoding
-	 *            マルチバイト文字のエンコーディング。
-	 * @param href
-	 *            URI文字列。
+	 * @param encoding マルチバイト文字のエンコーディング。
+	 * @param href     URI文字列。
 	 * @return 生成したURI。
 	 * @throws URISyntaxException
 	 */
@@ -156,17 +154,14 @@ public final class URIHelper {
 	/**
 	 * 相対URIを解決します。
 	 * 
-	 * @param encoding
-	 *            マルチバイト文字のエンコーディング。
-	 * @param baseURI
-	 *            基底URI。
-	 * @param href
-	 *            相対URI文字列。
+	 * @param encoding マルチバイト文字のエンコーディング。
+	 * @param baseURI  基底URI。
+	 * @param href     相対URI文字列。
 	 * @return 生成したURI。
 	 * @throws URISyntaxException
 	 */
-	public static URI resolve(String encoding, URI baseURI, String href) throws URISyntaxException {
-		String scheme = baseURI.getScheme();
+	public static URI resolve(final String encoding, final URI baseURI, String href) throws URISyntaxException {
+		final String scheme = baseURI.getScheme();
 		if (("http".equals(scheme) || "https".equals(scheme)) && !href.startsWith("file:")) {
 			href = filter(encoding, href);
 		}
@@ -174,9 +169,13 @@ public final class URIHelper {
 			href = "file:///" + href;
 		}
 		URI hrefURI = new URI(href);
+		if ("jar".equals(scheme) && !hrefURI.isAbsolute()) {
+			URI uri = new URI(baseURI.getSchemeSpecificPart()).resolve(hrefURI);
+			return new URI("jar:" + uri);
+		}
 		URI uri = baseURI.resolve(hrefURI);
-		if (uri.getScheme() == null && baseURI.getScheme() != null) {
-			uri = new URI(baseURI.getScheme(), uri.getSchemeSpecificPart(), uri.getFragment());
+		if (uri.getScheme() == null && scheme != null) {
+			uri = new URI(scheme, uri.getSchemeSpecificPart(), uri.getFragment());
 		}
 		if ((hasWindowsDrive(baseURI) && !hrefURI.isAbsolute()) || hasWindowsDrive(hrefURI)) {
 			// Windowsのファイルパスでrelativeをすると、ドライブ名のコロンが消えるバグがあるための対策。

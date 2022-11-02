@@ -6,34 +6,18 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
  	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.mimidesunya</groupId>
+	<groupId>io.github.mimidesunya</groupId>
 	<artifactId>pdfg2d</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.0</version>
-	<name>pdfg2d</name>
+	<version>0.0.2-SNAPSHOT</version>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Mapping Java Graphics2D to PDF</description>
 	<url>https://github.com/mimidesunya/pdfg2d/</url>
-	
-	<modules>
-		<module>zs-resolver</module>
-		<module>zs-font</module>
-		<module>zs-rsr</module>
-		<module>gc-core</module>
-		<module>pdfg2d-noemoji</module>
-		<module>pdfg2d-svg-emoji</module>
-		<module>pdfg2d-all</module>
-		<module>pdfg2d-demo</module>
-	</modules>
-	
-	<build>
-	    <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ssh</artifactId>
-                <version>3.0.0</version>
-            </extension>
-        </extensions>
-	</build>
-	
+	<scm>
+	    <connection>scm:git:https://github.com/mimidesunya/pdfg2d.git</connection>
+	    <developerConnection>scm:git:https://github.com/mimidesunya/pdfg2d.git</developerConnection>
+	    <url>https://github.com/mimidesunya/pdfg2d</url>
+	</scm>
 	<licenses>
 		<license>
 			<name>Apache 2</name>
@@ -42,9 +26,28 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-	
-	<organization>
-		<name>Zamasoft</name>
-		<url>https://zamasoft.net/</url>
-	</organization>
+	<developers>
+        <developer>
+            <id>mimidesunya</id>
+            <name>MIYABE Tatsuhiko</name>
+            <email>miyabe.tatsuhiko@gmail.com</email>
+            <organization>Zamasoft</organization>
+            <organizationUrl>https://zamasoft.net/</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+9</timezone>
+        </developer>
+    </developers>
+  	
+	<modules>
+		<module>pdfg2d-resolver</module>
+		<module>pdfg2d-font</module>
+		<module>pdfg2d-rsr</module>
+		<module>pdfg2d-core</module>
+		<module>pdfg2d-pdf</module>
+		<module>pdfg2d-svg-emoji</module>
+		<module>pdfg2d-demo</module>
+	</modules>
 </project>

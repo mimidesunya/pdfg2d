@@ -6,13 +6,42 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.mimidesunya</groupId>
-	<artifactId>zs-resolver</artifactId>
+	<groupId>io.github.mimidesunya</groupId>
+	<version>0.0.2-SNAPSHOT</version>
+	
+	<artifactId>pdfg2d-resolver</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
-	<name>Source Resolver</name>
-	<url>https://github.com/mimidesunya/pdfg2d/zs-resolver/</url>
-
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Source Resolver</description>
+	<url>https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-resolver</url>
+	<scm>
+	    <connection>scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-resolver</connection>
+	    <developerConnection>scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-resolver</developerConnection>
+	    <url>https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-resolver</url>
+	</scm>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<developers>
+        <developer>
+            <id>mimidesunya</id>
+            <name>MIYABE Tatsuhiko</name>
+            <email>miyabe.tatsuhiko@gmail.com</email>
+            <organization>Zamasoft</organization>
+            <organizationUrl>https://zamasoft.net/</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+9</timezone>
+        </developer>
+    </developers>
+    
 	<dependencies>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -50,14 +79,15 @@
 			<version>[4.5,)</version>
 		</dependency>
 	</dependencies>
+	
+	<distributionManagement>
+	  <snapshotRepository>
+	    <id>ossrh</id>
+	    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+	  </snapshotRepository>
+	</distributionManagement>
+	
 	<build>
-	    <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ssh</artifactId>
-                <version>3.0.0</version>
-            </extension>
-        </extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -72,36 +102,57 @@
 					</testExcludes>
 				</configuration>
 			</plugin>
+		    <plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-source-plugin</artifactId>
+		      <version>2.2.1</version>
+		      <executions>
+		        <execution>
+		          <id>attach-sources</id>
+		          <goals>
+		            <goal>jar-no-fork</goal>
+		          </goals>
+		        </execution>
+		      </executions>
+		    </plugin>
+		    <plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-javadoc-plugin</artifactId>
+		      <version>2.9.1</version>
+		      <executions>
+		        <execution>
+		          <id>attach-javadocs</id>
+		          <goals>
+		            <goal>jar</goal>
+		          </goals>
+		        </execution>
+		      </executions>
+		    </plugin>
+		    <plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-gpg-plugin</artifactId>
+		      <version>1.5</version>
+		      <executions>
+		        <execution>
+		          <id>sign-artifacts</id>
+		          <phase>verify</phase>
+		          <goals>
+		            <goal>sign</goal>
+		          </goals>
+		        </execution>
+		      </executions>
+		    </plugin>
+		    <plugin>
+		      <groupId>org.sonatype.plugins</groupId>
+		      <artifactId>nexus-staging-maven-plugin</artifactId>
+		      <version>1.6.7</version>
+		      <extensions>true</extensions>
+		      <configuration>
+		        <serverId>ossrh</serverId>
+		        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+		        <autoReleaseAfterClose>false</autoReleaseAfterClose>
+		      </configuration>
+		    </plugin>
 		</plugins>
 	</build>
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<encoding>UTF-8</encoding>
-					<docencoding>UTF-8</docencoding>
-					<charset>UTF-8</charset>
-					<links>
-						<link>https://docs.oracle.com/javase/jp/8/docs/api/</link>
-					</links>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
-
-	<licenses>
-		<license>
-			<name>Apache 2</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-			<comments>A business-friendly OSS license</comments>
-		</license>
-	</licenses>
-	<organization>
-		<name>Zamasoft</name>
-		<url>https://zamasoft.net/</url>
-	</organization>
 </project>
