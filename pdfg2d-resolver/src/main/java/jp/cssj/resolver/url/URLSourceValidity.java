@@ -18,23 +18,23 @@ class URLSourceValidity implements SourceValidity {
 		this.url = url;
 	}
 
-	public int getValid() {
+	public Validity getValid() {
 		return this.getValid(url);
 	}
 
-	public int getValid(SourceValidity validity) {
+	public Validity getValid(SourceValidity validity) {
 		return this.getValid(((URLSourceValidity) validity).url);
 	}
 
-	private int getValid(URL url) {
+	private Validity getValid(URL url) {
 		try {
 			URLConnection conn = url.openConnection();
 			if (conn.getLastModified() != this.timestamp) {
-				return INVALID;
+				return Validity.INVALID;
 			}
-			return VALID;
+			return Validity.VALID;
 		} catch (IOException e) {
-			return UNKNOWN;
+			return Validity.UNKNOWN;
 		}
 	}
 

@@ -17,12 +17,12 @@ public class ValidSourceValidity implements SourceValidity {
 		// ignore
 	}
 
-	public int getValid() {
-		return VALID;
+	public Validity getValid() {
+		return Validity.VALID;
 	}
 
-	public int getValid(SourceValidity validity) {
-		return VALID;
+	public Validity getValid(SourceValidity validity) {
+		return Validity.VALID;
 	}
 
 }

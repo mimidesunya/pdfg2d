@@ -9,19 +9,21 @@ import java.io.Serializable;
  * @since 1.0
  */
 public interface SourceValidity extends Serializable {
+	public static enum Validity {
 	/** データが更新されている。 */
-	public static final int INVALID = -1;
+	INVALID,
 	/** データが更新されているかどうか検証できない。 */
-	public static final int UNKNOWN = 0;
+	UNKNOWN,
 	/** データが更新されていない。 */
-	public static final int VALID = 1;
+	VALID;
+	}
 
 	/**
 	 * このSourceValidityを取得後にデータが更新されたかどうかを返します。
 	 * 
 	 * @return INVALID, UNKNOWN, VALID定数のいずれか。
 	 */
-	public int getValid();
+	public Validity getValid();
 
 	/**
 	 * 与えられたSourceValidityとこのSourceValidityが異なるかどうか検証します。
@@ -30,5 +32,5 @@ public interface SourceValidity extends Serializable {
 	 *            別に取得したSourceValidity。
 	 * @return INVALID, UNKNOWN, VALID定数のいずれか。
 	 */
-	public int getValid(SourceValidity validity);
+	public Validity getValid(SourceValidity validity);
 }

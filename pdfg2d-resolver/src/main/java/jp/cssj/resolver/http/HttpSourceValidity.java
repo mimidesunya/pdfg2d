@@ -11,15 +11,15 @@ class HttpSourceValidity implements SourceValidity {
 		this.lastModified = lastModified;
 	}
 
-	public int getValid() {
-		return SourceValidity.UNKNOWN;
+	public Validity getValid() {
+		return Validity.UNKNOWN;
 	}
 
-	public int getValid(final SourceValidity validity) {
+	public Validity getValid(final SourceValidity validity) {
 		if (this.lastModified == -1) {
-			return SourceValidity.UNKNOWN;
+			return Validity.UNKNOWN;
 		}
-		return this.lastModified == ((HttpSourceValidity) validity).lastModified ? SourceValidity.VALID
-				: SourceValidity.INVALID;
+		return this.lastModified == ((HttpSourceValidity) validity).lastModified ? Validity.VALID
+				: Validity.INVALID;
 	}
 }

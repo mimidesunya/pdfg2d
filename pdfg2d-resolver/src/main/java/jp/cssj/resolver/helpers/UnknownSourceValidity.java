@@ -17,11 +17,11 @@ public class UnknownSourceValidity implements SourceValidity {
 		// ignore
 	}
 
-	public int getValid() {
-		return UNKNOWN;
+	public Validity getValid() {
+		return Validity.UNKNOWN;
 	}
 
-	public int getValid(SourceValidity validity) {
-		return UNKNOWN;
+	public Validity getValid(SourceValidity validity) {
+		return Validity.UNKNOWN;
 	}
 }

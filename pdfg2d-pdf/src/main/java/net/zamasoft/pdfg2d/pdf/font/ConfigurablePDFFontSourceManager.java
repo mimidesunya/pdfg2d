@@ -19,6 +19,7 @@ import org.xml.sax.helpers.ParserAdapter;
 
 import jp.cssj.resolver.Source;
 import jp.cssj.resolver.SourceValidity;
+import jp.cssj.resolver.SourceValidity.Validity;
 import jp.cssj.resolver.url.URLSource;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.FontSourceManager;
@@ -75,7 +76,7 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 			throw new RuntimeException(e);
 		}
 
-		if (this.configValidity != null && this.configValidity.getValid() == SourceValidity.VALID
+		if (this.configValidity != null && this.configValidity.getValid() == Validity.VALID
 				&& this.configURI.equals(this.config.getURI())) {
 			return;
 		}

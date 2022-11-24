@@ -16,19 +16,19 @@ class FileSourceValidity implements SourceValidity {
 		this.file = file;
 	}
 
-	public int getValid() {
+	public Validity getValid() {
 		return this.getValid(this.file);
 	}
 
-	public int getValid(SourceValidity validity) {
+	public Validity getValid(SourceValidity validity) {
 		return this.getValid(((FileSourceValidity) validity).file);
 	}
 
-	private int getValid(File file) {
+	private Validity getValid(File file) {
 		if (file.lastModified() != this.timestamp) {
-			return INVALID;
+			return Validity.INVALID;
 		}
-		return VALID;
+		return Validity.VALID;
 	}
 
 }
