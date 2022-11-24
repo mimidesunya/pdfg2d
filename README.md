@@ -3,6 +3,29 @@
 ## What is this?
 pdfg2d is the fastest PDF generator for Java.
 
+## How to dowload
+pdfg2d is available on Maven Central Repository.
+
+[pdfg2d](https://search.maven.org/artifact/io.github.mimidesunya/pdfg2d-pdf)
+
+[Emoji support](https://search.maven.org/artifact/io.github.mimidesunya/pdfg2d-svg-emoji)
+
+You can get Jars with Maven, Gradle etc.
+
+Maven:
+```
+<dependency>
+<groupId>io.github.mimidesunya</groupId>
+<artifactId>pdfg2d-pdf</artifactId>
+<version>1.1.0</version>
+</dependency>
+```
+
+Gradle:
+```
+implementation 'io.github.mimidesunya:pdfg2d-pdf:1.1.0'
+```
+
 ## List of features
 * Java 1.8 Support
 * PDF Versions
