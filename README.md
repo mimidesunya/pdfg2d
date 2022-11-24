@@ -17,13 +17,13 @@ Maven:
 <dependency>
 <groupId>io.github.mimidesunya</groupId>
 <artifactId>pdfg2d-pdf</artifactId>
-<version>1.1.0</version>
+<version>1.2.0</version>
 </dependency>
 ```
 
 Gradle:
 ```
-implementation 'io.github.mimidesunya:pdfg2d-pdf:1.1.0'
+implementation 'io.github.mimidesunya:pdfg2d-pdf:1.2.0'
 ```
 
 ## List of features
@@ -48,8 +48,8 @@ implementation 'io.github.mimidesunya:pdfg2d-pdf:1.1.0'
 	* Group Images
 	* Tiling Patterns
 	* Shading Patterns
-	* SVG Images
-	* Emoji
+	* SVG Images [demo](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/SVGTigerApp.java)
+	* Emoji [demo](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/EmojiApp.java)
 * PDF Compressoion
 	* No compression
 	* Deflate
