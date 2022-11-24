@@ -78,7 +78,7 @@ public final class CIDUtils {
 			if (source.isItalic()) {
 				flags |= CID_ITALIC;
 			}
-			if (source.getWeight() >= 500) {
+			if (source.getWeight().w >= 500) {
 				flags |= CID_FORCE_BOLD;
 			}
 		}

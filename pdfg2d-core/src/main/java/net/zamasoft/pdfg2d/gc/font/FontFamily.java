@@ -7,29 +7,21 @@ import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 public class FontFamily implements Serializable {
 	private static final long serialVersionUID = 0;
 
-	public static final short SERIF = 1;
+	public static enum GenericFamily {
+		NONE, SERIF, SANS_SERIF, CURSIVE, FANTASY, MONOSPACE;
+	}
 
-	public static final short SANS_SERIF = 2;
+	public static final FontFamily SERIF_VALUE = new FontFamily(GenericFamily.SERIF, "serif");
 
-	public static final short CURSIVE = 3;
+	public static final FontFamily SANS_SERIF_VALUE = new FontFamily(GenericFamily.SANS_SERIF, "sans-serif");
 
-	public static final short FANTASY = 4;
+	public static final FontFamily CURSIVE_VALUE = new FontFamily(GenericFamily.CURSIVE, "cursive");
 
-	public static final short MONOSPACE = 5;
+	public static final FontFamily FANTASY_VALUE = new FontFamily(GenericFamily.FANTASY, "fantasy");
 
-	public static final FontFamily SERIF_VALUE = new FontFamily(SERIF, "serif");
+	public static final FontFamily MONOSPACE_VALUE = new FontFamily(GenericFamily.MONOSPACE, "monospace");
 
-	public static final FontFamily SANS_SERIF_VALUE = new FontFamily(SANS_SERIF, "sans-serif");
-
-	public static final FontFamily CURSIVE_VALUE = new FontFamily(CURSIVE, "cursive");
-
-	public static final FontFamily FANTASY_VALUE = new FontFamily(FANTASY, "fantasy");
-
-	public static final FontFamily MONOSPACE_VALUE = new FontFamily(MONOSPACE, "monospace");
-
-	private final boolean isGenericFamily;
-
-	private final short genericFamily;
+	private final GenericFamily genericFamily;
 
 	private final String name;
 
@@ -51,15 +43,13 @@ public class FontFamily implements Serializable {
 		return family;
 	}
 
-	private FontFamily(short genericFamily, String name) {
-		this.isGenericFamily = true;
+	private FontFamily(GenericFamily genericFamily, String name) {
 		this.genericFamily = genericFamily;
 		this.name = name;
 	}
 
 	public FontFamily(String name) {
-		this.isGenericFamily = false;
-		this.genericFamily = 0;
+		this.genericFamily = GenericFamily.NONE;
 		this.name = name;
 	}
 
@@ -69,7 +59,7 @@ public class FontFamily implements Serializable {
 	 * @return
 	 */
 	public boolean isGenericFamily() {
-		return this.isGenericFamily;
+		return this.genericFamily != GenericFamily.NONE;
 	}
 
 	/**
@@ -77,7 +67,7 @@ public class FontFamily implements Serializable {
 	 * 
 	 * @return
 	 */
-	public short getGenericFamily() {
+	public GenericFamily getGenericFamily() {
 		return this.genericFamily;
 	}
 
@@ -99,18 +89,18 @@ public class FontFamily implements Serializable {
 			return false;
 		}
 		FontFamily a = (FontFamily) o;
-		if (a.isGenericFamily != this.isGenericFamily) {
+		if (a.isGenericFamily ()!= this.isGenericFamily()) {
 			return false;
 		}
-		if (a.isGenericFamily) {
+		if (a.isGenericFamily()) {
 			return a.genericFamily == this.genericFamily;
 		}
 		return FontUtils.normalizeName(a.name).equals(FontUtils.normalizeName(this.name));
 	}
 
 	public int hashCode() {
-		if (this.isGenericFamily) {
-			return this.genericFamily;
+		if (this.isGenericFamily()) {
+			return this.genericFamily.ordinal();
 		}
 		return FontUtils.normalizeName(this.name).hashCode();
 	}

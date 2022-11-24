@@ -40,7 +40,8 @@ import net.zamasoft.pdfg2d.g2d.image.RasterImageImpl;
 import net.zamasoft.pdfg2d.g2d.util.G2DUtils;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.paint.Color;
 import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
@@ -111,8 +112,8 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 			} else {
 				this.gc.setLinePattern(null);
 			}
-			this.gc.setLineCap((short) bs.getEndCap());
-			this.gc.setLineJoin((short) bs.getLineJoin());
+			this.gc.setLineCap(G2DUtils.decodeLineCap((short) bs.getEndCap()));
+			this.gc.setLineJoin(G2DUtils.decodeLineJoin((short) bs.getLineJoin()));
 		} else {
 			throw new IllegalStateException();
 		}
@@ -226,8 +227,8 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 			} else {
 				this.gc.setLinePattern(null);
 			}
-			this.gc.setLineCap((short) bs.getEndCap());
-			this.gc.setLineJoin((short) bs.getLineJoin());
+			this.gc.setLineCap(G2DUtils.decodeLineCap((short) bs.getEndCap()));
+			this.gc.setLineJoin(G2DUtils.decodeLineJoin((short) bs.getLineJoin()));
 		}
 	}
 
@@ -365,17 +366,17 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 	}
 
 	private void drawString(GlyphHandler gh, AttributedCharacterIterator aci) {
-		TextLayoutHandler tlf = new TextLayoutHandler(this.gc, HyphenationBundle.getHyphenation("ja"), gh);
-		Map<TextAttribute, ?> atts = this.font.getAttributes();
-		tlf.setFontFamilies(FontFamilyList.create(this.font.getFamily()));
-		int style = this.font.getStyle();
-		tlf.setFontWeight(TextUtils.toFontWeight((Float) atts.get(TextAttribute.WEIGHT),
-				(style & Font.BOLD) != 0 ? FontStyle.FONT_WEIGHT_600 : FontStyle.FONT_WEIGHT_400));
-		tlf.setFontSize(this.font.getSize2D());
-		tlf.setFontStyle(TextUtils.toFontStyle((Float) atts.get(TextAttribute.POSTURE),
-				(style & Font.ITALIC) != 0 ? FontStyle.FONT_STYLE_ITALIC : FontStyle.FONT_STYLE_NORMAL));
-		tlf.characters(aci);
-		tlf.flush();
+		try (TextLayoutHandler tlf = new TextLayoutHandler(this.gc, HyphenationBundle.getHyphenation("ja"), gh)) {
+			Map<TextAttribute, ?> atts = this.font.getAttributes();
+			tlf.setFontFamilies(FontFamilyList.create(this.font.getFamily()));
+			int style = this.font.getStyle();
+			tlf.setFontWeight(TextUtils.toFontWeight((Float) atts.get(TextAttribute.WEIGHT),
+					(style & Font.BOLD) != 0 ? Weight.W_600 : Weight.W_400));
+			tlf.setFontSize(this.font.getSize2D());
+			tlf.setFontStyle(TextUtils.toFontStyle((Float) atts.get(TextAttribute.POSTURE),
+					(style & Font.ITALIC) != 0 ? Style.ITALIC : Style.NORMAL));
+			tlf.characters(aci);
+		}
 	}
 
 	public void drawString(AttributedCharacterIterator aci, float x, float y) {

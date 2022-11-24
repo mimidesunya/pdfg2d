@@ -63,6 +63,6 @@ public class LinearGradient implements Paint {
 
 	public String toString() {
 		return super.toString() + "[x1=" + x1 + ",y1=" + y1 + ",x2=" + x2 + ",y2=" + y2 + ",fractions=" + fractions
-				+ ",colors=" + colors+ ",transform=" + transform + "]";
+				+ ",colors=" + colors + ",transform=" + transform + "]";
 	}
 }

@@ -8,7 +8,7 @@ import java.nio.charset.CharsetEncoder;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
@@ -62,7 +62,7 @@ class CIDKeyedFont extends CIDFont {
 					double xadvance = xadvances[i];
 					if (xadvance != 0) {
 						// 縦書きでは負の値を使う(SPEC PDF1.3 8.7.1.1)
-						if (this.source.getDirection() == FontStyle.DIRECTION_TB) {
+						if (this.source.getDirection() == Direction.TB) {
 							xadvance = -xadvance;
 						}
 						if (len > 0) {
@@ -227,7 +227,7 @@ class CIDKeyedFont extends CIDFont {
 	}
 
 	public short getAdvance(int gid) {
-		if (this.source.getDirection() == FontStyle.DIRECTION_TB) {
+		if (this.source.getDirection() == Direction.TB) {
 			return 1000;
 		}
 		return this.getWidth(gid);

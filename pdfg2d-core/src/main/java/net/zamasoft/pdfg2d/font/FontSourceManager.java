@@ -11,8 +11,7 @@ public interface FontSourceManager {
 	/**
 	 * フォントスタイルにマッチするフォントを返します。
 	 * 
-	 * @param fontStyle
-	 *            nullの場合は全てのフォントを返します。
+	 * @param fontStyle nullの場合は全てのフォントを返します。
 	 * @return fontSourceの配列
 	 */
 	public FontSource[] lookup(FontStyle fontStyle);

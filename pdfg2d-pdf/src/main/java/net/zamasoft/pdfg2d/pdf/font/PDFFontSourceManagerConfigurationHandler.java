@@ -262,13 +262,13 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 					FontFace face = FontLoader.toFontFace(atts);
 
 					if (types.indexOf("cid-keyed") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.TYPE_CID_KEYED, ttfFile, index, this.nameToCMap);
+						FontLoader.readTTF(list, face, FontLoader.Type.CID_KEYED, ttfFile, index, this.nameToCMap);
 					}
 					if (types.indexOf("cid-identity") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.TYPE_CID_IDENTITY, ttfFile, index, this.nameToCMap);
+						FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, index, this.nameToCMap);
 					}
 					if (types.indexOf("embedded") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.TYPE_EMBEDDED, ttfFile, index, this.nameToCMap);
+						FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, index, this.nameToCMap);
 					}
 					this.fontSources = new PdfFontSourceWrapper[list.size()];
 					for (int i = 0; i < list.size(); ++i) {
@@ -317,11 +317,11 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 
 							for (int j = 0; j < numFonts; ++j) {
 								if (types.indexOf("cid-identity") != -1) {
-									FontLoader.readTTF(list, face, FontLoader.TYPE_CID_IDENTITY, ttfFile, j,
+									FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, j,
 											this.nameToCMap);
 								}
 								if (types.indexOf("embedded") != -1) {
-									FontLoader.readTTF(list, face, FontLoader.TYPE_EMBEDDED, ttfFile, j,
+									FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, j,
 											this.nameToCMap);
 								}
 							}
@@ -401,19 +401,19 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 					try {
 						if (types.indexOf("cid-keyed") != -1) {
 							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
-									FontLoader.readSystemFont(face, FontLoader.TYPE_CID_KEYED, font, this.nameToCMap));
+									FontLoader.readSystemFont(face, FontLoader.Type.CID_KEYED, font, this.nameToCMap));
 							this.allFonts.add(fontSource);
 							FontLoader.add(fontSource, this.nameToFonts);
 						}
 						if (types.indexOf("cid-identity") != -1) {
 							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(FontLoader.readSystemFont(face,
-									FontLoader.TYPE_CID_IDENTITY, font, this.nameToCMap));
+									FontLoader.Type.CID_IDENTITY, font, this.nameToCMap));
 							this.allFonts.add(fontSource);
 							FontLoader.add(fontSource, this.nameToFonts);
 						}
 						if (types.indexOf("embedded") != -1) {
 							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
-									FontLoader.readSystemFont(face, FontLoader.TYPE_EMBEDDED, font, this.nameToCMap));
+									FontLoader.readSystemFont(face, FontLoader.Type.EMBEDDED, font, this.nameToCMap));
 							this.allFonts.add(fontSource);
 							FontLoader.add(fontSource, this.nameToFonts);
 						}
@@ -551,7 +551,7 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 			return ((PDFFontSource) this.source).createFont(name, fontRef);
 		}
 
-		public byte getType() {
+		public Type getType() {
 			return ((PDFFontSource) this.source).getType();
 		}
 	}

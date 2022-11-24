@@ -14,7 +14,7 @@ import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
@@ -87,7 +87,7 @@ class MissingCIDFont extends CIDFont implements PDFEmbeddedFont, ShapedFont {
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
 		if (gc instanceof PDFGC) {
 			PDFFontUtils.drawCIDTo(((PDFGC) gc).getPDFGraphicsOutput(), text,
-					this.source.getDirection() == FontStyle.DIRECTION_TB);
+					this.source.getDirection() == Direction.TB);
 		} else {
 			FontUtils.drawText(gc, this, text);
 		}
@@ -98,7 +98,7 @@ class MissingCIDFont extends CIDFont implements PDFEmbeddedFont, ShapedFont {
 		int[] unicodeArray = this.unicodes.toArray();
 		short[] w = this.advances.toArray();
 		short[] w2;
-		if (this.source.getDirection() == FontStyle.DIRECTION_TB) {
+		if (this.source.getDirection() == Direction.TB) {
 			w2 = new short[0];
 		} else {
 			w2 = null;

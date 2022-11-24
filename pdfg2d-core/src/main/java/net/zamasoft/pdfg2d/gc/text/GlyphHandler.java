@@ -1,5 +1,7 @@
 package net.zamasoft.pdfg2d.gc.text;
 
+import java.io.Closeable;
+
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
@@ -9,7 +11,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface GlyphHandler {
+public interface GlyphHandler extends Closeable {
 	/**
 	 * テキストランを開始します。
 	 * 
@@ -45,9 +47,9 @@ public interface GlyphHandler {
 	 * 現在までのテキストを書き出します。これを明示的に呼ぶと禁則処理を無視してテキストを分断することがあります。
 	 */
 	public void flush();
-	
+
 	/**
 	 * テキストの書き出しを終了します。
 	 */
-	public void finish();
+	public void close();
 }

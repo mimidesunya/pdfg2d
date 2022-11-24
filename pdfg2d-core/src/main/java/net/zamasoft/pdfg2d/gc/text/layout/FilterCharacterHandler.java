@@ -27,14 +27,6 @@ public class FilterCharacterHandler implements CharacterHandler {
 		this.characterHandler.characters(charOffset, ch, off, len);
 	}
 
-	public void flush() {
-		this.characterHandler.flush();
-	}
-
-	public void finish() {
-		this.characterHandler.flush();
-	}
-
 	public void quad(Quad quad) {
 		this.characterHandler.quad(quad);
 	}
@@ -43,4 +35,11 @@ public class FilterCharacterHandler implements CharacterHandler {
 		this.characterHandler.fontStyle(fontStyle);
 	}
 
+	public void flush() {
+		this.characterHandler.flush();
+	}
+
+	public void close() {
+		this.characterHandler.flush();
+	}
 }

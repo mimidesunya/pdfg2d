@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public abstract class EncryptionParams {
-	public enum Type {
+	public static enum Type {
 		V1(1), V2(2), V4(4);
 
 		public final int v;

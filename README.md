@@ -38,7 +38,7 @@ pdfg2d is the fastest PDF generator for Java.
 * Fonts
 	* Core 14 Fonts
 	* CID-Keyed Fonts (Chinese, Japanese, Korean, HK/Taiwanese)
-	* Embedded Fonts (TrueType, OpenType/CFF)
+	* Embedded Fonts (TrueType, OpenType/CFF, WOFF)
 
 ## Example
 Program:

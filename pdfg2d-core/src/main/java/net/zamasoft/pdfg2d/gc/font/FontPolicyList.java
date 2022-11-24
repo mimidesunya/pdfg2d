@@ -6,37 +6,38 @@ import java.util.Arrays;
 public class FontPolicyList implements Serializable {
 	private static final long serialVersionUID = 0;
 
-	/**
-	 * コア14フォントだけを使います。
-	 */
-	public static final byte FONT_POLICY_CORE = 0;
+	public static enum FontPolicy {
+		/**
+		 * コア14フォントだけを使います。
+		 */
+		CORE,
 
-	/**
-	 * CID-Keyedフォントだけを使います。
-	 */
-	public static final byte FONT_POLICY_CID_KEYED = 1;
+		/**
+		 * CID-Keyedフォントだけを使います。
+		 */
+		CID_KEYED ,
 
-	/**
-	 * 外部フォントを使います。
-	 */
-	public static final byte FONT_POLICY_CID_IDENTITY = 2;
+		/**
+		 * 外部フォントを使います。
+		 */
+		CID_IDENTITY,
 
-	/**
-	 * 埋め込みフォントを使います。
-	 */
-	public static final byte FONT_POLICY_EMBEDDED = 3;
-
-	/**
-	 * パスに変換して描画します。
-	 */
-	public static final byte FONT_POLICY_OUTLINES = 4;
+		/**
+		 * 埋め込みフォントを使います。
+		 */
+		EMBEDDED,
+		/**
+		 * パスに変換して描画します。
+		 */
+		OUTLINES;
+	}
 
 	public static final FontPolicyList FONT_POLICY_CORE_CID_KEYED_VALUE = new FontPolicyList(
-			new byte[] { FONT_POLICY_CORE, FONT_POLICY_CID_KEYED });
+			new FontPolicy[] { FontPolicy.CORE, FontPolicy.CID_KEYED });
 
-	private final byte[] policies;
+	private final FontPolicy[] policies;
 
-	public FontPolicyList(byte[] policies) {
+	public FontPolicyList(FontPolicy[] policies) {
 		assert policies.length > 0;
 		this.policies = policies;
 	}
@@ -45,7 +46,7 @@ public class FontPolicyList implements Serializable {
 		return this.policies.length;
 	}
 
-	public byte get(int i) {
+	public FontPolicy get(int i) {
 		return this.policies[i];
 	}
 
@@ -58,9 +59,9 @@ public class FontPolicyList implements Serializable {
 	}
 
 	public int hashCode() {
-		int h = this.policies[0];
+		int h = this.policies[0].ordinal();
 		for (int i = 1; i < this.policies.length; ++i) {
-			h = 31 * h + this.policies[i];
+			h = 31 * h + this.policies[i].ordinal();
 		}
 		return h;
 	}
@@ -69,19 +70,19 @@ public class FontPolicyList implements Serializable {
 		StringBuffer buff = new StringBuffer();
 		for (int i = 0; i < this.policies.length; ++i) {
 			switch (this.policies[i]) {
-			case FONT_POLICY_CORE:
+			case CORE:
 				buff.append("core ");
 				break;
-			case FONT_POLICY_CID_KEYED:
+			case CID_KEYED:
 				buff.append("cid-keyed ");
 				break;
-			case FONT_POLICY_CID_IDENTITY:
+			case CID_IDENTITY:
 				buff.append("cid-identity ");
 				break;
-			case FONT_POLICY_EMBEDDED:
+			case EMBEDDED:
 				buff.append("embedded ");
 				break;
-			case FONT_POLICY_OUTLINES:
+			case OUTLINES:
 				buff.append("outlines ");
 				break;
 			default:

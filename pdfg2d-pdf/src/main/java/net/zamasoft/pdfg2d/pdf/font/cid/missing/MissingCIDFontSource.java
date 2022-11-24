@@ -5,7 +5,7 @@ import java.awt.Font;
 import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.FontSource;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
@@ -22,16 +22,16 @@ public class MissingCIDFontSource extends AbstractFontSource implements CIDFontS
 
 	private static final BBox BBOX = new BBox((short) 0, DEFAULT_DESCENT, (short) 1000, DEFAULT_ASCENT);
 
-	public static final MissingCIDFontSource INSTANCES_LTR = new MissingCIDFontSource(FontStyle.DIRECTION_LTR);
-	public static final MissingCIDFontSource INSTANCES_TB = new MissingCIDFontSource(FontStyle.DIRECTION_TB);
+	public static final MissingCIDFontSource INSTANCES_LTR = new MissingCIDFontSource(Direction.LTR);
+	public static final MissingCIDFontSource INSTANCES_TB = new MissingCIDFontSource(Direction.TB);
 
-	private final byte direction;
+	private final Direction direction;
 
-	MissingCIDFontSource(byte direction) {
+	MissingCIDFontSource(Direction direction) {
 		this.direction = direction;
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 
@@ -75,8 +75,8 @@ public class MissingCIDFontSource extends AbstractFontSource implements CIDFontS
 		return null;
 	}
 
-	public byte getType() {
-		return TYPE_MISSING;
+	public Type getType() {
+		return Type.MISSING;
 	}
 
 	public boolean canDisplay(int c) {

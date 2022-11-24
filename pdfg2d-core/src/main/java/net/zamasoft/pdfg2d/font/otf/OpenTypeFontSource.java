@@ -25,8 +25,10 @@ import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.Panose;
+import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
 
 /**
  * @author MIYABE Tatsuhiko
@@ -53,13 +55,13 @@ public class OpenTypeFontSource extends AbstractFontSource {
 
 	protected Panose panose;
 
-	protected final byte direction;
+	protected final Direction direction;
 
 	protected final GenericCmapFormat cmap;
 
 	protected final UvsCmapFormat uvsCmap;
 
-	public OpenTypeFontSource(File file, int index, byte direction) throws IOException {
+	public OpenTypeFontSource(File file, int index, Direction direction) throws IOException {
 		this.index = index;
 		this.file = file;
 		net.zamasoft.font.OpenTypeFont ttFont = this.getOpenTypeFont();
@@ -103,7 +105,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		{
 			// long time = System.currentTimeMillis();
 			Os2Table os2 = (Os2Table) ttFont.getTable(Table.OS_2);
-			short weight = (short) os2.getWeightClass();
+			Weight weight = TextUtils.decodeFontWeight((short) os2.getWeightClass());
 			this.setWeight(weight);
 			short cFamilyClass = os2.getFamilyClass();
 			net.zamasoft.font.table.Panose panose = os2.getPanose();
@@ -178,7 +180,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		}
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 
@@ -243,7 +245,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 	}
 
 	public boolean canDisplay(int c) {
-		if (this.getDirection() == FontStyle.DIRECTION_TB) {
+		if (this.getDirection() == Direction.TB) {
 			if (c <= 0xFF || (c >= 0xFF60 && c <= 0xFFDF)) {
 				return false;
 			}

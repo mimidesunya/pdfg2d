@@ -22,7 +22,7 @@ public class ViewerPreferences {
 
 	private NonFullScreenPageMode nonFullScreenPageMode = NonFullScreenPageMode.NONE;
 
-	public enum NonFullScreenPageMode {
+	public static enum NonFullScreenPageMode {
 		/**
 		 * しおりかサムネイルパネルを表示します。
 		 */
@@ -45,7 +45,7 @@ public class ViewerPreferences {
 	// PDF 1.3
 	private Direction direction = Direction.L2R;
 
-	public enum Direction {
+	public static enum Direction {
 		/**
 		 * 左綴じ（日本語横書き、欧文など）の定数です。
 		 */
@@ -63,14 +63,14 @@ public class ViewerPreferences {
 	private AreaBox printArea = AreaBox.CROP;
 	private AreaBox printClip = AreaBox.CROP;
 
-	public enum AreaBox {
+	public static enum AreaBox {
 		MEDIA, CROP, BLEED, TRIM, ART
 	}
 
 	// PDF 1.6
 	private PrintScaling printScaling = PrintScaling.APP_DEFAULT;
 
-	public enum PrintScaling {
+	public static enum PrintScaling {
 		/**
 		 * 拡大縮小をしない定数です。
 		 */
@@ -84,7 +84,7 @@ public class ViewerPreferences {
 	// PDF 1.7
 	private Duplex duplex = Duplex.NONE;
 
-	public enum Duplex {
+	public static enum Duplex {
 		/**
 		 * ビューワのデフォルトの定数です。
 		 */

@@ -1,5 +1,7 @@
 package net.zamasoft.pdfg2d.gc.text;
 
+import java.io.Closeable;
+
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
 /**
@@ -8,7 +10,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface CharacterHandler {
+public interface CharacterHandler extends Closeable {
 	/**
 	 * カレントのスタイルを設定します。
 	 * 
@@ -44,5 +46,5 @@ public interface CharacterHandler {
 	 * 
 	 * <b>このメソッドはwordBreak()を呼びます。</b>
 	 */
-	public void finish();
+	public void close();
 }

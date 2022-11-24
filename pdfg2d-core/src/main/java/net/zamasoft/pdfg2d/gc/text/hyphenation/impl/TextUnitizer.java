@@ -63,7 +63,8 @@ public class TextUnitizer implements FilterGlyphHandler {
 
 	public void quad(Quad quad) {
 		String str = quad.getString();
-		// System.err.println("TU QUAD: " + quad + "/" + Integer.toHexString(this.prevChar));
+		// System.err.println("TU QUAD: " + quad + "/" +
+		// Integer.toHexString(this.prevChar));
 		if (str == Quad.BREAK) {
 			// CONTINUE_BEFORE, CONTINUE_AFTERを除いて文字列を区切る
 			if (this.prevChar != 0 && this.prevChar != '\u2060') {
@@ -120,22 +121,19 @@ public class TextUnitizer implements FilterGlyphHandler {
 		this.internalFlush();
 	}
 
-	public void finish() {
+	public void close() {
 		if (this.beforeQuad != null) {
 			this.glyphHandler.quad(this.beforeQuad);
 			this.beforeQuad = null;
 		}
-		this.glyphHandler.finish();
+		this.glyphHandler.close();
 	}
 
 	/**
 	 * 
-	 * @param c1
-	 *            グリフに対応する最初の文字。
-	 * @param c2
-	 *            グリフに対応する最後の文字。
-	 * @param charCount
-	 *            文字数
+	 * @param c1        グリフに対応する最初の文字。
+	 * @param c2        グリフに対応する最後の文字。
+	 * @param charCount 文字数
 	 */
 	private void nextGlyph(char c1, char c2, int charCount) {
 		if (this.prevChar != 0 && this.prevChar != '\u2060'

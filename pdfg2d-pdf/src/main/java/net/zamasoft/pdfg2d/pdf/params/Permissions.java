@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public abstract class Permissions {
-	public enum Type {
+	public static enum Type {
 		R2(2), R3(3), R4(4);
 
 		public final int r;

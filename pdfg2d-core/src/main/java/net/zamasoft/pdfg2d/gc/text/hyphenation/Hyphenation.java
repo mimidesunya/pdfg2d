@@ -9,6 +9,7 @@ package net.zamasoft.pdfg2d.gc.text.hyphenation;
 public interface Hyphenation {
 	/**
 	 * 前後の文字が分割不可能であればtrueを返します。
+	 * 
 	 * @param c1
 	 * @param c2
 	 * @return

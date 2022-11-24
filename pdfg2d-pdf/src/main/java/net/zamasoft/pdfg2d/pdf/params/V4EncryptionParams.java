@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 public class V4EncryptionParams extends EncryptionParams {
-	public enum CFM {
+	public static enum CFM {
 		V2("V2"), AESV2("AESV2");
 
 		public final String name;

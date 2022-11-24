@@ -4,7 +4,8 @@ import java.awt.font.TextAttribute;
 import java.text.AttributedCharacterIterator.Attribute;
 
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 
 public final class TextUtils {
 	private TextUtils() {
@@ -20,8 +21,6 @@ public final class TextUtils {
 	}
 
 	public static final Attribute WRITING_MODE = new WritingMode();
-	public static final Byte WRITING_MODE_HORIZONTAL = Byte.valueOf(FontStyle.DIRECTION_LTR);
-	public static final Byte WRITING_MODE_VERTICAL = Byte.valueOf(FontStyle.DIRECTION_TB);
 
 	public static final FontFamilyList toFontFamilyList(String awtFamily, FontFamilyList defaultFamily) {
 		if (awtFamily == null) {
@@ -30,43 +29,64 @@ public final class TextUtils {
 		return FontFamilyList.create(awtFamily);
 	}
 
-	public static final short toFontWeight(Float awtWeight, short defaultWeight) {
+	public static final Weight toFontWeight(Float awtWeight, Weight defaultWeight) {
 		if (awtWeight == null) {
 			return defaultWeight;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_EXTRA_LIGHT) <= 0) {
-			return FontStyle.FONT_WEIGHT_100;
+			return Weight.W_100;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_LIGHT) <= 0) {
-			return FontStyle.FONT_WEIGHT_200;
+			return Weight.W_200;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_DEMILIGHT) <= 0) {
-			return FontStyle.FONT_WEIGHT_300;
+			return Weight.W_300;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_REGULAR) <= 0) {
-			return FontStyle.FONT_WEIGHT_400;
+			return Weight.W_400;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_SEMIBOLD) <= 0) {
-			return FontStyle.FONT_WEIGHT_500;
+			return Weight.W_500;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_MEDIUM) <= 0) {
-			return FontStyle.FONT_WEIGHT_500;
+			return Weight.W_500;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_DEMIBOLD) <= 0) {
-			return FontStyle.FONT_WEIGHT_600;
+			return Weight.W_600;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_BOLD) <= 0) {
-			return FontStyle.FONT_WEIGHT_700;
+			return Weight.W_700;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_HEAVY) <= 0) {
-			return FontStyle.FONT_WEIGHT_700;
+			return Weight.W_700;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_EXTRABOLD) <= 0) {
-			return FontStyle.FONT_WEIGHT_800;
+			return Weight.W_800;
 		}
-		return FontStyle.FONT_WEIGHT_900;
+		return Weight.W_900;
+	}
+
+	public static final Weight decodeFontWeight(short weight) {
+		if (weight < 149) {
+			return Weight.W_100;
+		} else if (weight < 249) {
+			return Weight.W_200;
+		} else if (weight < 349) {
+			return Weight.W_300;
+		} else if (weight < 449) {
+			return Weight.W_400;
+		} else if (weight < 549) {
+			return Weight.W_500;
+		} else if (weight < 649) {
+			return Weight.W_600;
+		} else if (weight < 749) {
+			return Weight.W_700;
+		} else if (weight < 849) {
+			return Weight.W_800;
+		}
+		return Weight.W_900;
 	}
 
 	public static final double toFontSize(Float awtSize, double defaultSize) {
 		return awtSize != null ? awtSize.doubleValue() : defaultSize;
 	}
 
-	public static final byte toFontStyle(Float awtPosture, byte defaultStyle) {
+	public static final Style toFontStyle(Float awtPosture, Style defaultStyle) {
 		if (awtPosture == null) {
 			return defaultStyle;
 		} else if (awtPosture.equals(TextAttribute.POSTURE_OBLIQUE)) {
-			return FontStyle.FONT_STYLE_OBLIQUE;
+			return Style.OBLIQUE;
 		}
-		return FontStyle.FONT_STYLE_NORMAL;
+		return Style.NORMAL;
 	}
 }

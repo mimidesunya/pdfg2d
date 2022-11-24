@@ -24,10 +24,15 @@ import net.zamasoft.pdfg2d.gc.font.FontFace;
 import net.zamasoft.pdfg2d.gc.font.FontFamily;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontPolicyList;
+import net.zamasoft.pdfg2d.gc.font.FontPolicyList.FontPolicy;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.UnicodeRangeList;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
+import net.zamasoft.pdfg2d.pdf.font.PDFFontSource.Type;
 import net.zamasoft.pdfg2d.pdf.font.util.MultimapUtils;
 import net.zamasoft.pdfg2d.util.NumberUtils;
 
@@ -67,8 +72,8 @@ public class PDFFontSourceManager implements FontSourceManager {
 	public synchronized void addFontFace(FontFace face) throws IOException {
 		final List<FontSource> list = new ArrayList<FontSource>();
 		if (face.local != null) {
-			list.add(FontLoader.readSystemFont(face, FontLoader.TYPE_EMBEDDED, face.local, null));
-			list.add(FontLoader.readSystemFont(face, FontLoader.TYPE_CID_IDENTITY, face.local, null));
+			list.add(FontLoader.readSystemFont(face, FontLoader.Type.EMBEDDED, face.local, null));
+			list.add(FontLoader.readSystemFont(face, FontLoader.Type.CID_IDENTITY, face.local, null));
 		} else {
 			File file;
 			if (face.src.isFile()) {
@@ -87,8 +92,8 @@ public class PDFFontSourceManager implements FontSourceManager {
 					this.uriToFile.put(face.src.getURI(), file);
 				}
 			}
-			FontLoader.readTTF(list, face, FontLoader.TYPE_EMBEDDED, file, face.index, null);
-			FontLoader.readTTF(list, face, FontLoader.TYPE_CID_IDENTITY, file, face.index, null);
+			FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, file, face.index, null);
+			FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, file, face.index, null);
 		}
 
 		if (face.unicodeRange != null && !face.unicodeRange.isEmpty()) {
@@ -220,39 +225,39 @@ public class PDFFontSourceManager implements FontSourceManager {
 				// フォントのタイプが最優先条件
 				if (font instanceof PDFFontSource) {
 					PDFFontSource pdfFont = (PDFFontSource) font;
-					byte type = pdfFont.getType();
+					Type type = pdfFont.getType();
 					for (int k = 0; k < policy.getLength(); ++k) {
-						byte policyCode = policy.get(k);
+						FontPolicy policyCode = policy.get(k);
 						switch (policyCode) {
-						case FontPolicyList.FONT_POLICY_CORE:
+						case CORE:
 							// CORE
-							if (type != PDFFontSource.TYPE_CORE) {
+							if (type != Type.CORE) {
 								continue;
 							}
 							break;
 
-						case FontPolicyList.FONT_POLICY_CID_KEYED:
+						case CID_KEYED:
 							// CID-Keyed
-							if (type != PDFFontSource.TYPE_CID_KEYED) {
+							if (type != Type.CID_KEYED) {
 								continue;
 							}
 							break;
 
-						case FontPolicyList.FONT_POLICY_CID_IDENTITY:
+						case CID_IDENTITY:
 							// CID外部
-							if (type != PDFFontSource.TYPE_CID_IDENTITY) {
+							if (type != Type.CID_IDENTITY) {
 								continue;
 							}
 							break;
 
-						case FontPolicyList.FONT_POLICY_EMBEDDED:
+						case EMBEDDED:
 							// 埋め込み
-							if (type != PDFFontSource.TYPE_EMBEDDED) {
+							if (type != Type.EMBEDDED) {
 								continue;
 							}
 							break;
 
-						case FontPolicyList.FONT_POLICY_OUTLINES:
+						case OUTLINES:
 							// アウトライン化
 							continue;
 
@@ -270,9 +275,9 @@ public class PDFFontSourceManager implements FontSourceManager {
 				}
 
 				// 横書きモードでは縦書きフォントを排除する
-				byte direction = fontStyle.getDirection();
-				byte fsDirection = font.getDirection();
-				if (direction != FontStyle.DIRECTION_TB && fsDirection == FontStyle.DIRECTION_TB) {
+				Direction direction = fontStyle.getDirection();
+				Direction fsDirection = font.getDirection();
+				if (direction != Direction.TB && fsDirection == Direction.TB) {
 					continue;
 				}
 
@@ -287,12 +292,12 @@ public class PDFFontSourceManager implements FontSourceManager {
 
 				// italicの判定はウエイトより優先する
 				order <<= 4;
-				short style = fontStyle.getStyle();
-				if (style == FontStyle.FONT_STYLE_ITALIC) {
+				Style style = fontStyle.getStyle();
+				if (style == Style.ITALIC) {
 					if (font.isItalic()) {
 						order |= 1;
 					}
-				} else if (style == FontStyle.FONT_STYLE_NORMAL) {
+				} else if (style == Style.NORMAL) {
 					if (!font.isItalic()) {
 						order |= 1;
 					}
@@ -300,13 +305,13 @@ public class PDFFontSourceManager implements FontSourceManager {
 
 				// ウエイトの判定
 				order <<= 4;
-				short weight = fontStyle.getWeight();
-				int delta = Math.abs(font.getWeight() - weight);
+				Weight weight = fontStyle.getWeight();
+				int delta = Math.abs(font.getWeight().w - weight.w);
 				order |= (0xF & ((1000 - delta) / 100));
 
 				// obliqueは変換を使えばよいので優先順位は低い
 				order <<= 4;
-				if (style == FontStyle.FONT_STYLE_OBLIQUE) {
+				if (style == Style.OBLIQUE) {
 					if (font.isItalic()) {
 						order |= 1;
 					}
@@ -370,7 +375,7 @@ public class PDFFontSourceManager implements FontSourceManager {
 			return ((PDFFontSource) this.source).createFont(name, fontRef);
 		}
 
-		public byte getType() {
+		public Type getType() {
 			return ((PDFFontSource) this.source).getType();
 		}
 	}

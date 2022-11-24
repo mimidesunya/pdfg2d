@@ -1,6 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.font.cid.missing;
 
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 
@@ -13,10 +13,10 @@ import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 public class SpaceCIDFontSource extends MissingCIDFontSource {
 	private static final long serialVersionUID = 1L;
 
-	public static final SpaceCIDFontSource INSTANCES_LTR = new SpaceCIDFontSource(FontStyle.DIRECTION_LTR);
-	public static final SpaceCIDFontSource INSTANCES_TB = new SpaceCIDFontSource(FontStyle.DIRECTION_TB);
+	public static final SpaceCIDFontSource INSTANCES_LTR = new SpaceCIDFontSource(Direction.LTR);
+	public static final SpaceCIDFontSource INSTANCES_TB = new SpaceCIDFontSource(Direction.TB);
 
-	SpaceCIDFontSource(byte direction) {
+	SpaceCIDFontSource(Direction direction) {
 		super(direction);
 	}
 

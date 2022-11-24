@@ -11,7 +11,8 @@ import java.io.Serializable;
 
 import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 
 /**
@@ -53,28 +54,28 @@ public abstract class SystemCIDFontSource extends AbstractFontSource implements 
 		rweight = (rweight - TextAttribute.WEIGHT_EXTRA_LIGHT.doubleValue())
 				/ (TextAttribute.WEIGHT_ULTRABOLD.doubleValue() - TextAttribute.WEIGHT_EXTRA_LIGHT.doubleValue());
 		if (rweight <= 0.1) {
-			this.setWeight((short) 100);
+			this.setWeight(Weight.W_100);
 		} else if (rweight <= 0.2) {
-			this.setWeight((short) 200);
+			this.setWeight(Weight.W_200);
 		} else if (rweight <= 0.3) {
-			this.setWeight((short) 300);
+			this.setWeight(Weight.W_300);
 		} else if (rweight <= 0.4) {
-			this.setWeight((short) 400);
+			this.setWeight(Weight.W_400);
 		} else if (rweight <= 0.5) {
-			this.setWeight((short) 500);
+			this.setWeight(Weight.W_500);
 		} else if (rweight <= 0.6) {
-			this.setWeight((short) 600);
+			this.setWeight(Weight.W_600);
 		} else if (rweight <= 0.7) {
-			this.setWeight((short) 700);
+			this.setWeight(Weight.W_700);
 		} else if (rweight <= 0.8) {
-			this.setWeight((short) 800);
+			this.setWeight(Weight.W_800);
 		} else {
-			this.setWeight((short) 900);
+			this.setWeight(Weight.W_900);
 		}
 	}
 
-	public byte getDirection() {
-		return FontStyle.DIRECTION_LTR;
+	public Direction getDirection() {
+		return Direction.LTR;
 	}
 
 	public Font getAwtFont() {

@@ -2,6 +2,9 @@ package net.zamasoft.pdfg2d.font;
 
 import java.io.Serializable;
 
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
+
 /**
  * TTFやシステムフォント等PDFフォントの元となるフォントです。
  * 
@@ -28,7 +31,7 @@ public interface FontSource extends Serializable {
 	 * 
 	 * @return FontStyle.DIRECTION_XX値。
 	 */
-	public byte getDirection();
+	public Direction getDirection();
 
 	/**
 	 * @return 斜体であればtrue。
@@ -38,7 +41,7 @@ public interface FontSource extends Serializable {
 	/**
 	 * @return フォントのウェイト。
 	 */
-	public short getWeight();
+	public Weight getWeight();
 
 	/**
 	 * デフォルトの1em当たりのユニット数です。 CFFの出力もこのユニット数を基準にします。

@@ -11,7 +11,7 @@ public class PDFParams {
 	/** バージョン */
 	private Version version = Version.V_1_4;
 
-	public enum Version {
+	public static enum Version {
 		V_1_2(1200), V_1_3(1300), V_1_4(1400), V_PDFA1B(1412), V_PDFX1A(1421), V_1_5(1500), V_1_6(1600), V_1_7(1700);
 
 		public final int v;
@@ -24,21 +24,21 @@ public class PDFParams {
 	/** 圧縮方法。 */
 	private Compression compression = Compression.BINARY;
 
-	public enum Compression {
+	public static enum Compression {
 		NONE, BINARY, ASCII;
 	}
 
 	/** JPEG画像の扱い。 */
 	private JPEGImage jpegImage = JPEGImage.RAW;
 
-	public enum JPEGImage {
+	public static enum JPEGImage {
 		RAW, RECOMPRESS;
 	}
 
 	/** 画像の変換。 */
 	private ImageCompression imageCompression = ImageCompression.FLATE;
 
-	public enum ImageCompression {
+	public static enum ImageCompression {
 		FLATE, JPEG, JPEG2000;
 	}
 
@@ -54,7 +54,7 @@ public class PDFParams {
 
 	private ColorMode colorMode = ColorMode.PRESERVE;
 
-	public enum ColorMode {
+	public static enum ColorMode {
 		PRESERVE, GRAY, CMYK;
 	}
 

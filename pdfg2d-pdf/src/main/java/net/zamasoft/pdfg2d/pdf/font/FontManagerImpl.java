@@ -15,6 +15,7 @@ import net.zamasoft.pdfg2d.gc.font.FontListMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.Glypher;
 import net.zamasoft.pdfg2d.gc.text.Quad;
@@ -82,7 +83,7 @@ public class FontManagerImpl implements FontManager {
 			fms[j++] = new FontMetricsImpl(this.fontStore, fonts2[i], fontStyle);
 		}
 
-		if (fontStyle.getDirection() == FontStyle.DIRECTION_TB) {
+		if (fontStyle.getDirection() == Direction.TB) {
 			fms[fms.length - 2] = new FontMetricsImpl(this.fontStore, SpaceCIDFontSource.INSTANCES_TB, fontStyle);
 			fms[fms.length - 1] = new FontMetricsImpl(this.fontStore, MissingCIDFontSource.INSTANCES_TB, fontStyle);
 		} else {
@@ -258,9 +259,9 @@ public class FontManagerImpl implements FontManager {
 			this.glyphHandler.flush();
 		}
 
-		public void finish() {
+		public void close() {
 			this.glyphBreak();
-			this.glyphHandler.finish();
+			this.glyphHandler.close();
 		}
 	}
 }

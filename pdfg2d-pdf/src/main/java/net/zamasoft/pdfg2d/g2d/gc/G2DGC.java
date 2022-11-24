@@ -55,7 +55,7 @@ public class G2DGC implements GC {
 
 		public final float fillAlpha;
 
-		public final short textMode;
+		public final TextMode textMode;
 
 		public final Composite composite;
 
@@ -106,7 +106,7 @@ public class G2DGC implements GC {
 
 	protected float fillAlpha = 1;
 
-	protected short textMode = TEXT_MODE_FILL;
+	protected TextMode textMode = TextMode.FILL;
 
 	protected ArrayList<GraphicsState> stack = new ArrayList<GraphicsState>();
 
@@ -178,24 +178,24 @@ public class G2DGC implements GC {
 		return pattern;
 	}
 
-	public void setLineJoin(short style) {
+	public void setLineJoin(LineJoin lineJoin) {
 		BasicStroke stroke = (BasicStroke) this.g.getStroke();
-		this.g.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), style, stroke.getMiterLimit(),
+		this.g.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), lineJoin.j, stroke.getMiterLimit(),
 				stroke.getDashArray(), stroke.getDashPhase()));
 	}
 
-	public short getLineJoin() {
-		return (short) ((BasicStroke) this.g.getStroke()).getLineJoin();
+	public LineJoin getLineJoin() {
+		return G2DUtils.decodeLineJoin((short) ((BasicStroke) this.g.getStroke()).getLineJoin());
 	}
 
-	public void setLineCap(short style) {
+	public void setLineCap(LineCap lineCap) {
 		BasicStroke stroke = (BasicStroke) this.g.getStroke();
-		this.g.setStroke(new BasicStroke(stroke.getLineWidth(), style, stroke.getLineJoin(), stroke.getMiterLimit(),
+		this.g.setStroke(new BasicStroke(stroke.getLineWidth(), lineCap.code, stroke.getLineJoin(), stroke.getMiterLimit(),
 				stroke.getDashArray(), stroke.getDashPhase()));
 	}
 
-	public short getLineCap() {
-		return (short) ((BasicStroke) this.g.getStroke()).getEndCap();
+	public LineCap getLineCap() {
+		return G2DUtils.decodeLineCap((short) ((BasicStroke) this.g.getStroke()).getEndCap());
 	}
 
 	protected void setPaint(Object _paint, boolean fill) throws GraphicsException {
@@ -274,11 +274,11 @@ public class G2DGC implements GC {
 		return this.fillAlpha;
 	}
 
-	public void setTextMode(short textMode) {
+	public void setTextMode(TextMode textMode) {
 		this.textMode = textMode;
 	}
 
-	public short getTextMode() {
+	public TextMode getTextMode() {
 		return this.textMode;
 	}
 

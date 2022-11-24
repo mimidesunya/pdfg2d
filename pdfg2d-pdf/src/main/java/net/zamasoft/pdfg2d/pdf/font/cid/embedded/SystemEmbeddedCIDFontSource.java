@@ -26,7 +26,7 @@ public class SystemEmbeddedCIDFontSource extends SystemCIDFontSource {
 		return this.createFont(null, null);
 	}
 
-	public byte getType() {
-		return TYPE_EMBEDDED;
+	public Type getType() {
+		return Type.EMBEDDED;
 	}
 }

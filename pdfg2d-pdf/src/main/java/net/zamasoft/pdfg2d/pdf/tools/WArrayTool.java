@@ -9,7 +9,7 @@ import net.zamasoft.font.table.Table;
 import net.zamasoft.font.table.XmtxTable;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.FontSource;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDTable;
 import net.zamasoft.pdfg2d.pdf.font.cid.CMap;
 import net.zamasoft.pdfg2d.pdf.font.cid.WArray;
@@ -50,7 +50,7 @@ public class WArrayTool {
 
 		if (ttf) {
 			File ttFile = new File(pFont);
-			fs = new OpenTypeCIDIdentityFontSource(ttFile, index, FontStyle.DIRECTION_LTR);
+			fs = new OpenTypeCIDIdentityFontSource(ttFile, index, Direction.LTR);
 		} else {
 			java.awt.Font font = java.awt.Font.decode(pFont);
 			fs = new SystemCIDIdentityFontSource(font);

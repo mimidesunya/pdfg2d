@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
@@ -60,16 +60,16 @@ public abstract class AbstractType1FontSource extends AbstractFontSource impleme
 		return this.awtFont;
 	}
 
-	public byte getDirection() {
-		return FontStyle.DIRECTION_LTR;
+	public Direction getDirection() {
+		return Direction.LTR;
 	}
 
 	public String getFontName() {
 		return this.fontInfo.fontName;
 	}
 
-	public byte getType() {
-		return TYPE_CORE;
+	public Type getType() {
+		return Type.CORE;
 	}
 
 	short getAdvance(int gid) {

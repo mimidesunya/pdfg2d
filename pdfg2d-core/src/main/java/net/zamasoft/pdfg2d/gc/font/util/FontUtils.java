@@ -10,9 +10,13 @@ import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ImageFont;
 import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
+import net.zamasoft.pdfg2d.gc.GC.TextMode;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
@@ -54,9 +58,9 @@ public final class FontUtils {
 		int h = fontStyle.getFamily().hashCode();
 		long a = Double.doubleToLongBits(fontStyle.getSize());
 		h = 31 * h + (int) (a ^ (a >>> 32));
-		h = 31 * h + fontStyle.getStyle();
-		h = 31 * h + fontStyle.getWeight();
-		h = 31 * h + fontStyle.getDirection();
+		h = 31 * h + fontStyle.getStyle().ordinal();
+		h = 31 * h + fontStyle.getWeight().w;
+		h = 31 * h + fontStyle.getDirection().ordinal();
 		h = 31 * h + fontStyle.getPolicy().hashCode();
 		return h;
 	}
@@ -70,21 +74,21 @@ public final class FontUtils {
 	 */
 	public static void addTextPath(final GeneralPath path, ShapedFont font, Text text, AffineTransform transform) {
 		FontStyle fontStyle = text.getFontStyle();
-		byte direction = fontStyle.getDirection();
+		Direction direction = fontStyle.getDirection();
 		double fontSize = fontStyle.getSize();
 		int glen = text.getGLen();
 		int[] gids = text.getGIDs();
 		double letterSpacing = text.getLetterSpacing();
 		double[] xadvances = text.getXAdvances(false);
 		FontMetrics fm = text.getFontMetrics();
-		
+
 		double s = fontSize / FontSource.DEFAULT_UNITS_PER_EM;
 		AffineTransform at = AffineTransform.getScaleInstance(s, s);
-		
-		boolean verticalFont = direction == FontStyle.DIRECTION_TB && font.getFontSource().getDirection() == direction;
+
+		boolean verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
 		AffineTransform oblique = null;
-		short style = fontStyle.getStyle();
-		if (style != FontStyle.FONT_STYLE_NORMAL && !font.getFontSource().isItalic()) {
+		Style style = fontStyle.getStyle();
+		if (style != Style.NORMAL && !font.getFontSource().isItalic()) {
 			// 自前でイタリックを再現する
 			if (verticalFont) {
 				oblique = AffineTransform.getShearInstance(0, 0.25);
@@ -162,7 +166,7 @@ public final class FontUtils {
 	public static void drawText(GC gc, DrawableFont font, Text text) throws GraphicsException {
 		gc.begin();
 		FontStyle fontStyle = text.getFontStyle();
-		byte direction = fontStyle.getDirection();
+		Direction direction = fontStyle.getDirection();
 		double fontSize = fontStyle.getSize();
 		int glen = text.getGLen();
 		int[] gids = text.getGIDs();
@@ -175,34 +179,34 @@ public final class FontUtils {
 			at = AffineTransform.getScaleInstance(s, s);
 		}
 
-		short textMode = gc.getTextMode();
+		TextMode textMode = gc.getTextMode();
 		double enlargement;
-		short weight = fontStyle.getWeight();
+		Weight weight = fontStyle.getWeight();
 		double xlineWidth = 0;
 		Object xstrokePaint = null;
-		if (textMode == GC.TEXT_MODE_FILL && weight >= 500 && font.getFontSource().getWeight() < 500) {
+		if (textMode == TextMode.FILL && weight.w >= 500 && font.getFontSource().getWeight().w < 500) {
 			// 自前でBOLDを再現する
 			switch (weight) {
-			case 500:
+			case W_500:
 				enlargement = fontSize / 28.0;
 				break;
-			case 600:
+			case W_600:
 				enlargement = fontSize / 24.0;
 				break;
-			case 700:
+			case W_700:
 				enlargement = fontSize / 20.0;
 				break;
-			case 800:
+			case W_800:
 				enlargement = fontSize / 16.0;
 				break;
-			case 900:
+			case W_900:
 				enlargement = fontSize / 12.0;
 				break;
 			default:
 				throw new IllegalStateException();
 			}
 			if (enlargement > 0) {
-				textMode = GC.TEXT_MODE_FILL_STROKE;
+				textMode = TextMode.FILL_STROKE;
 				xlineWidth = gc.getLineWidth();
 				gc.setLineWidth(enlargement);
 				gc.setStrokePaint(gc.getFillPaint());
@@ -212,10 +216,10 @@ public final class FontUtils {
 			enlargement = 0;
 		}
 
-		boolean verticalFont = direction == FontStyle.DIRECTION_TB && font.getFontSource().getDirection() == direction;
+		boolean verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
 		AffineTransform oblique = null;
-		short style = fontStyle.getStyle();
-		if (style != FontStyle.FONT_STYLE_NORMAL && !font.getFontSource().isItalic()) {
+		Style style = fontStyle.getStyle();
+		if (style != Style.NORMAL && !font.getFontSource().isItalic()) {
 			// 自前でイタリックを再現する
 			if (verticalFont) {
 				oblique = AffineTransform.getShearInstance(0, 0.25);
@@ -263,7 +267,7 @@ public final class FontUtils {
 				}
 			}
 		} else {
-			if (direction == FontStyle.DIRECTION_TB) {
+			if (direction == Direction.TB) {
 				// 横倒し
 				gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
 				BBox bbox = font.getFontSource().getBBox();
@@ -312,15 +316,15 @@ public final class FontUtils {
 		gc.end();
 	}
 
-	private static void drawPath(GC gc, GeneralPath path, short textMode) {
+	private static void drawPath(GC gc, GeneralPath path, TextMode textMode) {
 		switch (textMode) {
-		case GC.TEXT_MODE_FILL:
+		case FILL:
 			gc.fill(path);
 			break;
-		case GC.TEXT_MODE_STROKE:
+		case STROKE:
 			gc.draw(path);
 			break;
-		case GC.TEXT_MODE_FILL_STROKE:
+		case FILL_STROKE:
 			gc.fillDraw(path);
 			break;
 		default:

@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.otf.OpenTypeFontSource;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
@@ -17,12 +18,12 @@ import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
 public class OpenTypeCIDIdentityFontSource extends OpenTypeFontSource implements CIDFontSource {
 	private static final long serialVersionUID = 1L;
 
-	public OpenTypeCIDIdentityFontSource(File ttfFont, int index, byte direction) throws IOException {
+	public OpenTypeCIDIdentityFontSource(File ttfFont, int index, Direction direction) throws IOException {
 		super(ttfFont, index, direction);
 	}
 
-	public byte getType() {
-		return TYPE_CID_IDENTITY;
+	public Type getType() {
+		return Type.CID_IDENTITY;
 	}
 
 	public PDFFont createFont(String name, ObjectRef fontRef) {

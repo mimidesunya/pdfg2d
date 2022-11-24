@@ -35,6 +35,8 @@ import net.zamasoft.pdfg2d.g2d.image.RasterImageImpl;
 import net.zamasoft.pdfg2d.g2d.image.png.PNGDecodeParam;
 import net.zamasoft.pdfg2d.g2d.image.png.PNGImage;
 import net.zamasoft.pdfg2d.gc.GC;
+import net.zamasoft.pdfg2d.gc.GC.LineCap;
+import net.zamasoft.pdfg2d.gc.GC.LineJoin;
 import net.zamasoft.pdfg2d.gc.font.FontFamily;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
@@ -184,26 +186,23 @@ public final class G2DUtils {
 	}
 
 	public static final String toAwtFamilyName(FontFamily ffe) {
-		if (ffe.isGenericFamily()) {
-			switch (ffe.getGenericFamily()) {
-			case FontFamily.CURSIVE:
-				return "SansSerif";// AWT doesn't support logical font family
-			// 'cursive'.
-			case FontFamily.FANTASY:
-				return "SansSerif";// AWT doesn't support logical font family
-			// 'fantasy'.
-			case FontFamily.MONOSPACE:
-				return "Monospaced";
-			case FontFamily.SANS_SERIF:
-				return "SansSerif";
-			case FontFamily.SERIF:
-				return "Serif";
+		switch (ffe.getGenericFamily()) {
+		case CURSIVE:
+			return "SansSerif";// AWT doesn't support logical font family
+		// 'cursive'.
+		case FANTASY:
+			return "SansSerif";// AWT doesn't support logical font family
+		// 'fantasy'.
+		case MONOSPACE:
+			return "Monospaced";
+		case SANS_SERIF:
+			return "SansSerif";
+		case SERIF:
+			return "Serif";
 
-			default:
-				throw new IllegalStateException();
-			}
+		default:
+			return ffe.getName();
 		}
-		return ffe.getName();
 
 	}
 
@@ -223,31 +222,31 @@ public final class G2DUtils {
 
 		Float weight;
 		switch (fontStyle.getWeight()) {
-		case 100:
+		case W_100:
 			weight = TextAttribute.WEIGHT_EXTRA_LIGHT;
 			break;
-		case 200:
+		case W_200:
 			weight = TextAttribute.WEIGHT_LIGHT;
 			break;
-		case 300:
+		case W_300:
 			weight = TextAttribute.WEIGHT_DEMILIGHT;
 			break;
-		case 400:
+		case W_400:
 			weight = TextAttribute.WEIGHT_REGULAR;
 			break;
-		case 500:
+		case W_500:
 			weight = TextAttribute.WEIGHT_SEMIBOLD;
 			break;
-		case 600:
+		case W_600:
 			weight = TextAttribute.WEIGHT_DEMIBOLD;
 			break;
-		case 700:
+		case W_700:
 			weight = TextAttribute.WEIGHT_BOLD;
 			break;
-		case 800:
+		case W_800:
 			weight = TextAttribute.WEIGHT_EXTRABOLD;
 			break;
-		case 900:
+		case W_900:
 			weight = TextAttribute.WEIGHT_ULTRABOLD;
 			break;
 		default:
@@ -257,11 +256,11 @@ public final class G2DUtils {
 
 		Float posture;
 		switch (fontStyle.getStyle()) {
-		case FontStyle.FONT_STYLE_NORMAL:
+		case NORMAL:
 			posture = TextAttribute.POSTURE_REGULAR;
 			break;
-		case FontStyle.FONT_STYLE_ITALIC:
-		case FontStyle.FONT_STYLE_OBLIQUE:
+		case ITALIC:
+		case OBLIQUE:
 			posture = TextAttribute.POSTURE_OBLIQUE;
 			break;
 		default:
@@ -362,6 +361,32 @@ public final class G2DUtils {
 			return buffer;
 		} finally {
 			reader.dispose();
+		}
+	}
+
+	public static LineCap decodeLineCap(final short lineCap) {
+		switch (lineCap) {
+		case 0:
+			return LineCap.BUTT;
+		case 1:
+			return LineCap.ROUND;
+		case 2:
+			return LineCap.SQUARE;
+		default:
+			throw new IllegalStateException();
+		}
+	}
+
+	public static LineJoin decodeLineJoin(final short lineJoin) {
+		switch (lineJoin) {
+		case 0:
+			return LineJoin.MITER;
+		case 1:
+			return LineJoin.ROUND;
+		case 2:
+			return LineJoin.BEVEL;
+		default:
+			throw new IllegalStateException();
 		}
 	}
 }

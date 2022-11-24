@@ -30,8 +30,8 @@ public class SystemCIDIdentityFontSource extends SystemCIDFontSource {
 		super(font);
 	}
 
-	public byte getType() {
-		return TYPE_CID_IDENTITY;
+	public Type getType() {
+		return Type.CID_IDENTITY;
 	}
 
 	private final char[] chara = new char[1];

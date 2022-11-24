@@ -1,5 +1,8 @@
 package net.zamasoft.pdfg2d.font;
 
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
+
 public class FontSourceWrapper implements FontSource {
 	private static final long serialVersionUID = 0L;
 
@@ -21,7 +24,7 @@ public class FontSourceWrapper implements FontSource {
 		return this.source.createFont();
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.source.getDirection();
 	}
 
@@ -53,7 +56,7 @@ public class FontSourceWrapper implements FontSource {
 		return this.source.getStemV();
 	}
 
-	public short getWeight() {
+	public Weight getWeight() {
 		return this.source.getWeight();
 	}
 

@@ -1,5 +1,7 @@
 package net.zamasoft.pdfg2d.font;
 
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
+
 public abstract class AbstractFontSource implements FontSource {
 	private static final long serialVersionUID = 1L;
 	/**
@@ -26,7 +28,7 @@ public abstract class AbstractFontSource implements FontSource {
 
 	protected String[] aliases = EMPTY_STRINGS;
 
-	protected short weight = 400;
+	protected Weight weight = Weight.W_400;
 
 	protected boolean isItalic = false;
 
@@ -42,11 +44,11 @@ public abstract class AbstractFontSource implements FontSource {
 		return this.isItalic;
 	}
 
-	public final void setWeight(short weight) {
+	public final void setWeight(Weight weight) {
 		this.weight = weight;
 	}
 
-	public final short getWeight() {
+	public final Weight getWeight() {
 		return this.weight;
 	}
 

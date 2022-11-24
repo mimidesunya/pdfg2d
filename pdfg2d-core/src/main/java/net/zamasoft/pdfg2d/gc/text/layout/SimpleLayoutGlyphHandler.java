@@ -57,12 +57,12 @@ public class SimpleLayoutGlyphHandler implements GlyphHandler {
 		assert this.text.getGLen() > 0;
 		if (this.gc != null) {
 			switch (this.text.getFontStyle().getDirection()) {
-			case FontStyle.DIRECTION_LTR:
-			case FontStyle.DIRECTION_RTL:
+			case LTR:
+			case RTL:
 				// 横書き
 				this.gc.drawText(this.text, this.advance, this.line);
 				break;
-			case FontStyle.DIRECTION_TB:
+			case TB:
 				// 縦書き
 				this.gc.drawText(this.text, -this.line, this.advance);
 				break;
@@ -97,7 +97,7 @@ public class SimpleLayoutGlyphHandler implements GlyphHandler {
 		// ignore
 	}
 
-	public void finish() {
+	public void close() {
 		// ignore
 	}
 }

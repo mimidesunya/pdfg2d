@@ -10,62 +10,35 @@ public interface FontStyle {
 	/**
 	 * 描画方向です。DIRECTION_XXXの値を使用します。
 	 */
-	public byte getDirection();
+	public Direction getDirection();
 
-	/** 左から右に書くフォントです。 */
-	public static final byte DIRECTION_LTR = 1;
-
-	/** 右から左に書くフォントです。 */
-	public static final byte DIRECTION_RTL = 2;
-
-	/** 縦書きフォントです */
-	public static final byte DIRECTION_TB = 3;
+	public static enum Direction {
+		LTR, RTL, TB
+	}
 
 	/**
 	 * フォントのウェイトです。WIGHT_XXX定数を使用します。
 	 */
-	public short getWeight();
+	public Weight getWeight();
 
-	/** 最も細いフォントウェイトです。 */
-	public static final short FONT_WEIGHT_100 = 100;
+	public static enum Weight {
+		W_100((short)100),W_200((short)200),W_300((short)300),W_400((short)400),W_500((short)500),W_600((short)600),W_700((short)70),W_800((short)800),W_900((short)900);
 
-	public static final short FONT_WEIGHT_200 = 200;
+		public final short w;
 
-	public static final short FONT_WEIGHT_300 = 300;
-
-	/** 標準のフォントウェイトです。 */
-	public static final short FONT_WEIGHT_400 = 400;
-
-	public static final short FONT_WEIGHT_500 = 500;
-
-	public static final short FONT_WEIGHT_600 = 600;
-
-	public static final short FONT_WEIGHT_700 = 700;
-
-	public static final short FONT_WEIGHT_800 = 800;
-
-	/** 最も太いフォントウェイトです。 */
-	public static final short FONT_WEIGHT_900 = 900;
+		private Weight(short w) {
+			this.w = w;
+		}
+	}
 
 	/**
 	 * フォントのスタイルです。STYLE_XXX定数を使用します。
 	 */
-	public byte getStyle();
-
-	/** 標準字体です。 */
-	public static final byte FONT_STYLE_NORMAL = 1;
-
-	/**
-	 * 斜体文字です。 この指定は斜体用フォントの使用を最優先します。
-	 * 例えば、太字-斜体という指定の際に太字-斜体のフォントが存在せず、細字-斜体のフォントがある場合は細字-斜体のフォントが使用されます。
-	 */
-	public static final byte FONT_STYLE_ITALIC = 2;
-
-	/**
-	 * 斜体文字です。 この指定は単純に文字を傾ける方法を優先します。
-	 * 例えば、太字-斜体という指定の際に太字-斜体のフォントが存在せず、細字-斜体のフォントがある場合は太字-標準自体のフォントを傾けて利用します。
-	 */
-	public static final byte FONT_STYLE_OBLIQUE = 3;
+	public Style getStyle();
+	
+	public static enum Style {
+		NORMAL, ITALIC, OBLIQUE;
+	}
 
 	/**
 	 * フォントファミリです。

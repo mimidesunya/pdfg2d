@@ -30,6 +30,7 @@ class PDFGraphicsNodeRable extends GraphicsNodeRable8Bit {
 			return super.paintRable(g2d);
 		}
 
+		@SuppressWarnings("resource")
 		PDFGC pgc = (PDFGC) gc;
 		try {
 			PDFGraphicsOutput pdfgo = pgc.getPDFGraphicsOutput();

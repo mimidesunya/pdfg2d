@@ -12,7 +12,11 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontListMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontPolicyList;
+import net.zamasoft.pdfg2d.gc.font.FontPolicyList.FontPolicy;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.FontStyleImpl;
 import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
 import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.TextUnitizer;
@@ -30,15 +34,15 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 
 	private double size = 12.0;
 
-	private byte style = FontStyle.FONT_STYLE_NORMAL;
+	private Style style = Style.NORMAL;
 
-	private short weight = FontStyle.FONT_WEIGHT_400;
+	private Weight weight = Weight.W_400;
 
-	private byte direction = FontStyle.DIRECTION_LTR;
+	private Direction direction = Direction.LTR;
 
 	public static final FontPolicyList DEFAULT_FONT_POLICY = new FontPolicyList(
-			new byte[] { FontPolicyList.FONT_POLICY_CID_KEYED, FontPolicyList.FONT_POLICY_EMBEDDED,
-					FontPolicyList.FONT_POLICY_CID_IDENTITY });
+			new FontPolicy[] { FontPolicy.CID_KEYED, FontPolicy.EMBEDDED,
+					FontPolicy.CID_IDENTITY });
 
 	private FontPolicyList fontPolicy = DEFAULT_FONT_POLICY;
 
@@ -70,17 +74,17 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 	public void characters(AttributedCharacterIterator aci) {
 		FontFamilyList defaultFamily = this.fontFamilies;
 		double defaultSize = this.size;
-		short defaultWeight = this.weight;
-		byte defaultStyle = this.style;
-		byte defaultDirection = this.direction;
+		Weight defaultWeight = this.weight;
+		Style defaultStyle = this.style;
+		Direction defaultDirection = this.direction;
 		while (aci.current() != CharacterIterator.DONE) {
 			this.setFontFamilies(
 					TextUtils.toFontFamilyList((String) aci.getAttribute(TextAttribute.FAMILY), defaultFamily));
 			this.setFontWeight(TextUtils.toFontWeight((Float) aci.getAttribute(TextAttribute.WEIGHT), defaultWeight));
 			this.setFontSize(TextUtils.toFontSize((Float) aci.getAttribute(TextAttribute.SIZE), defaultSize));
 			this.setFontStyle(TextUtils.toFontStyle((Float) aci.getAttribute(TextAttribute.POSTURE), defaultStyle));
-			Byte direction = (Byte) aci.getAttribute(TextUtils.WRITING_MODE);
-			this.setDirection(direction == null ? defaultDirection : direction.byteValue());
+			Direction direction = (Direction) aci.getAttribute(TextUtils.WRITING_MODE);
+			this.setDirection(direction == null ? defaultDirection : direction);
 
 			int nextRun = aci.getRunLimit(ATTRIBUTES);
 			int len = nextRun - aci.getIndex();
@@ -163,7 +167,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.size = size;
 	}
 
-	public void setFontStyle(byte style) {
+	public void setFontStyle(Style style) {
 		if (this.style == style) {
 			return;
 		}
@@ -171,7 +175,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.style = style;
 	}
 
-	public void setFontWeight(short weight) {
+	public void setFontWeight(Weight weight) {
 		if (this.weight == weight) {
 			return;
 		}
@@ -179,7 +183,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.weight = weight;
 	}
 
-	public void setDirection(byte direction) {
+	public void setDirection(Direction direction) {
 		if (this.direction == direction) {
 			return;
 		}

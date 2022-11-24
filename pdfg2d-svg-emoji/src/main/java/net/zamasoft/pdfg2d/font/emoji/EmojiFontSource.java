@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 
 /**
@@ -42,16 +42,16 @@ public class EmojiFontSource extends AbstractFontSource {
 		fgidToCode = Collections.unmodifiableMap(gtoc);
 	}
 
-	public static final EmojiFontSource INSTANCES_LTR = new EmojiFontSource(FontStyle.DIRECTION_LTR);
-	public static final EmojiFontSource INSTANCES_TB = new EmojiFontSource(FontStyle.DIRECTION_TB);
+	public static final EmojiFontSource INSTANCES_LTR = new EmojiFontSource(Direction.LTR);
+	public static final EmojiFontSource INSTANCES_TB = new EmojiFontSource(Direction.TB);
 
-	private final byte direction;
+	private final Direction direction;
 
-	private EmojiFontSource(byte direction) {
+	private EmojiFontSource(Direction direction) {
 		this.direction = direction;
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 

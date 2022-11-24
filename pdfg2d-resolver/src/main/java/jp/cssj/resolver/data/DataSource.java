@@ -9,13 +9,13 @@ import java.io.Reader;
 import java.net.URI;
 import java.util.StringTokenizer;
 
-import jp.cssj.resolver.SourceValidity;
-import jp.cssj.resolver.helpers.AbstractSource;
-import jp.cssj.resolver.helpers.ValidSourceValidity;
-
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.net.URLCodec;
+
+import jp.cssj.resolver.SourceValidity;
+import jp.cssj.resolver.helpers.AbstractSource;
+import jp.cssj.resolver.helpers.ValidSourceValidity;
 
 /**
  * RFC2397,data:スキーマからデータを取得するSourceです。

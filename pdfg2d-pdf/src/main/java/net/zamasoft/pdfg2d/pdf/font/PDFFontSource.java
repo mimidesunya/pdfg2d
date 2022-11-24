@@ -4,37 +4,39 @@ import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 public interface PDFFontSource extends FontSource {
+	public static enum Type {
 	/**
 	 * 不明なフォントです。
 	 */
-	public static final byte TYPE_MISSING = 0;
+	MISSING,
 
 	/**
 	 * コアフォントです。
 	 */
-	public static final byte TYPE_CORE = 1;
+	CORE,
 
 	/**
 	 * 埋め込みフォントです。
 	 */
-	public static final byte TYPE_EMBEDDED = 2;
+	EMBEDDED,
 
 	/**
 	 * 外部フォントです。
 	 */
-	public static final byte TYPE_CID_IDENTITY = 3;
+	CID_IDENTITY,
 
 	/**
 	 * CID-Keyedフォントです。
 	 */
-	public static final byte TYPE_CID_KEYED = 4;
+	CID_KEYED;
+	}
 
 	/**
 	 * フォントの種類を返します。
 	 * 
 	 * @return
 	 */
-	public byte getType();
+	public Type getType();
 
 	public PDFFont createFont(String name, ObjectRef fontRef);
 }

@@ -24,7 +24,9 @@ import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
 import net.zamasoft.pdfg2d.gc.font.FontFamily;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDFontSource;
@@ -49,12 +51,11 @@ import net.zamasoft.pdfg2d.util.NumberUtils;
 
 public final class FontLoader {
 	private static final Logger LOG = Logger.getLogger(FontLoader.class.getName());
+	
+	public static enum Type {
 
-	public static final byte TYPE_EMBEDDED = 1;
-
-	public static final byte TYPE_CID_IDENTITY = 2;
-
-	public static final byte TYPE_CID_KEYED = 3;
+	EMBEDDED,CID_IDENTITY,CID_KEYED;
+	}
 
 	private FontLoader() {
 		// unused
@@ -71,7 +72,7 @@ public final class FontLoader {
 	 * @param nameToCMap
 	 * @throws IOException
 	 */
-	public static void readTTF(List<FontSource> list, FontFace face, byte type, File ttfFile, int index,
+	public static void readTTF(List<FontSource> list, FontFace face, Type type, File ttfFile, int index,
 			Map<String, CMap> nameToCMap) throws IOException {
 		String fileName = ttfFile.getName();
 		if (fileName.endsWith(".pfa") || fileName.endsWith(".PFA") || fileName.endsWith(".pfb")
@@ -92,22 +93,18 @@ public final class FontLoader {
 		LOG.fine("TrueTypeフォント: " + face.fontFamily);
 
 		switch (type) {
-		case TYPE_EMBEDDED:
+		case EMBEDDED:
 			for (int i = 0; i < 2; ++i) {
 				OpenTypeEmbeddedCIDFontSource tefont = new OpenTypeEmbeddedCIDFontSource(ttfFile, index,
-						i == 0 ? FontStyle.DIRECTION_LTR : FontStyle.DIRECTION_TB);
+						i == 0 ? Direction.LTR : Direction.TB);
 				if (face.panose != null) {
 					tefont.setPanose(face.panose);
 				}
 				if (face.fontFamily != null) {
 					tefont.setFontName(face.fontFamily.get(0).getName());
 				}
-				if (face.fontStyle != -1) {
-					tefont.setItalic(face.fontStyle == FontStyle.FONT_STYLE_ITALIC);
-				}
-				if (face.fontWeight != -1) {
-					tefont.setWeight(face.fontWeight);
-				}
+				tefont.setItalic(face.fontStyle == Style.ITALIC);
+				tefont.setWeight(face.fontWeight);
 				if (i == 0) {
 					list.add(tefont);
 					if (tefont.getOpenTypeFont().getTable(Table.GSUB) == null) {
@@ -118,22 +115,18 @@ public final class FontLoader {
 				}
 			}
 			break;
-		case TYPE_CID_IDENTITY:
+		case CID_IDENTITY:
 			for (int i = 0; i < 2; ++i) {
 				OpenTypeCIDIdentityFontSource tifont = new OpenTypeCIDIdentityFontSource(ttfFile, index,
-						i == 0 ? FontStyle.DIRECTION_LTR : FontStyle.DIRECTION_TB);
+						i == 0 ? Direction.LTR : Direction.TB);
 				if (face.panose != null) {
 					tifont.setPanose(face.panose);
 				}
 				if (face.fontFamily != null) {
 					tifont.setFontName(face.fontFamily.get(0).getName());
 				}
-				if (face.fontStyle != -1) {
-					tifont.setItalic(face.fontStyle == FontStyle.FONT_STYLE_ITALIC);
-				}
-				if (face.fontWeight != -1) {
-					tifont.setWeight(face.fontWeight);
-				}
+				tifont.setItalic(face.fontStyle == Style.ITALIC);
+				tifont.setWeight(face.fontWeight);
 				if (i == 0) {
 					list.add(tifont);
 					if (tifont.getOpenTypeFont().getTable(Table.GSUB) == null) {
@@ -144,7 +137,7 @@ public final class FontLoader {
 				}
 			}
 			break;
-		case TYPE_CID_KEYED:
+		case CID_KEYED:
 			CMap cmapObj = (CMap) nameToCMap.get(face.cmap);
 			CMap vcmapObj = (face.vcmap == null ? null : (CMap) nameToCMap.get(face.vcmap));
 			for (int i = 0; i < 2; ++i) {
@@ -156,12 +149,8 @@ public final class FontLoader {
 				if (face.fontFamily != null) {
 					ckfont.setFontName(face.fontFamily.get(0).getName());
 				}
-				if (face.fontStyle != -1) {
-					ckfont.setItalic(face.fontStyle == FontStyle.FONT_STYLE_ITALIC);
-				}
-				if (face.fontWeight != -1) {
-					ckfont.setWeight(face.fontWeight);
-				}
+				ckfont.setItalic(face.fontStyle == Style.ITALIC);
+				ckfont.setWeight(face.fontWeight);
 				list.add(ckfont);
 				if (vcmapObj == null) {
 					break;
@@ -182,11 +171,11 @@ public final class FontLoader {
 	 * @return
 	 * @throws IOException
 	 */
-	public static PDFFontSource readSystemFont(FontFace face, byte type, java.awt.Font awtFont,
+	public static PDFFontSource readSystemFont(FontFace face, Type type, java.awt.Font awtFont,
 			Map<String, CMap> nameToCMap) throws IOException {
 		CIDFontSource source;
 		switch (type) {
-		case TYPE_EMBEDDED:
+		case EMBEDDED:
 			SystemEmbeddedCIDFontSource sefont = new SystemEmbeddedCIDFontSource(awtFont);
 			source = sefont;
 			if (face.panose != null) {
@@ -196,7 +185,7 @@ public final class FontLoader {
 				sefont.setFontName(face.fontFamily.get(0).getName());
 			}
 			break;
-		case TYPE_CID_IDENTITY:
+		case CID_IDENTITY:
 			SystemCIDIdentityFontSource scfont = new SystemCIDIdentityFontSource(awtFont);
 			source = scfont;
 			if (face.panose != null) {
@@ -206,7 +195,7 @@ public final class FontLoader {
 				scfont.setFontName(face.fontFamily.get(0).getName());
 			}
 			break;
-		case TYPE_CID_KEYED:
+		case CID_KEYED:
 			CMap cmapObj = (CMap) nameToCMap.get(face.cmap);
 			CMap vcmapObj = (face.vcmap == null ? null : (CMap) nameToCMap.get(face.vcmap));
 			SystemCIDKeyedFontSource ckfont = new SystemCIDKeyedFontSource(cmapObj, vcmapObj, awtFont);
@@ -222,12 +211,8 @@ public final class FontLoader {
 			throw new IllegalArgumentException();
 		}
 
-		if (face.fontStyle != -1) {
-			((AbstractFontSource) source).setItalic(face.fontStyle == FontStyle.FONT_STYLE_ITALIC);
-		}
-		if (face.fontWeight != -1) {
-			((AbstractFontSource) source).setWeight(face.fontWeight);
-		}
+		((AbstractFontSource) source).setItalic(face.fontStyle == Style.ITALIC);
+		((AbstractFontSource) source).setWeight(face.fontWeight);
 
 		LOG.fine("システムフォント: " + source);
 		return source;
@@ -305,12 +290,8 @@ public final class FontLoader {
 				}
 			}
 
-			if (face.fontStyle != -1) {
-				source.setItalic(face.fontStyle == FontStyle.FONT_STYLE_ITALIC);
-			}
-			if (face.fontWeight != -1) {
-				source.setWeight(face.fontWeight);
-			}
+			source.setItalic(face.fontStyle == Style.ITALIC);
+			source.setWeight(face.fontWeight);
 
 			LOG.fine("CID-Keyedフォント: " + source);
 			result[k] = source;
@@ -321,13 +302,13 @@ public final class FontLoader {
 	public static void readSystemFont(FontFace face, List<FontSource> list, String types, java.awt.Font font,
 			Map<String, CMap> nameToCMap) throws IOException {
 		if (types.indexOf("cid-keyed") != -1) {
-			list.add(FontLoader.readSystemFont(face, FontLoader.TYPE_CID_KEYED, font, nameToCMap));
+			list.add(FontLoader.readSystemFont(face, Type.CID_KEYED, font, nameToCMap));
 		}
 		if (types.indexOf("cid-identity") != -1) {
-			list.add(FontLoader.readSystemFont(face, FontLoader.TYPE_CID_IDENTITY, font, nameToCMap));
+			list.add(FontLoader.readSystemFont(face, Type.CID_IDENTITY, font, nameToCMap));
 		}
 		if (types.indexOf("embedded") != -1) {
-			list.add(FontLoader.readSystemFont(face, FontLoader.TYPE_EMBEDDED, font, nameToCMap));
+			list.add(FontLoader.readSystemFont(face, Type.EMBEDDED, font, nameToCMap));
 		}
 	}
 
@@ -384,29 +365,29 @@ public final class FontLoader {
 		return "true".equals(italic);
 	}
 
-	private static short parseWeight(String weight) {
+	private static Weight parseWeight(String weight) {
 		if (weight == null) {
-			return 400;
+			return Weight.W_400;
 		} else if (weight.equals("100")) {
-			return 100;
+			return Weight.W_100;
 		} else if (weight.equals("200")) {
-			return 200;
+			return Weight.W_200;
 		} else if (weight.equals("300")) {
-			return 300;
+			return Weight.W_300;
 		} else if (weight.equals("400")) {
-			return 400;
+			return Weight.W_400;
 		} else if (weight.equals("500")) {
-			return 500;
+			return Weight.W_500;
 		} else if (weight.equals("600")) {
-			return 600;
+			return Weight.W_600;
 		} else if (weight.equals("700")) {
-			return 700;
+			return Weight.W_700;
 		} else if (weight.equals("800")) {
-			return 800;
+			return Weight.W_800;
 		} else if (weight.equals("900")) {
-			return 900;
+			return Weight.W_900;
 		}
-		return 400;
+		return Weight.W_400;
 	}
 
 	private static Panose decodePanose(String panoseStr) {
@@ -428,7 +409,7 @@ public final class FontLoader {
 		face.vcmap = atts.getValue("vcmap");
 		String italic = atts.getValue("italic");
 		if (italic != null) {
-			face.fontStyle = FontLoader.parseItalic(italic) ? FontStyle.FONT_STYLE_ITALIC : FontStyle.FONT_STYLE_NORMAL;
+			face.fontStyle = FontLoader.parseItalic(italic) ? Style.ITALIC : Style.NORMAL;
 		}
 		String weight = atts.getValue("weight");
 		if (weight != null) {

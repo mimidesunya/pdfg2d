@@ -11,7 +11,8 @@ import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 enum Command {
-	BEGIN, END, LINE_WIDTH, LINE_PATTERN, LINE_CAP, LINE_JOIN, TEXT_MODE, STROKE_PAINT, FILL_PAINT, STROKE_ALPHA, FILL_ALPHA, TRANSFORM, CLIP, RESET_STATE, DRAW_IMAGE, FILL, DRAW, FILL_DRAW, DRAW_TEXT
+	BEGIN, END, LINE_WIDTH, LINE_PATTERN, LINE_CAP, LINE_JOIN, TEXT_MODE, STROKE_PAINT, FILL_PAINT, STROKE_ALPHA,
+	FILL_ALPHA, TRANSFORM, CLIP, RESET_STATE, DRAW_IMAGE, FILL, DRAW, FILL_DRAW, DRAW_TEXT
 }
 
 public class RecorderGC extends NopGC {
@@ -43,16 +44,16 @@ public class RecorderGC extends NopGC {
 		this.contents.add(linePattern);
 	}
 
-	public void setLineJoin(short lineJoin) {
+	public void setLineJoin(LineJoin lineJoin) {
 		super.setLineJoin(lineJoin);
 		this.contents.add(Command.LINE_JOIN);
-		this.contents.add(Short.valueOf(lineJoin));
+		this.contents.add(lineJoin);
 	}
 
-	public void setLineCap(short lineCap) {
+	public void setLineCap(LineCap lineCap) {
 		super.setLineCap(lineCap);
 		this.contents.add(Command.LINE_CAP);
-		this.contents.add(Short.valueOf(lineCap));
+		this.contents.add(lineCap);
 	}
 
 	public void setStrokePaint(Object paint) throws GraphicsException {
@@ -79,7 +80,7 @@ public class RecorderGC extends NopGC {
 		this.contents.add(alpha);
 	}
 
-	public void setTextMode(short textMode) {
+	public void setTextMode(TextMode textMode) {
 		super.setTextMode(textMode);
 		this.contents.add(Command.TEXT_MODE);
 		this.contents.add(textMode);
@@ -198,18 +199,18 @@ public class RecorderGC extends NopGC {
 				}
 					break;
 				case LINE_CAP: {
-					Short style = (Short) this.data[++i];
-					gc.setLineCap(style.shortValue());
+					LineCap lineCap = (LineCap) this.data[++i];
+					gc.setLineCap(lineCap);
 				}
 					break;
 				case LINE_JOIN: {
-					Short style = (Short) this.data[++i];
-					gc.setLineJoin(style.shortValue());
+					LineJoin lineJoin = (LineJoin) this.data[++i];
+					gc.setLineJoin(lineJoin);
 				}
 					break;
 				case TEXT_MODE: {
-					Short textMode = (Short) this.data[++i];
-					gc.setLineJoin(textMode.shortValue());
+					TextMode textMode = (TextMode) this.data[++i];
+					gc.setTextMode(textMode);
 				}
 					break;
 				case STROKE_PAINT: {

@@ -4,6 +4,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,9 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.font.FontPolicyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
@@ -42,6 +46,7 @@ import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
+import net.zamasoft.pdfg2d.pdf.font.PDFFontSource.Type;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.util.ColorUtils;
 
@@ -145,7 +150,7 @@ import net.zamasoft.pdfg2d.util.ColorUtils;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class PDFGC implements GC {
+public class PDFGC implements GC, Closeable {
 	private static final Logger LOG = Logger.getLogger(PDFGC.class.getName());
 
 	private static final boolean DEBUG = false;
@@ -163,9 +168,9 @@ public class PDFGC implements GC {
 
 		public final double lineWidth;
 
-		public final short lineCap;
+		public final LineCap lineCap;
 
-		public final short lineJoin;
+		public final LineJoin lineJoin;
 
 		public final double[] linePattern;
 
@@ -173,7 +178,7 @@ public class PDFGC implements GC {
 
 		public final Paint fillPaint;
 
-		public final short textMode;
+		public final TextMode textMode;
 
 		public final float strokeAlpha;
 
@@ -228,9 +233,9 @@ public class PDFGC implements GC {
 	static class XGraphicsState {
 		public final double lineWidth;
 
-		public final short lineCap;
+		public final LineCap lineCap;
 
-		public final short lineJoin;
+		public final LineJoin lineJoin;
 
 		public final double[] linePattern;
 
@@ -248,7 +253,7 @@ public class PDFGC implements GC {
 
 		public final double letterSpacing;
 
-		public final short textMode;
+		public final TextMode textMode;
 
 		public XGraphicsState(PDFGC gc) {
 			this.lineWidth = gc.xlineWidth;
@@ -292,22 +297,22 @@ public class PDFGC implements GC {
 	/**
 	 * 使用する線の末端の形状。
 	 */
-	private short lineCap = LINE_CAP_SQUARE;
+	private LineCap lineCap = LineCap.SQUARE;
 
 	/**
 	 * PDFのカレントの線の末端の形状。
 	 */
-	private short xlineCap = LINE_CAP_SQUARE;
+	private LineCap xlineCap = LineCap.SQUARE;
 
 	/**
 	 * 使用する線の接続部分の形状。
 	 */
-	private short lineJoin = LINE_JOIN_MITER;
+	private LineJoin lineJoin = LineJoin.MITER;
 
 	/**
 	 * PDFのカレントの線の接続部分の形状。
 	 */
-	private short xlineJoin = LINE_JOIN_MITER;
+	private LineJoin xlineJoin = LineJoin.MITER;
 
 	/**
 	 * 使用する線の幅。
@@ -354,12 +359,12 @@ public class PDFGC implements GC {
 	/**
 	 * テキストの描画方法。
 	 */
-	private short textMode = TEXT_MODE_FILL;
+	private TextMode textMode = TextMode.FILL;
 
 	/**
 	 * PDFのカレントのテキストの描画方法。
 	 */
-	private short xtextMode = TEXT_MODE_FILL;
+	private TextMode xtextMode = TextMode.FILL;
 
 	/**
 	 * 線の不透明度。
@@ -539,25 +544,25 @@ public class PDFGC implements GC {
 		return this.linePattern;
 	}
 
-	public void setLineJoin(short lineJoin) {
+	public void setLineJoin(LineJoin lineJoin) {
 		if (DEBUG) {
 			System.err.println("setLineJoin: " + lineJoin);
 		}
 		this.lineJoin = lineJoin;
 	}
 
-	public short getLineJoin() {
+	public LineJoin getLineJoin() {
 		return this.lineJoin;
 	}
 
-	public void setLineCap(short lineCap) {
+	public void setLineCap(LineCap lineCap) {
 		if (DEBUG) {
 			System.err.println("setLineCap: " + lineCap);
 		}
 		this.lineCap = lineCap;
 	}
 
-	public short getLineCap() {
+	public LineCap getLineCap() {
 		return this.lineCap;
 	}
 
@@ -631,14 +636,14 @@ public class PDFGC implements GC {
 		this.fillAlpha = fillAlpha;
 	}
 
-	public void setTextMode(short textMode) {
+	public void setTextMode(TextMode textMode) {
 		if (DEBUG) {
 			System.err.println("setTextMode: " + textMode);
 		}
 		this.textMode = textMode;
 	}
 
-	public short getTextMode() {
+	public TextMode getTextMode() {
 		return this.textMode;
 	}
 
@@ -830,12 +835,14 @@ public class PDFGC implements GC {
 		boolean outline = false;
 		LOOP: for (int i = 0; i < fpl.getLength(); ++i) {
 			switch (fpl.get(i)) {
-			case FontPolicyList.FONT_POLICY_EMBEDDED:
-			case FontPolicyList.FONT_POLICY_CID_IDENTITY:
+			case EMBEDDED:
+			case CID_IDENTITY:
 				break LOOP;
-			case FontPolicyList.FONT_POLICY_OUTLINES:
+			case OUTLINES:
 				outline = true;
 				break LOOP;
+			default:
+				break;
 			}
 		}
 		if (outline || font instanceof ImageFont) {
@@ -853,7 +860,7 @@ public class PDFGC implements GC {
 			this.applyStates();
 			if (this.textMode != this.xtextMode) {
 				this.xtextMode = this.textMode;
-				this.out.writeInt(this.textMode);
+				this.out.writeInt(this.textMode.code);
 				this.out.writeOperator("Tr");
 			}
 
@@ -861,8 +868,8 @@ public class PDFGC implements GC {
 			PDFFontSource source = (PDFFontSource) fm.getFontSource();
 			if (this.pdfVersion.v == PDFParams.Version.V_PDFA1B.v
 					|| this.pdfVersion.v == PDFParams.Version.V_PDFX1A.v) {
-				byte type = source.getType();
-				if (type != PDFFontSource.TYPE_EMBEDDED && type != PDFFontSource.TYPE_MISSING) {
+				Type type = source.getType();
+				if (type != Type.EMBEDDED && type != Type.MISSING) {
 					throw new IllegalStateException("PDF/A-1またはPDF/X-1aで埋め込みフォント以外は使用できません。");
 				}
 			}
@@ -875,23 +882,23 @@ public class PDFGC implements GC {
 			boolean localContext = false;
 			double size = fontStyle.getSize();
 			double enlargement;
-			short weight = fontStyle.getWeight();
-			if (this.textMode == TEXT_MODE_FILL && weight >= 500 && source.getWeight() < 500) {
+			Weight weight = fontStyle.getWeight();
+			if (this.textMode == TextMode.FILL && weight.w >= 500 && source.getWeight().w < 500) {
 				// 自前でBOLDを再現する
 				switch (weight) {
-				case 500:
+				case W_500:
 					enlargement = size / 28.0;
 					break;
-				case 600:
+				case W_600:
 					enlargement = size / 24.0;
 					break;
-				case 700:
+				case W_700:
 					enlargement = size / 20.0;
 					break;
-				case 800:
+				case W_800:
 					enlargement = size / 16.0;
 					break;
-				case 900:
+				case W_900:
 					enlargement = size / 12.0;
 					break;
 				default:
@@ -902,7 +909,7 @@ public class PDFGC implements GC {
 					localContext = true;
 					this.out.writeReal(enlargement);
 					this.out.writeOperator("w");
-					this.out.writeInt(TEXT_MODE_FILL_STROKE);
+					this.out.writeInt(TextMode.FILL_STROKE.code);
 					this.out.writeOperator("Tr");
 					if (!this.fillPaint.equals(this.strokePaint)) {
 						if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.COLOR) {
@@ -917,16 +924,16 @@ public class PDFGC implements GC {
 			}
 
 			// 描画方向
-			byte direction = fontStyle.getDirection();
+			Direction direction = fontStyle.getDirection();
 			AffineTransform rotate = null;
 			double center = 0;
 			boolean verticalFont = false;
 			switch (direction) {
-			case FontStyle.DIRECTION_LTR:
-			case FontStyle.DIRECTION_RTL:// TODO RTL
+			case LTR:
+			case RTL:// TODO RTL
 				// 横書き
 				break;
-			case FontStyle.DIRECTION_TB:
+			case TB:
 				// 縦書き
 				if (source.getDirection() == direction) {
 					// 縦組み
@@ -953,8 +960,8 @@ public class PDFGC implements GC {
 			this.out.writeOperator("BT");
 
 			// イタリック
-			short style = fontStyle.getStyle();
-			if (style != FontStyle.FONT_STYLE_NORMAL && !source.isItalic()) {
+			Style style = fontStyle.getStyle();
+			if (style != Style.NORMAL && !source.isItalic()) {
 				// 自前でイタリックを再現する
 				if (verticalFont) {
 					// 縦書きイタリック
@@ -1007,7 +1014,7 @@ public class PDFGC implements GC {
 
 			if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.COLOR && this.fillAlpha == 1) {
 				// Bold終了
-				this.out.writeInt(TEXT_MODE_FILL);
+				this.out.writeInt(TextMode.FILL.code);
 				this.out.writeOperator("Tr");
 				if (!this.fillPaint.equals(this.strokePaint)) {
 					if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.COLOR) {
@@ -1435,12 +1442,12 @@ public class PDFGC implements GC {
 		}
 		if (this.lineCap != this.xlineCap) {
 			this.xlineCap = this.lineCap;
-			this.out.writeInt(this.lineCap);
+			this.out.writeInt(this.lineCap.code);
 			this.out.writeOperator("J");
 		}
 		if (this.lineJoin != this.xlineJoin) {
-			this.xlineCap = this.lineJoin;
-			this.out.writeInt(this.lineJoin);
+			this.xlineJoin = this.lineJoin;
+			this.out.writeInt(this.lineJoin.j);
 			this.out.writeOperator("j");
 		}
 		if (!Arrays.equals(this.linePattern, this.xlinePattern)) {
@@ -1663,5 +1670,9 @@ public class PDFGC implements GC {
 			i.next();
 		}
 		return false;
+	}
+
+	public void close() throws IOException {
+		this.out.close();
 	}
 }

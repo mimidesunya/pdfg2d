@@ -11,15 +11,15 @@ public class FontStyleImpl implements FontStyle, Serializable {
 
 	private final double size;
 
-	private final byte style;
+	private final Style style;
 
-	private final short weight;
+	private final Weight weight;
 
-	private final byte direction;
+	private final Direction direction;
 
 	private final FontPolicyList policy;
 
-	public FontStyleImpl(FontFamilyList families, double size, byte style, short weight, byte direction,
+	public FontStyleImpl(FontFamilyList families, double size, Style style, Weight weight, Direction direction,
 			FontPolicyList policy) {
 		this.families = families;
 		this.size = size;
@@ -37,15 +37,15 @@ public class FontStyleImpl implements FontStyle, Serializable {
 		return this.size;
 	}
 
-	public byte getStyle() {
+	public Style getStyle() {
 		return this.style;
 	}
 
-	public short getWeight() {
+	public Weight getWeight() {
 		return this.weight;
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 

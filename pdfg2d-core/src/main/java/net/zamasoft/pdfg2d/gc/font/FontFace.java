@@ -3,14 +3,16 @@ package net.zamasoft.pdfg2d.gc.font;
 import java.awt.Font;
 
 import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 
 public class FontFace {
 	public Source src = null;
 	public int index = 0;
 	public Font local = null;
 	public FontFamilyList fontFamily = null;
-	public short fontWeight = FontStyle.FONT_WEIGHT_400;
-	public short fontStyle = FontStyle.FONT_STYLE_NORMAL;
+	public Weight fontWeight = Weight.W_400;
+	public Style fontStyle = Style.NORMAL;
 	public UnicodeRangeList unicodeRange = null;
 	public Panose panose = null;
 	public String cmap = null, vcmap = null;

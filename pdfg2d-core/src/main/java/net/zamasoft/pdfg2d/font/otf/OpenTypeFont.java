@@ -24,7 +24,7 @@ import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.BitSetCharacterSet;
@@ -48,7 +48,7 @@ public abstract class OpenTypeFont implements ShapedFont {
 		net.zamasoft.font.OpenTypeFont ttfFont = source.getOpenTypeFont();
 		this.hmtx = (XmtxTable) ttfFont.getTable(Table.hmtx);
 
-		if (this.source.getDirection() == FontStyle.DIRECTION_TB) {
+		if (this.source.getDirection() == Direction.TB) {
 			// 縦書モード
 			GsubTable gsub = (GsubTable) ttfFont.getTable(Table.GSUB);
 			ScriptList scriptList = gsub.getScriptList();

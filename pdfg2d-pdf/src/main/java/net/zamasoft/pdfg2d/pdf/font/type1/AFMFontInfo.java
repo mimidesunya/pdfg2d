@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.zamasoft.pdfg2d.font.BBox;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.util.NumberUtils;
 
 public class AFMFontInfo implements Serializable {
@@ -42,7 +43,7 @@ public class AFMFontInfo implements Serializable {
 
 	public short ascent = 1000, descent = 0, capHeight = 700, stemv = 0, stemh = 0, xHeight = 500;
 
-	public short weight = 400;
+	public Weight weight = Weight.W_400;
 
 	public boolean italic = false;
 

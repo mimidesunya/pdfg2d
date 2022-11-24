@@ -13,7 +13,7 @@ import java.util.zip.InflaterInputStream;
 import net.zamasoft.font.util.BufferedRandomAccessFile;
 
 /**
- * TTCまたはTTFファイルへアクセスするためのクラスです。 このクラスはTTC/TTFファイルの判定を行います。
+ * TTCまたはTTF, WOFFファイルへアクセスするためのクラスです。 このクラスはTTC/TTF/WOFFファイルの判定を行います。
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -32,7 +32,7 @@ public class FontFile {
 	/**
 	 * 
 	 * @param file
-	 *            TTCまたはTTFファイル。
+	 *            TTCまたはTTF, WOFFファイル。
 	 * @throws IOException
 	 */
 	public FontFile(File file) throws IOException {

@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
@@ -52,8 +52,8 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 		}
 	}
 
-	public byte getDirection() {
-		return this.vcmap == null ? FontStyle.DIRECTION_LTR : FontStyle.DIRECTION_TB;
+	public Direction getDirection() {
+		return this.vcmap == null ? Direction.LTR : Direction.TB;
 	}
 
 	public String getFontName() {
@@ -147,8 +147,8 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 		return this.awtFont;
 	}
 
-	public byte getType() {
-		return TYPE_CID_KEYED;
+	public Type getType() {
+		return Type.CID_KEYED;
 	}
 
 	public boolean canDisplay(int c) {
@@ -161,11 +161,11 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 
 	public PDFFont createFont(String name, ObjectRef fontRef) {
 		switch (this.getDirection()) {
-		case FontStyle.DIRECTION_LTR:
-		case FontStyle.DIRECTION_RTL:// TODO RTL
+		case LTR:
+		case RTL:// TODO RTL
 			// 横書き
 			return new CIDKeyedFont(this, name, fontRef, this.hcmap);
-		case FontStyle.DIRECTION_TB:
+		case TB:
 			// 縦書き
 			return new CIDKeyedFont(this, name, fontRef, this.vcmap);
 		default:

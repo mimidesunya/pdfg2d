@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.util.HashMap;
 
 import net.zamasoft.pdfg2d.font.BBox;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.pdf.font.type1.AFMFontInfo.AFMGlyphInfo;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
@@ -106,25 +107,25 @@ public class AFMParser {
 					if (s.equals("Weight")) {
 						String weight = this.readLine().trim().toUpperCase();
 						if (weight.equals("ULTRALIGHT")) {
-							this.fontInfo.weight = 100;
+							this.fontInfo.weight = Weight.W_100;
 						} else if (weight.equals("THIN")) {
-							this.fontInfo.weight = 200;
+							this.fontInfo.weight = Weight.W_200;
 						} else if (weight.equals("LIGHT") || weight.equals("EXTRALIGHT") || weight.equals("BOOK")) {
-							this.fontInfo.weight = 300;
+							this.fontInfo.weight = Weight.W_300;
 						} else if (weight.equals("REGULAR") || weight.equals("PLAIN") || weight.equals("ROMAN")
 								|| weight.equals("MEDIUM")) {
-							this.fontInfo.weight = 400;
+							this.fontInfo.weight = Weight.W_400;
 						} else if (weight.equals("DEMI") || weight.equals("DEMIBOLD")) {
-							this.fontInfo.weight = 500;
+							this.fontInfo.weight = Weight.W_500;
 						} else if (weight.equals("SEMIBOLD")) {
-							this.fontInfo.weight = 600;
+							this.fontInfo.weight = Weight.W_600;
 						} else if (weight.equals("BOLD") || weight.equals("EXTRABOLD") || weight.equals("HERAVY")
 								|| weight.equals("HEAVYFACE") || weight.equals("BLACK")) {
-							this.fontInfo.weight = 700;
+							this.fontInfo.weight = Weight.W_700;
 						} else if (weight.equals("ULTRA") || weight.equals("ULTRABLACK") || weight.equals("FAT")) {
-							this.fontInfo.weight = 800;
+							this.fontInfo.weight = Weight.W_800;
 						} else if (weight.equals("EXTRABLACK") || weight.equals("OBESE")) {
-							this.fontInfo.weight = 900;
+							this.fontInfo.weight = Weight.W_900;
 						}
 					}
 					break;

@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * @since 1.0
  */
 public abstract class PDFFragmentOutput extends PDFOutput {
-	public enum Mode {
+	public static enum Mode {
 		/** ストリームへ出力したデータをそのままPDFに書き込みます。 */
 		RAW,
 		/** バイナリデータに適した圧縮を行います。 */

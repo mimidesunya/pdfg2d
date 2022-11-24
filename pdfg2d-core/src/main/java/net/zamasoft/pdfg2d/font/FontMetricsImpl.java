@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 
 public class FontMetricsImpl implements FontMetrics {
 	private static final long serialVersionUID = 1L;
@@ -25,16 +26,16 @@ public class FontMetricsImpl implements FontMetrics {
 		this.xheight = this.size * this.source.getXHeight() / FontSource.DEFAULT_UNITS_PER_EM;
 
 		double ascent, descent;
-		byte direction = fontStyle.getDirection();
+		Direction direction = fontStyle.getDirection();
 		switch (direction) {
-		case FontStyle.DIRECTION_LTR:
-		case FontStyle.DIRECTION_RTL:
+		case LTR:
+		case RTL:
 			// 横書き
 			ascent = this.size * this.source.getAscent() / FontSource.DEFAULT_UNITS_PER_EM;
 			descent = this.size * this.source.getDescent() / FontSource.DEFAULT_UNITS_PER_EM;
 			break;
 
-		case FontStyle.DIRECTION_TB:
+		case TB:
 			// 縦書き
 			ascent = descent = this.size / 2.0;
 			break;

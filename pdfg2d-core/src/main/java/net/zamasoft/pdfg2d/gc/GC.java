@@ -15,26 +15,29 @@ import net.zamasoft.pdfg2d.gc.text.Text;
  * @since 1.0
  */
 public interface GC {
-	public static final short LINE_JOIN_MITER = 0;
-
-	public static final short LINE_JOIN_ROUND = 1;
-
-	public static final short LINE_JOIN_BEVEL = 2;
-
-	public static final short LINE_CAP_BUTT = 0;
-
-	public static final short LINE_CAP_ROUND = 1;
-
-	public static final short LINE_CAP_SQUARE = 2;
+	public static enum LineJoin {
+		MITER((short)0), ROUND((short)1), BEVEL((short)2);
+		public final short j;
+		LineJoin(final short j) {
+			this.j = j;
+		}
+	}
+	public static enum LineCap {
+		BUTT((short)0), ROUND((short)1), SQUARE((short)2);
+		public final short code;
+		LineCap(final short c) {
+			this.code = c;
+		}
+	}
 
 	public static final double[] STROKE_SOLID = new double[0];
-
-	public static final short TEXT_MODE_FILL = 0;
-
-	public static final short TEXT_MODE_STROKE = 1;
-
-	public static final short TEXT_MODE_FILL_STROKE = 2;
-
+	public static enum TextMode {
+		FILL((short)0), STROKE((short)1), FILL_STROKE((short)2);
+		public final short code;
+		TextMode(final short t) {
+			this.code = t;
+		}
+	}
 	public FontManager getFontManager();
 
 	public void begin() throws GraphicsException;
@@ -69,17 +72,17 @@ public interface GC {
 
 	public double[] getLinePattern();
 
-	public void setLineJoin(short style) throws GraphicsException;
+	public void setLineJoin(LineJoin style) throws GraphicsException;
 
-	public short getLineJoin();
+	public LineJoin getLineJoin();
 
-	public void setLineCap(short style) throws GraphicsException;
+	public void setLineCap(LineCap style) throws GraphicsException;
 
-	public short getLineCap();
+	public LineCap getLineCap();
 
-	public void setTextMode(short textMode) throws GraphicsException;
+	public void setTextMode(TextMode textMode) throws GraphicsException;
 
-	public short getTextMode();
+	public TextMode getTextMode();
 
 	public void transform(AffineTransform at) throws GraphicsException;
 

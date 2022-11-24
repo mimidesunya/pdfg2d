@@ -57,11 +57,10 @@ public class IntList implements Serializable, IntMap {
 		}
 		return this.array[i];
 	}
-	
+
 	public boolean contains(int key) {
 		return this.get(key) != this.defaultValue;
 	}
-
 
 	public int size() {
 		return this.length;
@@ -78,7 +77,7 @@ public class IntList implements Serializable, IntMap {
 	public boolean isEmpty() {
 		return this.length == 0;
 	}
-	
+
 	public IntMapIterator getIterator() {
 		this.pack();
 		return new ArrayIntMapIterator(this.array);

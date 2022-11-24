@@ -17,9 +17,9 @@ public class NopGC implements GC {
 
 		public final double[] linePattern;
 
-		public final short lineJoin;
+		public final LineJoin lineJoin;
 
-		public final short lineCap;
+		public final LineCap lineCap;
 
 		public final Object strokePaintObject;
 
@@ -27,7 +27,7 @@ public class NopGC implements GC {
 
 		public final float fillAlpha, strokeAlpha;
 
-		public final short textMode;
+		public final TextMode textMode;
 
 		public GraphicsState(final NopGC gc) {
 			this.transform = new AffineTransform(gc.transform);
@@ -62,9 +62,9 @@ public class NopGC implements GC {
 
 	protected double[] linePattern = GC.STROKE_SOLID;
 
-	protected short lineJoin = GC.LINE_JOIN_MITER;
+	protected LineJoin lineJoin = LineJoin.MITER;
 
-	protected short lineCap = GC.LINE_CAP_BUTT;
+	protected LineCap lineCap = GC.LineCap.BUTT;
 
 	protected Object strokePaintObject;
 
@@ -72,7 +72,7 @@ public class NopGC implements GC {
 
 	protected float fillAlpha = 1, strokeAlpha = 1;
 
-	protected short textMode = TEXT_MODE_FILL;
+	protected TextMode textMode = TextMode.FILL;
 
 	protected ArrayList<GraphicsState> stack = new ArrayList<GraphicsState>();
 
@@ -111,19 +111,19 @@ public class NopGC implements GC {
 		return this.linePattern;
 	}
 
-	public void setLineJoin(short lineJoin) {
+	public void setLineJoin(LineJoin lineJoin) {
 		this.lineJoin = lineJoin;
 	}
 
-	public short getLineJoin() {
+	public LineJoin getLineJoin() {
 		return this.lineJoin;
 	}
 
-	public void setLineCap(short lineCap) {
+	public void setLineCap(LineCap lineCap) {
 		this.lineCap = lineCap;
 	}
 
-	public short getLineCap() {
+	public LineCap getLineCap() {
 		return this.lineCap;
 	}
 
@@ -159,11 +159,11 @@ public class NopGC implements GC {
 		return this.fillAlpha;
 	}
 
-	public void setTextMode(short textMode) {
+	public void setTextMode(TextMode textMode) {
 		this.textMode = textMode;
 	}
 
-	public short getTextMode() {
+	public TextMode getTextMode() {
 		return this.textMode;
 	}
 

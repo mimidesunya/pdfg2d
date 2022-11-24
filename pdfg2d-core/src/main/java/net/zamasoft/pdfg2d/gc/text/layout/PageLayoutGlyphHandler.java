@@ -8,6 +8,7 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Element;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.Quad;
@@ -26,7 +27,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 	private GC gc;
 
 	/** 文字の方向です。 */
-	private byte direction = FontStyle.DIRECTION_LTR;
+	private Direction direction = Direction.LTR;
 
 	/** 行幅です。 */
 	private double lineHeight = 1.2;
@@ -46,17 +47,17 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 	/** 実際の描画領域の最大ページ方向幅です。 */
 	private double maxPageAdvance = 0;
 
-	public static byte FLOAT_NONE = 0;
-	public static byte FLOAT_TOP_RIGHT = 1;
+	public static enum FloatPosition {
+		NONE, TOP_RIGHT
+	}
 
-	private byte floatPosition = FLOAT_NONE;
+	private FloatPosition floatPosition = FloatPosition.NONE;
 
-	public static byte ALIGN_START = 0;
-	public static byte ALIGN_END = 1;
-	public static byte ALIGN_CENTER = 2;
-	public static byte ALIGN_JUSTIFY = 3;
+	public static enum Alignment {
+		START, END, CENTER, JUSTIFY;
+	}
 
-	private byte align = ALIGN_START;
+	private Alignment align = Alignment.START;
 
 	private double floatWidth, floatHeight;
 
@@ -90,6 +91,10 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private double fontSize = 0;
 
+	public PageLayoutGlyphHandler(GC gc) {
+		this.gc = gc;
+	}
+
 	public GC getGC() {
 		return this.gc;
 	}
@@ -98,19 +103,19 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.gc = gc;
 	}
 
-	public byte getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 
-	public void setDirection(byte direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 
-	public byte getAlign() {
+	public Alignment getAlign() {
 		return this.align;
 	}
 
-	public void setAlign(byte align) {
+	public void setAlign(Alignment align) {
 		this.align = align;
 	}
 
@@ -172,7 +177,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private double getMaxAdvance() {
 		double maxAdvance = (this.lineAdvance - (this.columnGap * (this.columnCount - 1))) / this.columnCount;
-		if (this.floatPosition == FLOAT_TOP_RIGHT) {
+		if (this.floatPosition == FloatPosition.TOP_RIGHT) {
 			if (this.pageOffset < this.floatHeight) {
 				maxAdvance -= this.floatWidth;
 			}
@@ -196,7 +201,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.fontSize = fontSize;
 	}
 
-	public void setFloat(byte position, double width, double height) {
+	public void setFloat(FloatPosition position, double width, double height) {
 		this.floatPosition = position;
 		this.floatWidth = width;
 		this.floatHeight = height;
@@ -250,7 +255,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			}
 
 			// 両あわせ
-			if (this.align == ALIGN_JUSTIFY) {
+			if (this.align == Alignment.JUSTIFY) {
 				// TODO ハイフネーション
 				int glyphCount = 0;
 				for (int j = 0; j < this.elements.length; ++j) {
@@ -358,13 +363,13 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		// 現在位置を算出
 		double lineAxis, pageAxis;
 		switch (this.direction) {
-		case FontStyle.DIRECTION_LTR:
-		case FontStyle.DIRECTION_RTL:// TODO RTL
+		case LTR:
+		case RTL:// TODO RTL
 			// 横書き
 			lineAxis = this.lineOffset;
 			pageAxis = this.pageOffset;
 			break;
-		case FontStyle.DIRECTION_TB:
+		case TB:
 			// 縦書き
 			lineAxis = this.lineOffset;
 			pageAxis = -this.pageOffset;
@@ -372,13 +377,13 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		default:
 			throw new IllegalStateException();
 		}
-		if (this.align == ALIGN_END || this.align == ALIGN_CENTER) {
+		if (this.align == Alignment.END || this.align == Alignment.CENTER) {
 			double advance = 0;
 			for (int i = 0; i < elements.length; ++i) {
 				Element e = elements[i];
 				advance += e.getAdvance();
 			}
-			if (this.align == ALIGN_END) {
+			if (this.align == Alignment.END) {
 				lineAxis += this.getMaxAdvance() - advance;
 			} else {
 				lineAxis += (this.getMaxAdvance() - advance) / 2.0;
@@ -391,12 +396,12 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			if (this.gc != null && e.getElementType() == Element.TEXT) {
 				Text text = (Text) e;
 				switch (this.direction) {
-				case FontStyle.DIRECTION_LTR:
-				case FontStyle.DIRECTION_RTL:
+				case LTR:
+				case RTL:
 					// 横書き
 					this.gc.drawText(text, lineAxis, pageAxis);
 					break;
-				case FontStyle.DIRECTION_TB:
+				case TB:
 					// 縦書き
 					this.gc.drawText(text, pageAxis, lineAxis);
 					break;
@@ -493,7 +498,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.lineFactor = 0;
 	}
 
-	public void finish() {
+	public void close() {
 		this.endLine(true);
 		this.endColumn();
 	}

@@ -16,9 +16,10 @@ import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.g2d.util.G2DUtils;
 import net.zamasoft.pdfg2d.gc.GC;
+import net.zamasoft.pdfg2d.gc.GC.TextMode;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
-import net.zamasoft.pdfg2d.gc.font.FontStyle;
+import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 
@@ -122,7 +123,7 @@ public class PDFFontUtils {
 	 * @param text
 	 */
 	public static void drawAwtFont(GC gc, FontSource fontSource, Font awtFont, Text text) throws GraphicsException {
-		byte direction = text.getFontStyle().getDirection();
+		Direction direction = text.getFontStyle().getDirection();
 		double fontSize = text.getFontStyle().getSize();
 		Map<TextAttribute, Object> atts = new HashMap<TextAttribute, Object>();
 		G2DUtils.setFontAttributes(atts, text.getFontStyle());
@@ -134,9 +135,9 @@ public class PDFFontUtils {
 		double letterSpacing = text.getLetterSpacing();
 		double[] xadvances = text.getXAdvances(false);
 		FontMetrics fm = text.getFontMetrics();
-		short textMode = gc.getTextMode();
+		TextMode textMode = gc.getTextMode();
 
-		if (direction == FontStyle.DIRECTION_TB) {
+		if (direction == Direction.TB) {
 			// 横倒し
 			gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
 			BBox bbox = fontSource.getBBox();
@@ -158,13 +159,13 @@ public class PDFFontUtils {
 				}
 				Shape s = gv.getOutline();
 				switch (textMode) {
-				case GC.TEXT_MODE_FILL:
+				case FILL:
 					gc.fill(s);
 					break;
-				case GC.TEXT_MODE_STROKE:
+				case STROKE:
 					gc.draw(s);
 					break;
-				case GC.TEXT_MODE_FILL_STROKE:
+				case FILL_STROKE:
 					gc.fill(s);
 					gc.draw(s);
 					break;
