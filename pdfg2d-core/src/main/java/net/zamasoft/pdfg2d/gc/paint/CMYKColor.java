@@ -52,12 +52,12 @@ public class CMYKColor implements Color, Serializable {
 		this.overprint = overprint;
 	}
 
-	public short getPaintType() {
-		return COLOR;
+	public Paint.Type getPaintType() {
+		return Paint.Type.COLOR;
 	}
 
-	public short getColorType() {
-		return CMYK;
+	public Color.Type getColorType() {
+		return Color.Type.CMYK;
 	}
 
 	public float getComponent(int i) {

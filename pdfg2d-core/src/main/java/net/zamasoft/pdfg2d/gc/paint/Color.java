@@ -5,15 +5,11 @@ package net.zamasoft.pdfg2d.gc.paint;
  * @since 1.0
  */
 public interface Color extends Paint {
-	public static final short RGB = 1;
+	public static enum Type {
+		RGB, CMYK, GRAY, RGBA
+	}
 
-	public static final short CMYK = 2;
-
-	public static final short GRAY = 3;
-
-	public static final short RGBA = 4;
-
-	public short getColorType();
+	public Type getColorType();
 
 	public float getRed();
 

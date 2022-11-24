@@ -29,8 +29,8 @@ public class LinearGradient implements Paint {
 		}
 	}
 
-	public short getPaintType() {
-		return LINEAR_GRADIENT;
+	public Paint.Type getPaintType() {
+		return Paint.Type.LINEAR_GRADIENT;
 	}
 
 	public double getX1() {

@@ -26,12 +26,12 @@ public class GrayColor implements Color {
 		this.gray = Math.min(1.0f, Math.max(0f, gray));
 	}
 
-	public short getPaintType() {
-		return COLOR;
+	public Paint.Type getPaintType() {
+		return Paint.Type.COLOR;
 	}
 
-	public short getColorType() {
-		return GRAY;
+	public Color.Type getColorType() {
+		return Color.Type.GRAY;
 	}
 
 	public float getComponent(int i) {

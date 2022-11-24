@@ -22,8 +22,8 @@ public class Pattern implements Paint {
 		this.at = at;
 	}
 
-	public short getPaintType() {
-		return PATTERN;
+	public Paint.Type getPaintType() {
+		return Paint.Type.PATTERN;
 	}
 
 	public AffineTransform getTransform() {

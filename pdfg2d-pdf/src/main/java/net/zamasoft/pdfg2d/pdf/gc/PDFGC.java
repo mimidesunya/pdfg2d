@@ -599,23 +599,25 @@ public class PDFGC implements GC, Closeable {
 			this.strokeAlpha = 1;
 			this.strokeOverprint = CMYKColor.OVERPRINT_NONE;
 		}
-		if (p.getPaintType() == Paint.COLOR) {
+		if (p.getPaintType() == Paint.Type.COLOR) {
 			Color color = (Color) p;
 			switch (color.getColorType()) {
-			case Color.RGBA:
+			case RGBA:
 				if (fill) {
 					this.fillAlpha = color.getAlpha();
 				} else {
 					this.strokeAlpha = color.getAlpha();
 				}
 				break;
-			case Color.CMYK:
+			case CMYK:
 				if (fill) {
 					this.fillOverprint = ((CMYKColor) color).getOverprint();
 				} else {
 					this.strokeOverprint = ((CMYKColor) color).getOverprint();
 				}
 				break;
+				default:
+					break;
 			}
 		}
 	}
@@ -904,7 +906,7 @@ public class PDFGC implements GC, Closeable {
 				default:
 					throw new IllegalStateException();
 				}
-				if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.COLOR && this.fillAlpha == 1) {
+				if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.Type.COLOR && this.fillAlpha == 1) {
 					this.q();
 					localContext = true;
 					this.out.writeReal(enlargement);
@@ -912,7 +914,7 @@ public class PDFGC implements GC, Closeable {
 					this.out.writeInt(TextMode.FILL_STROKE.code);
 					this.out.writeOperator("Tr");
 					if (!this.fillPaint.equals(this.strokePaint)) {
-						if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.COLOR) {
+						if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.Type.COLOR) {
 							this.out.writeName("DeviceRGB");
 							this.out.writeOperator("CS");
 						}
@@ -1012,12 +1014,12 @@ public class PDFGC implements GC, Closeable {
 			// テキスト終了
 			this.out.writeOperator("ET");
 
-			if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.COLOR && this.fillAlpha == 1) {
+			if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.Type.COLOR && this.fillAlpha == 1) {
 				// Bold終了
 				this.out.writeInt(TextMode.FILL.code);
 				this.out.writeOperator("Tr");
 				if (!this.fillPaint.equals(this.strokePaint)) {
-					if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.COLOR) {
+					if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.Type.COLOR) {
 						this.out.writeName("DeviceRGB");
 						this.out.writeOperator("CS");
 					}
@@ -1100,7 +1102,7 @@ public class PDFGC implements GC, Closeable {
 
 	private String getPaintName(Paint paint) throws GraphicsException {
 		switch (paint.getPaintType()) {
-		case Paint.PATTERN: {
+		case PATTERN: {
 			String name;
 			Pattern pattern = (Pattern) paint;
 			Image image = pattern.getImage();
@@ -1130,7 +1132,7 @@ public class PDFGC implements GC, Closeable {
 			}
 			return name;
 		}
-		case Paint.LINEAR_GRADIENT: {
+		case LINEAR_GRADIENT: {
 			// PDF Axial(Type 2) Shading
 			if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				return null;
@@ -1168,7 +1170,7 @@ public class PDFGC implements GC, Closeable {
 				throw new GraphicsException(e);
 			}
 		}
-		case Paint.RADIAL_GRADIENT: {
+		case RADIAL_GRADIENT: {
 			// PDF Radial(Type 3) Shading
 			if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				return null;
@@ -1227,30 +1229,30 @@ public class PDFGC implements GC, Closeable {
 	protected void shadingFunction(PDFOutput sout, Color[] colors, double[] fractions) throws IOException {
 		// TODO alphaグラデーション
 		sout.writeName("ColorSpace");
-		short colorType;
+		Color.Type colorType;
 		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
-			colorType = Color.GRAY;
+			colorType = Color.Type.GRAY;
 		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
-			colorType = Color.CMYK;
+			colorType = Color.Type.CMYK;
 		} else {
 			colorType = colors[0].getColorType();
 			for (int i = 1; i < colors.length; ++i) {
 				if (colorType != colors[i].getColorType()) {
-					colorType = Color.RGB;
+					colorType = Color.Type.RGB;
 				}
 			}
-			if (colorType == Color.RGBA) {
-				colorType = Color.RGB;
+			if (colorType == Color.Type.RGBA) {
+				colorType = Color.Type.RGB;
 			}
 		}
 		switch (colorType) {
-		case Color.GRAY:
+		case GRAY:
 			sout.writeName("DeviceGray");
 			break;
-		case Color.RGB:
+		case RGB:
 			sout.writeName("DeviceRGB");
 			break;
-		case Color.CMYK:
+		case CMYK:
 			sout.writeName("DeviceCMYK");
 			break;
 		default:
@@ -1403,21 +1405,21 @@ public class PDFGC implements GC, Closeable {
 		sout.lineBreak();
 	}
 
-	private static void writeColor(PDFOutput sout, short colorType, Color color) throws IOException {
+	private static void writeColor(PDFOutput sout, Color.Type colorType, Color color) throws IOException {
 		switch (colorType) {
-		case Color.GRAY:
-			if (color.getColorType() == Color.GRAY) {
+		case GRAY:
+			if (color.getColorType() == Color.Type.GRAY) {
 				sout.writeReal(((GrayColor) color).getComponent(0));
 				break;
 			}
 			sout.writeReal(ColorUtils.toGray(color.getRed(), color.getGreen(), color.getBlue()));
 			break;
-		case Color.RGB:
+		case RGB:
 			sout.writeReal(color.getRed());
 			sout.writeReal(color.getGreen());
 			sout.writeReal(color.getBlue());
 			break;
-		case Color.CMYK:
+		case CMYK:
 			CMYKColor cmyk = ColorUtils.toCMYK(color);
 			sout.writeReal(cmyk.getComponent(CMYKColor.C));
 			sout.writeReal(cmyk.getComponent(CMYKColor.M));
@@ -1466,16 +1468,16 @@ public class PDFGC implements GC, Closeable {
 		// 色
 		if (this.strokePaint != null && !this.strokePaint.equals(this.xstrokePaint)) {
 			switch (this.strokePaint.getPaintType()) {
-			case Paint.COLOR:
-				if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.COLOR) {
+			case COLOR:
+				if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.Type.COLOR) {
 					this.out.writeName("DeviceRGB");
 					this.out.writeOperator("CS");
 				}
 				this.out.writeStrokeColor((Color) this.strokePaint);
 				break;
-			case Paint.PATTERN:
-			case Paint.LINEAR_GRADIENT:
-			case Paint.RADIAL_GRADIENT:
+			case PATTERN:
+			case LINEAR_GRADIENT:
+			case RADIAL_GRADIENT:
 				String name = this.getPaintName(this.strokePaint);
 				if (name != null) {
 					this.out.writeName("Pattern");
@@ -1492,16 +1494,16 @@ public class PDFGC implements GC, Closeable {
 		}
 		if (this.fillPaint != null && !this.fillPaint.equals(this.xfillPaint)) {
 			switch (this.fillPaint.getPaintType()) {
-			case Paint.COLOR:
-				if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.COLOR) {
+			case COLOR:
+				if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.Type.COLOR) {
 					this.out.writeName("DeviceRGB");
 					this.out.writeOperator("cs");
 				}
 				this.out.writeFillColor((Color) this.fillPaint);
 				break;
-			case Paint.PATTERN:
-			case Paint.LINEAR_GRADIENT:
-			case Paint.RADIAL_GRADIENT:
+			case PATTERN:
+			case LINEAR_GRADIENT:
+			case RADIAL_GRADIENT:
 				String name = this.getPaintName(this.fillPaint);
 				if (name != null) {
 					this.out.writeName("Pattern");

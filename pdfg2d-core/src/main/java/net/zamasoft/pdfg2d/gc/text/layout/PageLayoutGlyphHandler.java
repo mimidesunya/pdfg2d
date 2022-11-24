@@ -10,6 +10,7 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Element;
+import net.zamasoft.pdfg2d.gc.text.Element.Type;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.Quad;
 import net.zamasoft.pdfg2d.gc.text.Text;
@@ -260,7 +261,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				int glyphCount = 0;
 				for (int j = 0; j < this.elements.length; ++j) {
 					Element e = this.elements[j];
-					if (e.getElementType() == Element.TEXT) {
+					if (e.getElementType() == Type.TEXT) {
 						glyphCount += ((Text) e).getGLen();
 					}
 				}
@@ -268,7 +269,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 					double letterSpacing = (this.getMaxAdvance() - advance) / (double) (glyphCount - 1);
 					for (int j = 0; j < this.elements.length; ++j) {
 						Element e = this.elements[j];
-						if (e.getElementType() == Element.TEXT) {
+						if (e.getElementType() == Type.TEXT) {
 							TextImpl t = (TextImpl) e;
 							t.setLetterSpacing(t.getLetterSpacing() + letterSpacing);
 						}
@@ -284,7 +285,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		double maxAscent = 0, maxDescent = 0;
 		for (int i = 0; i < this.elements.length; ++i) {
 			Element e = this.elements[i];
-			if (e.getElementType() == Element.TEXT) {
+			if (e.getElementType() == Type.TEXT) {
 				Text text = (Text) e;
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
@@ -340,7 +341,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		double maxAscent = 0, maxDescent = 0;
 		for (int i = 0; i < elements.length; ++i) {
 			Element e = elements[i];
-			if (e.getElementType() == Element.TEXT) {
+			if (e.getElementType() == Type.TEXT) {
 				Text text = (Text) e;
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
@@ -393,7 +394,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		// 描画
 		for (int i = 0; i < elements.length; ++i) {
 			Element e = elements[i];
-			if (this.gc != null && e.getElementType() == Element.TEXT) {
+			if (this.gc != null && e.getElementType() == Type.TEXT) {
 				Text text = (Text) e;
 				switch (this.direction) {
 				case LTR:

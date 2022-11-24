@@ -14,17 +14,17 @@ public final class ColorUtils {
 	public static Color toGray(Color color) {
 		float gray;
 		switch (color.getColorType()) {
-		case Color.RGB:
+		case RGB:
 			gray = ColorUtils.toGray(color.getComponent(RGBColor.R), color.getComponent(RGBColor.G),
 					color.getComponent(RGBColor.B));
 			break;
-		case Color.CMYK:
+		case CMYK:
 			gray = ColorUtils.toGray(color.getComponent(CMYKColor.C), color.getComponent(CMYKColor.M),
 					color.getComponent(CMYKColor.Y), color.getComponent(CMYKColor.K));
 			break;
-		case Color.GRAY:
+		case GRAY:
 			return color;
-		case Color.RGBA:
+		case RGBA:
 			gray = ColorUtils.toGray(color.getComponent(RGBAColor.R), color.getComponent(RGBAColor.G),
 					color.getComponent(RGBAColor.B));
 			return RGBAColor.create(gray, gray, gray, color.getComponent(RGBAColor.A));
@@ -48,8 +48,8 @@ public final class ColorUtils {
 	public static CMYKColor toCMYK(Color color) {
 		float c, m, y, k;
 		switch (color.getColorType()) {
-		case Color.RGB:
-		case Color.RGBA:
+		case RGB:
+		case RGBA:
 			// PDF 6.2.3 による
 			c = 1.0f - color.getComponent(RGBColor.R);
 			m = 1.0f - color.getComponent(RGBColor.G);
@@ -59,9 +59,9 @@ public final class ColorUtils {
 			m = Math.max(0, m - k);
 			y = Math.max(0, y - k);
 			break;
-		case Color.CMYK:
+		case CMYK:
 			return (CMYKColor) color;
-		case Color.GRAY:
+		case GRAY:
 			c = m = y = 0;
 			k = 1.0f - color.getComponent(0);
 			break;

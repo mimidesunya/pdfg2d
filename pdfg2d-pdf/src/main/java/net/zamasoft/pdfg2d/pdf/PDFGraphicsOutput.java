@@ -6,6 +6,7 @@ import java.io.OutputStream;
 
 import net.zamasoft.pdfg2d.gc.paint.CMYKColor;
 import net.zamasoft.pdfg2d.gc.paint.Color;
+import net.zamasoft.pdfg2d.gc.paint.Color.Type;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.util.ColorUtils;
@@ -116,27 +117,27 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	 */
 	public void writeFillColor(Color color) throws IOException {
 		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
-			if (color.getColorType() != Color.GRAY) {
+			if (color.getColorType() != Type.GRAY) {
 				color = ColorUtils.toGray(color);
 			}
 		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
-			if (color.getColorType() != Color.CMYK) {
+			if (color.getColorType() != Type.CMYK) {
 				color = ColorUtils.toCMYK(color);
 			}
 		}
 		switch (color.getColorType()) {
-		case Color.GRAY:
+		case GRAY:
 			this.writeReal(color.getComponent(0));
 			this.writeOperator("g");
 			break;
-		case Color.RGB:
-		case Color.RGBA:
+		case RGB:
+		case RGBA:
 			this.writeReal(color.getComponent(RGBColor.R));
 			this.writeReal(color.getComponent(RGBColor.G));
 			this.writeReal(color.getComponent(RGBColor.B));
 			this.writeOperator("rg");
 			break;
-		case Color.CMYK:
+		case CMYK:
 			float c = color.getComponent(CMYKColor.C);
 			float m = color.getComponent(CMYKColor.M);
 			float y = color.getComponent(CMYKColor.Y);
@@ -161,28 +162,28 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	public void writeStrokeColor(Color color) throws IOException {
 		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
 			// グレイカラーモード
-			if (color.getColorType() != Color.GRAY) {
+			if (color.getColorType() != Type.GRAY) {
 				color = ColorUtils.toGray(color);
 			}
 		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
 			// CMYKカラーモード
-			if (color.getColorType() != Color.CMYK) {
+			if (color.getColorType() != Type.CMYK) {
 				color = ColorUtils.toCMYK(color);
 			}
 		}
 		switch (color.getColorType()) {
-		case Color.GRAY:
+		case GRAY:
 			this.writeReal(color.getComponent(0));
 			this.writeOperator("G");
 			break;
-		case Color.RGB:
-		case Color.RGBA:
+		case RGB:
+		case RGBA:
 			this.writeReal(color.getComponent(RGBColor.R));
 			this.writeReal(color.getComponent(RGBColor.G));
 			this.writeReal(color.getComponent(RGBColor.B));
 			this.writeOperator("RG");
 			break;
-		case Color.CMYK:
+		case CMYK:
 			float c = color.getComponent(CMYKColor.C);
 			float m = color.getComponent(CMYKColor.M);
 			float y = color.getComponent(CMYKColor.Y);

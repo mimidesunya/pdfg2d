@@ -7,8 +7,8 @@ package net.zamasoft.pdfg2d.gc.text;
  * @since 1.0
  */
 public abstract class AbstractText implements Text {
-	public short getElementType() {
-		return Element.TEXT;
+	public Type getElementType() {
+		return Type.TEXT;
 	}
 
 	public void toGlyphs(GlyphHandler gh) {

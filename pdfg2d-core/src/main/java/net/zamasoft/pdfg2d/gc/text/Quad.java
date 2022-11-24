@@ -19,8 +19,8 @@ public abstract class Quad implements Element {
 	/** 前の文字として扱います。Quad自体は前の文字列の後にくっつきます。 */
 	public static final String CONTINUE_AFTER = "\u2060\u200B";
 
-	public short getElementType() {
-		return Element.QUAD;
+	public Type getElementType() {
+		return Type.QUAD;
 	}
 
 	/**

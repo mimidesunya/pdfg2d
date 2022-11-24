@@ -29,12 +29,12 @@ public class RGBColor implements Color {
 		this.blue = Math.min(1.0f, Math.max(0f, blue));
 	}
 
-	public short getPaintType() {
-		return COLOR;
+	public Paint.Type getPaintType() {
+		return Paint.Type.COLOR;
 	}
 
-	public short getColorType() {
-		return RGB;
+	public Color.Type getColorType() {
+		return Color.Type.RGB;
 	}
 
 	public float getComponent(int i) {

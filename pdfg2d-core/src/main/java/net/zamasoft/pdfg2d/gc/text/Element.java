@@ -1,10 +1,11 @@
 package net.zamasoft.pdfg2d.gc.text;
 
 public interface Element {
-	public static final short TEXT = 1;
-	public static final short QUAD = 2;
+	public static enum Type {
+		TEXT, QUAD
+	}
 
-	public short getElementType();
+	public Type getElementType();
 
 	public abstract double getAdvance();
 }

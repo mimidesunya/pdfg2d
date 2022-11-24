@@ -22,8 +22,8 @@ public class RadialGradient implements Paint {
 		this.transform = transform;
 	}
 
-	public short getPaintType() {
-		return RADIAL_GRADIENT;
+	public Paint.Type getPaintType() {
+		return Paint.Type.RADIAL_GRADIENT;
 	}
 
 	public double getCX() {

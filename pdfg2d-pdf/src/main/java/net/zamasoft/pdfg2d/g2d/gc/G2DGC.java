@@ -204,22 +204,22 @@ public class G2DGC implements GC {
 		Paint paint = (net.zamasoft.pdfg2d.gc.paint.Paint) _paint;
 
 		switch (paint.getPaintType()) {
-		case Paint.COLOR:
+		case COLOR:
 			awtPaint = G2DUtils.toAwtColor((Color) paint);
 			at = null;
 			break;
 
-		case Paint.PATTERN:
+		case PATTERN:
 			Pattern pattern = (Pattern) paint;
 			awtPaint = G2DUtils.toAwtPaint(pattern, this);
 			at = pattern.getTransform();
 			break;
 
-		case Paint.LINEAR_GRADIENT:
+		case LINEAR_GRADIENT:
 			awtPaint = G2DUtils.toAwtPaint((LinearGradient) paint);
 			at = null;
 			break;
-		case Paint.RADIAL_GRADIENT:
+		case RADIAL_GRADIENT:
 			awtPaint = G2DUtils.toAwtPaint((RadialGradient) paint);
 			at = null;
 			break;

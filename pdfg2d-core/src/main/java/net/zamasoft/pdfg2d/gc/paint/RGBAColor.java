@@ -17,8 +17,8 @@ public class RGBAColor extends RGBColor {
 		this.alpha = alpha;
 	}
 
-	public short getColorType() {
-		return RGBA;
+	public Color.Type getColorType() {
+		return Color.Type.RGBA;
 	}
 
 	public float getComponent(int i) {
