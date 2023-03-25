@@ -45,6 +45,7 @@ public class TrueTypeGlyphList implements GlyphList {
 		int scount = 0;
 		float[] sx = new float[2], sy = new float[2];
 		boolean[] sonCurve = new boolean[2];
+		boolean first = true;
 
 		for (int i = 0; i < gd.getPointCount(); i++) {
 			if (count < 0) {
@@ -72,54 +73,67 @@ public class TrueTypeGlyphList implements GlyphList {
 				}
 				scount = 0;
 			}
-
 			do {
 				if (!end && count < 2) {
-					// 最初の移動
-					path.moveTo(x[0], y[0]);
 					break;
 				}
-
 				// 2点接続
-				boolean plot2 = false;
 				if (onCurve[0] && onCurve[1]) {
+					if (first) {
+						// 最初の移動
+						path.moveTo(x[0], y[0]);
+						first = false;
+					}
 					path.lineTo(x[1], y[1]);
-					plot2 = true;
 				} else if (!onCurve[0] && !onCurve[1]) {
-					path.quadTo(x[0], y[0], midValue(x[0], x[1]), midValue(y[0], y[1]));
-					plot2 = true;
+					if (first) {
+						// 最初の移動
+						path.moveTo(midValue(x[0], x[1]), midValue(y[0], y[1]));
+						first = false;
+					}
+					else {
+						path.quadTo(x[0], y[0], midValue(x[0], x[1]), midValue(y[0], y[1]));
+					}
 				} else if (!onCurve[0] && onCurve[1]) {
-					path.quadTo(x[0], y[0], x[1], y[1]);
-					plot2 = true;
-				}
-				if (plot2) {
-					--count;
-					System.arraycopy(x, 1, x, 0, x.length - 1);
-					System.arraycopy(y, 1, y, 0, y.length - 1);
-					System.arraycopy(onCurve, 1, onCurve, 0, onCurve.length - 1);
+					if (first) {
+						// 最初の移動
+						path.moveTo(x[1], y[1]);
+						first = false;
+					} else {
+						path.quadTo(x[0], y[0], x[1], y[1]);
+					}
+				} else {
+					if (!end && count < 3) {
+						break;
+					}
+					// 3点接続
+					if (first) {
+						// 最初の移動
+						path.moveTo(x[0], y[0]);
+						first = false;
+					}
+					if (onCurve[0] && !onCurve[1] && onCurve[2]) {
+						path.quadTo(x[1], y[1], x[2], y[2]);
+					} else if (onCurve[0] && !onCurve[1] && !onCurve[2]) {
+						path.quadTo(x[1], y[1], midValue(x[1], x[2]), midValue(y[1], y[2]));
+					} else {
+						throw new IllegalStateException();
+					}
+					count -= 2;
+					System.arraycopy(x, 2, x, 0, x.length - 2);
+					System.arraycopy(y, 2, y, 0, y.length - 2);
+					System.arraycopy(onCurve, 2, onCurve, 0, onCurve.length - 2);
 					continue;
 				}
-
-				if (!end && count < 3) {
-					break;
-				}
-
-				// 3点接続
-				if (onCurve[0] && !onCurve[1] && onCurve[2]) {
-					path.quadTo(x[1], y[1], x[2], y[2]);
-				} else if (onCurve[0] && !onCurve[1] && !onCurve[2]) {
-					path.quadTo(x[1], y[1], midValue(x[1], x[2]), midValue(y[1], y[2]));
-				} else {
-					throw new IllegalStateException();
-				}
-				count -= 2;
-				System.arraycopy(x, 2, x, 0, x.length - 2);
-				System.arraycopy(y, 2, y, 0, y.length - 2);
-				System.arraycopy(onCurve, 2, onCurve, 0, onCurve.length - 2);
+				--count;
+				System.arraycopy(x, 1, x, 0, x.length - 1);
+				System.arraycopy(y, 1, y, 0, y.length - 1);
+				System.arraycopy(onCurve, 1, onCurve, 0, onCurve.length - 1);
 			} while (end && count > 0);
 			if (end) {
 				++endIndex;
 				path.closePath();
+				first = true;
 			}
 		}
 
