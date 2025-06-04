@@ -26,7 +26,7 @@ import javax.imageio.stream.FileCacheImageOutputStream;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
-import fr.sertelon.media.jpeg.CMYKJPEGImageReader;
+import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReader;
 import jp.cssj.resolver.Source;
 import net.zamasoft.pdfg2d.g2d.util.G2DUtils;
 import net.zamasoft.pdfg2d.gc.image.Image;
@@ -38,6 +38,15 @@ import net.zamasoft.pdfg2d.pdf.util.codec.ASCII85OutputStream;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCIIHexOutputStream;
 import net.zamasoft.pdfg2d.pdf.util.io.FastBufferedOutputStream;
 import net.zamasoft.pdfg2d.util.ColorUtils;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import java.awt.geom.AffineTransform;
+import net.zamasoft.pdfg2d.gc.image.util.TransformedImage;
 
 /**
  * 画像データのフローです。
@@ -109,8 +118,9 @@ class ImageFlow {
 	private Image addImage(ImageInputStream imageIn, BufferedImage image) throws IOException {
 		PDFImage pdfImage;
 		ImageReader ir;
+		int orientation = 1;
 		if (imageIn != null) {
-			CMYKJPEGImageReader cir = null;
+			JPEGImageReader cir = null;
 			Iterator<ImageReader> iri = ImageIO.getImageReaders(imageIn);
 			for (;;) {
 				if (iri != null && iri.hasNext()) {
@@ -120,8 +130,8 @@ class ImageFlow {
 						Iterator<ImageTypeSpecifier> iti = ir.getImageTypes(0);
 						if (iti != null && iti.hasNext()) {
 							imageIn.seek(0);
-							if (ir instanceof CMYKJPEGImageReader) {
-								cir = (CMYKJPEGImageReader) ir;
+							if (ir instanceof JPEGImageReader) {
+								cir = (JPEGImageReader) ir;
 								continue;
 							}
 							break;
@@ -145,9 +155,9 @@ class ImageFlow {
 		} else {
 			ir = null;
 		}
+
+		int width, height;
 		try {
-			int width;
-			int height;
 
 			PDFParams.ColorMode colorMode = this.params.getColorMode();
 			PDFParams.Compression streamCompression = this.params.getCompression();
@@ -213,6 +223,18 @@ class ImageFlow {
 							throw e;
 						}
 						imageIn.skipBytes(length - 2);
+					}
+					imageIn.seek(0);
+					try {
+						Metadata metadata = ImageMetadataReader.readMetadata(new ImageInputStreamProxy(imageIn));
+						Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+						if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+							orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+						}
+					} catch (ImageProcessingException e) {
+						// ignore
+					} catch (MetadataException e) {
+						// ignore
 					}
 				}
 			} else {
@@ -335,7 +357,7 @@ class ImageFlow {
 						final short deviceColor;
 						if (iccErrorHuck && iccGray) {
 							deviceColor = DEVICE_GRAY;
-						} else if (ir instanceof CMYKJPEGImageReader) {
+						} else if (ir instanceof JPEGImageReader) {
 							deviceColor = DEVICE_CMYK;
 						} else {
 							Iterator<?> itr = ir.getImageTypes(0);
@@ -735,6 +757,21 @@ class ImageFlow {
 			}
 		}
 		++this.imageNumber;
-		return pdfImage;
+		if (orientation == 1) {
+			return pdfImage;
+		}
+		final AffineTransform at = new AffineTransform();
+		switch (orientation) {
+			case 2: at.scale(-1, 1); at.translate(-width, 0); break;
+			case 3: at.rotate(Math.PI, width / 2.0, height / 2.0); break;
+			case 4: at.scale(1, -1); at.translate(0, -height); break;
+			case 5: at.rotate(Math.PI / 2); at.scale(-1, 1); at.translate(0, -height); break;
+			case 6: at.rotate(Math.PI / 2); at.translate(0, -height); break;
+			case 7: at.rotate(-Math.PI / 2); at.scale(-1, 1); at.translate(-width, 0); break;
+			case 8: at.rotate(-Math.PI / 2); at.translate(-width, 0); break;
+			default: return pdfImage;
+		}
+		Image retImage = new TransformedImage(pdfImage, at);
+		return retImage;
 	}
 }

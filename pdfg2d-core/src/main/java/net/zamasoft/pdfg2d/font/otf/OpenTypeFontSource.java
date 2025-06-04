@@ -119,15 +119,18 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		}
 
 		CmapTable cmapt = (CmapTable) ttFont.getTable(Table.cmap);
-		GenericCmapFormat cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingNonBMP);
+		GenericCmapFormat cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS4);
 		if (cmap == null) {
 			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS2);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS4);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingBMP);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingBMP);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingNonBMP);
+		}
+		if (cmap == null) {
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingUndefined);
 		}
 		if (cmap == null) {
 			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, (short) -1);

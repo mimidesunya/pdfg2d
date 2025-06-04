@@ -1,6 +1,7 @@
 package net.zamasoft.pdfg2d.gc.image.util;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.image.Image;
@@ -14,6 +15,8 @@ import net.zamasoft.pdfg2d.gc.image.WrappedImage;
  */
 public class TransformedImage extends WrappedImage {
 	private final AffineTransform at;
+	private Double cachedWidth = null;
+	private Double cachedHeight = null;
 
 	public TransformedImage(Image image, AffineTransform at) {
 		super(image);
@@ -38,11 +41,43 @@ public class TransformedImage extends WrappedImage {
 	}
 
 	public double getWidth() {
-		return this.image.getWidth() * this.at.getScaleX();
+		if (cachedWidth != null) return cachedWidth;
+		calculateDimensions();
+		return cachedWidth;
 	}
 
 	public double getHeight() {
-		return this.image.getHeight() * this.at.getScaleY();
+		if (cachedHeight != null) return cachedHeight;
+		calculateDimensions();
+		return cachedHeight;
+	}
+
+	private void calculateDimensions() {
+		double w = image.getWidth();
+		double h = image.getHeight();
+
+		Point2D[] pts = new Point2D[] {
+			new Point2D.Double(0, 0),
+			new Point2D.Double(w, 0),
+			new Point2D.Double(0, h),
+			new Point2D.Double(w, h)
+		};
+
+		double minX = Double.POSITIVE_INFINITY;
+		double maxX = Double.NEGATIVE_INFINITY;
+		double minY = Double.POSITIVE_INFINITY;
+		double maxY = Double.NEGATIVE_INFINITY;
+
+		for (Point2D pt : pts) {
+			Point2D dst = at.transform(pt, null);
+			minX = Math.min(minX, dst.getX());
+			maxX = Math.max(maxX, dst.getX());
+			minY = Math.min(minY, dst.getY());
+			maxY = Math.max(maxY, dst.getY());
+		}
+
+		cachedWidth = Math.abs(maxX - minX);
+		cachedHeight = Math.abs(maxY - minY);
 	}
 
 	public String toString() {
