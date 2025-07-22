@@ -1,0 +1,31 @@
+description = 'Demo application'
+
+dependencies {
+    implementation project(':pdfg2d-svg-emoji')
+    implementation project(':pdfg2d-pdf')
+    implementation project(':pdfg2d-core')
+    implementation project(':pdfg2d-font')
+    implementation project(':pdfg2d-rsr')
+    implementation project(':pdfg2d-resolver')
+    implementation 'org.apache.xmlgraphics:batik-bridge:1.16'
+    implementation 'org.apache.xmlgraphics:batik-anim:1.16'
+    implementation 'org.apache.xmlgraphics:batik-gvt:1.16'
+    implementation 'xml-apis:xml-apis:1.4.01'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                description = 'Demo application'
+                url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-demo'
+                
+                scm {
+                    connection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-demo'
+                    developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-demo'
+                    url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-demo'
+                }
+            }
+        }
+    }
+}

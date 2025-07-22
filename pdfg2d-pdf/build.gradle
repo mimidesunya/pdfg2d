@@ -1,0 +1,29 @@
+description = 'PDF output implementation'
+
+dependencies {
+    implementation project(':pdfg2d-core')
+    implementation project(':pdfg2d-resolver')
+    implementation project(':pdfg2d-rsr')
+    implementation project(':pdfg2d-font')
+    implementation 'org.apache.xmlgraphics:batik-gvt:1.16'
+    implementation 'com.twelvemonkeys.imageio:imageio-jpeg:3.12.0'
+    implementation 'com.drewnoakes:metadata-extractor:2.19.0'
+    implementation 'commons-collections:commons-collections:3.2.2'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                description = 'PDF output implementation'
+                url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-pdf'
+                
+                scm {
+                    connection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-pdf'
+                    developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-pdf'
+                    url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-pdf'
+                }
+            }
+        }
+    }
+}

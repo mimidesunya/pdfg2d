@@ -1,0 +1,102 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+allprojects {
+    group = 'io.github.mimidesunya'
+    version = '1.2.0'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+    
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        withSourcesJar()
+        withJavadocJar()
+    }
+    
+    compileJava {
+        options.encoding = 'UTF-8'
+    }
+    
+    compileTestJava {
+        options.encoding = 'UTF-8'
+    }
+    
+    javadoc {
+        options.encoding = 'UTF-8'
+        options.addStringOption('Xdoclint:none', '-quiet')
+        if(JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+    
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+                
+                pom {
+                    name = "${project.group}:${project.name}"
+                    url = "https://github.com/mimidesunya/pdfg2d/"
+                    
+                    licenses {
+                        license {
+                            name = 'Apache 2'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                            comments = 'A business-friendly OSS license'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'mimidesunya'
+                            name = 'MIYABE Tatsuhiko'
+                            email = 'miyabe.tatsuhiko@gmail.com'
+                            organization = 'Zamasoft'
+                            organizationUrl = 'https://zamasoft.net/'
+                            roles = ['architect', 'developer']
+                            timezone = '+9'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:https://github.com/mimidesunya/pdfg2d.git'
+                        developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d.git'
+                        url = 'https://github.com/mimidesunya/pdfg2d'
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "OSSRH"
+                url = version.endsWith('SNAPSHOT') ? 
+                    "https://s01.oss.sonatype.org/content/repositories/snapshots/" :
+                    "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username = project.findProperty("ossrhUsername") ?: ""
+                    password = project.findProperty("ossrhPassword") ?: ""
+                }
+            }
+        }
+    }
+    
+    signing {
+        sign publishing.publications.maven
+    }
+}
+
+description = 'Mapping Java Graphics2D to PDF'

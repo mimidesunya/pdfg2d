@@ -1,4 +1,27 @@
+# Maven
 target/
+
+# Gradle
+.gradle/
+build/
+bin/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# IDE
 .classpath
 .project
 .settings
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

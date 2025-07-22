@@ -231,9 +231,9 @@ class ImageFlow {
 						if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
 							orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
 						}
-					} catch (ImageProcessingException e) {
+					} catch (ImageProcessingException ex) {
 						// ignore
-					} catch (MetadataException e) {
+					} catch (MetadataException ex) {
 						// ignore
 					}
 				}

@@ -20,6 +20,7 @@ import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontMetricsImpl;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ImageFont;
+import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
@@ -849,6 +850,23 @@ public class PDFGC implements GC, Closeable {
 		}
 		if (outline || font instanceof ImageFont) {
 			if (font instanceof DrawableFont) {
+				if (font instanceof ShapedFont) {
+					int glen = text.getGLen();
+					int[] gids = text.getGIDs();
+					boolean hasShape = false;
+					for (int i = 0; i < glen; ++i) {
+						int gid = gids[i];
+						Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+						if (shape != null && !shape.getPathIterator(null).isDone()) {
+							hasShape = true;
+							break;
+						}
+					}
+					if (!hasShape) {
+						// 描画する文字がない
+						return;
+					}
+				}
 				this.begin();
 				this.transform(AffineTransform.getTranslateInstance(x, y));
 				FontUtils.drawText(this, (DrawableFont) font, text);

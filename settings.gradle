@@ -1,0 +1,9 @@
+rootProject.name = 'pdfg2d'
+
+include 'pdfg2d-resolver'
+include 'pdfg2d-font'
+include 'pdfg2d-rsr'
+include 'pdfg2d-core'
+include 'pdfg2d-pdf'
+include 'pdfg2d-svg-emoji'
+include 'pdfg2d-demo'

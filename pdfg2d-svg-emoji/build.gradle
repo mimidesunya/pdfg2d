@@ -1,0 +1,28 @@
+description = 'SVG and Emoji support'
+
+dependencies {
+    implementation project(':pdfg2d-pdf')
+    implementation project(':pdfg2d-core')
+    implementation project(':pdfg2d-font')
+    implementation 'org.apache.xmlgraphics:batik-bridge:1.16'
+    implementation 'org.apache.xmlgraphics:batik-anim:1.16'
+    implementation 'xml-apis:xml-apis:1.4.01'
+    implementation 'fr.sertelon.media:jpeg-cmyk:1.1.0'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                description = 'SVG and Emoji support'
+                url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-svg-emoji'
+                
+                scm {
+                    connection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-svg-emoji'
+                    developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-svg-emoji'
+                    url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-svg-emoji'
+                }
+            }
+        }
+    }
+}

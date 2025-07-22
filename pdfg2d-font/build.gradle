@@ -1,0 +1,20 @@
+description = 'Font library'
+
+// pdfg2d-font has no external dependencies based on the POM file
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                description = 'Font library'
+                url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-font'
+                
+                scm {
+                    connection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-font'
+                    developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-font'
+                    url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-font'
+                }
+            }
+        }
+    }
+}

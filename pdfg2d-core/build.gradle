@@ -1,0 +1,24 @@
+description = 'Simple graphic context'
+
+dependencies {
+    implementation project(':pdfg2d-resolver')
+    implementation project(':pdfg2d-font')
+    implementation project(':pdfg2d-rsr')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                description = 'Simple graphic context'
+                url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-core'
+                
+                scm {
+                    connection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-core'
+                    developerConnection = 'scm:git:https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-core'
+                    url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-core'
+                }
+            }
+        }
+    }
+}
