@@ -161,12 +161,7 @@ public class FontFile {
 			RandomAccessFile raf = new BufferedRandomAccessFile(this.file, "r");
 			raf.seek(this.offsets[i]);
 			if (this.woff) {
-				this.fonts[i] = new OpenTypeFont(raf) {
-					protected void finalize() throws Throwable {
-						super.finalize();
-						file.delete();
-					}
-				};
+				this.fonts[i] = new OpenTypeFont(raf, () -> file.delete());
 			} else {
 				this.fonts[i] = new OpenTypeFont(raf);
 			}

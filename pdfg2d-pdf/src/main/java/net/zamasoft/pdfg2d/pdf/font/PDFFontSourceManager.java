@@ -1,5 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.font;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -40,7 +41,7 @@ import net.zamasoft.pdfg2d.util.NumberUtils;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class PDFFontSourceManager implements FontSourceManager {
+public class PDFFontSourceManager implements FontSourceManager, Closeable {
 	protected Map<String, Object> nameToFonts = new HashMap<String, Object>();
 
 	protected Map<String, FontFamilyList> genericToFamily = new HashMap<String, FontFamilyList>();
@@ -61,8 +62,7 @@ public class PDFFontSourceManager implements FontSourceManager {
 		this(false);
 	}
 
-	protected void finalize() throws Throwable {
-		super.finalize();
+	public void close() {
 		for (Iterator<File> i = this.uriToFile.values().iterator(); i.hasNext();) {
 			File file = i.next();
 			file.delete();

@@ -19,6 +19,7 @@ package net.zamasoft.font;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.ref.Cleaner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,7 +45,7 @@ import net.zamasoft.font.truetype.TrueTypeGlyphList;
  * @since 1.0
  * @author <a href="mailto:david@steadystate.co.uk">David Schweinsberg</a>
  */
-public class OpenTypeFont {
+public class OpenTypeFont implements AutoCloseable {
 	private Logger LOG = Logger.getLogger(OpenTypeFont.class.getName());
 
 	private TableDirectory tableDirectory = null;
@@ -67,8 +68,38 @@ public class OpenTypeFont {
 
 	private RandomAccessFile raf;
 
+	private static final Cleaner cleaner = Cleaner.create();
+
+	private final Cleaner.Cleanable cleanable;
+
+	private static class ResourceReleaser implements Runnable {
+		private final RandomAccessFile raf;
+
+		private final Runnable onClose;
+
+		ResourceReleaser(RandomAccessFile raf, Runnable onClose) {
+			this.raf = raf;
+			this.onClose = onClose;
+		}
+
+		public void run() {
+			try {
+				this.raf.close();
+			} catch (IOException e) {
+			}
+			if (this.onClose != null) {
+				this.onClose.run();
+			}
+		}
+	}
+
 	public OpenTypeFont(RandomAccessFile raf) throws IOException {
+		this(raf, null);
+	}
+
+	public OpenTypeFont(RandomAccessFile raf, Runnable onClose) throws IOException {
 		this.raf = raf;
+		this.cleanable = cleaner.register(this, new ResourceReleaser(this.raf, onClose));
 		this.tableDirectory = new TableDirectory(raf);
 		this.tables = new Table[this.tableDirectory.getNumTables()];
 
@@ -144,12 +175,7 @@ public class OpenTypeFont {
 		return this.tableDirectory;
 	}
 
-	protected void finalize() throws Throwable {
-		super.finalize();
-		try {
-			this.raf.close();
-		} catch (Exception e) {
-			// ignore
-		}
+	public void close() {
+		this.cleanable.clean();
 	}
 }

@@ -1,6 +1,6 @@
 package net.zamasoft.pdfg2d.util;
 
-public class ArrayIntMapIterator implements IntMapIterator {
+public final class ArrayIntMapIterator implements IntMapIterator {
 	private final int[] array;
 	private int i = 0;
 
@@ -8,22 +8,22 @@ public class ArrayIntMapIterator implements IntMapIterator {
 		this.array = array;
 	}
 
+	@Override
 	public boolean next() {
-		if (this.i >= this.array.length) {
+		if (i >= array.length) {
 			return false;
 		}
-		this.i++;
+		i++;
 		return true;
 	}
 
 	@Override
 	public int key() {
-		return this.i - 1;
+		return i - 1;
 	}
 
 	@Override
 	public int value() {
-		return this.array[this.i - 1];
+		return array[i - 1];
 	}
-
 }

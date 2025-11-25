@@ -8,15 +8,12 @@ import java.io.Serializable;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class ShortList implements Serializable {
+public final class ShortList implements Serializable {
 	private static final long serialVersionUID = 0;
 
 	private static final short[] ZERO = new short[0];
-
 	private short[] array = ZERO;
-
 	private short defaultValue;
-
 	private int length = 0;
 
 	public ShortList() {
@@ -28,45 +25,45 @@ public class ShortList implements Serializable {
 	}
 
 	public void set(int pos, short value) {
-		if (this.length <= pos) {
-			this.length = pos + 1;
-			if (this.array.length <= pos) {
-				short[] array = new short[Math.max(this.length + 10, this.array.length * 3 / 2)];
-				for (int i = this.array.length; i < array.length; ++i) {
-					array[i] = this.defaultValue;
+		if (length <= pos) {
+			length = pos + 1;
+			if (array.length <= pos) {
+				var newArray = new short[Math.max(length + 10, array.length * 3 / 2)];
+				for (int i = array.length; i < newArray.length; ++i) {
+					newArray[i] = defaultValue;
 				}
-				System.arraycopy(this.array, 0, array, 0, this.array.length);
-				this.array = array;
+				System.arraycopy(array, 0, newArray, 0, array.length);
+				array = newArray;
 			}
 		}
-		this.array[pos] = value;
+		array[pos] = value;
 	}
 
 	public short[] toArray() {
-		this.pack();
-		return this.array;
+		pack();
+		return array;
 	}
 
 	public short get(int i) {
-		if (i >= this.array.length) {
-			return this.defaultValue;
+		if (i >= array.length) {
+			return defaultValue;
 		}
-		return this.array[i];
+		return array[i];
 	}
 
 	public int size() {
-		return this.length;
+		return length;
 	}
 
 	public void pack() {
-		if (this.length != this.array.length) {
-			short[] array = new short[this.length];
-			System.arraycopy(this.array, 0, array, 0, this.length);
-			this.array = array;
+		if (length != array.length) {
+			var newArray = new short[length];
+			System.arraycopy(array, 0, newArray, 0, length);
+			array = newArray;
 		}
 	}
 
 	public boolean isEmpty() {
-		return this.length == 0;
+		return length == 0;
 	}
 }

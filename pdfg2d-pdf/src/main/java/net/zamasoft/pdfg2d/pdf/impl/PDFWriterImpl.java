@@ -1453,6 +1453,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		} finally {
 			this.builder.close();
 		}
+		if (this.fontManager != null) {
+			this.fontManager.close();
+		}
 	}
 
 	private void writeArea(ViewerPreferences.AreaBox area) throws IOException {

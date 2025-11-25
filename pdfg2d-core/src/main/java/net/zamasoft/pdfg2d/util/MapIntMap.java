@@ -6,31 +6,33 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 public class MapIntMap implements IntMap {
-	protected Map<Integer, Integer> map = new TreeMap<Integer, Integer>();
+	protected final Map<Integer, Integer> map = new TreeMap<>();
 
+	@Override
 	public void set(int key, int value) {
-		this.map.put(key, value);
+		map.put(key, value);
 	}
 
+	@Override
 	public int get(int key) {
-		return this.map.get(key);
+		return map.get(key);
 	}
 
+	@Override
 	public boolean contains(int key) {
-		return this.map.containsKey(key);
+		return map.containsKey(key);
 	}
 
+	@Override
 	public IntMapIterator getIterator() {
-		final Iterator<Entry<Integer, Integer>> i = this.map.entrySet().iterator();
+		var i = map.entrySet().iterator();
 		return new IntMapIterator() {
 			private Entry<Integer, Integer> e;
 
 			@Override
 			public boolean next() {
-				if (!i.hasNext()) {
-					return false;
-				}
-				this.e = i.next();
+				if (!i.hasNext()) return false;
+				e = i.next();
 				return true;
 			}
 

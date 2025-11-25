@@ -38,47 +38,47 @@ public class TextStrokeDemo {
 		PdfParams params = new PdfParams();
 		params.setCompression(PdfParams.COMPRESSION_NONE);
 
-		PdfFontSourceManager fsm = new PdfFontSourceManager();
-
-		{
-			FontFace face = new FontFace();
-			face.src = new FileSource(new File("src/example/ipag.otf"));
-			face.fontFamily = FontFamilyList.create("IPAゴシック");
-			fsm.addFontFace(face);
-		}
-
-		params.setFontSourceManager(fsm);
-
-		final double width = 300;
-		final double height = 300;
-
-		try (OutputStream out = new BufferedOutputStream(new FileOutputStream("local/test.pdf"))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
-			final PdfWriter pdf = new PdfWriterImpl(builder, params);
-
-			try (PdfGraphicsOutput page = pdf.nextPage(width, height)) {
-				PdfGC gc = new PdfGC(page);
-				draw(gc);
+		try (PdfFontSourceManager fsm = new PdfFontSourceManager()) {
+			{
+				FontFace face = new FontFace();
+				face.src = new FileSource(new File("src/example/ipag.otf"));
+				face.fontFamily = FontFamilyList.create("IPAゴシック");
+				fsm.addFontFace(face);
 			}
 
-			JFrame frame = new JFrame("Graphics") {
-				private static final long serialVersionUID = 1L;
+			params.setFontSourceManager(fsm);
 
-				@Override
-				public void paint(Graphics g) {
-					super.paint(g);
-					Graphics2D g2d = (Graphics2D) g;
-					g2d.translate(0, 24);
-					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					G2dGC gc = new G2dGC(g2d, pdf.getFontManager());
-					TextStrokeDemo.draw(gc);
+			final double width = 300;
+			final double height = 300;
+
+			try (OutputStream out = new BufferedOutputStream(new FileOutputStream("local/test.pdf"))) {
+				StreamRandomBuilder builder = new StreamRandomBuilder(out);
+				final PdfWriter pdf = new PdfWriterImpl(builder, params);
+
+				try (PdfGraphicsOutput page = pdf.nextPage(width, height)) {
+					PdfGC gc = new PdfGC(page);
+					draw(gc);
 				}
-			};
-			frame.setSize((int) width, (int) height);
-			frame.setVisible(true);
 
-			pdf.finish();
-			builder.finish();
+				JFrame frame = new JFrame("Graphics") {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void paint(Graphics g) {
+						super.paint(g);
+						Graphics2D g2d = (Graphics2D) g;
+						g2d.translate(0, 24);
+						g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+						G2dGC gc = new G2dGC(g2d, pdf.getFontManager());
+						TextStrokeDemo.draw(gc);
+					}
+				};
+				frame.setSize((int) width, (int) height);
+				frame.setVisible(true);
+
+				pdf.finish();
+				builder.finish();
+			}
 		}
 	}
 

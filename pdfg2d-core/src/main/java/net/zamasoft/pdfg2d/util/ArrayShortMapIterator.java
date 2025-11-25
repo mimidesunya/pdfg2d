@@ -1,6 +1,6 @@
 package net.zamasoft.pdfg2d.util;
 
-public class ArrayShortMapIterator implements ShortMapIterator {
+public final class ArrayShortMapIterator implements ShortMapIterator {
 	private final short[] array;
 	private int i = 0;
 
@@ -8,22 +8,22 @@ public class ArrayShortMapIterator implements ShortMapIterator {
 		this.array = array;
 	}
 
+	@Override
 	public boolean next() {
-		if (this.i >= this.array.length) {
+		if (i >= array.length) {
 			return false;
 		}
-		this.i++;
+		i++;
 		return true;
 	}
 
 	@Override
 	public int key() {
-		return this.i - 1;
+		return i - 1;
 	}
 
 	@Override
 	public short value() {
-		return this.array[this.i - 1];
+		return array[i - 1];
 	}
-
 }

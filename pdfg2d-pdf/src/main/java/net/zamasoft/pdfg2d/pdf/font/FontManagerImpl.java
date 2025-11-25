@@ -1,5 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.font;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ import net.zamasoft.pdfg2d.pdf.font.cid.missing.SpaceCIDFontSource;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontManagerImpl implements FontManager {
+public class FontManagerImpl implements FontManager, Closeable {
 	private static final long serialVersionUID = 1L;
 
 	protected final FontSourceManager globaldb;
@@ -47,6 +48,12 @@ public class FontManagerImpl implements FontManager {
 
 	public FontManagerImpl(FontSourceManager fontdb) {
 		this(fontdb, new DefaultFontStore());
+	}
+
+	public void close() {
+		if (this.localdb != null) {
+			this.localdb.close();
+		}
 	}
 
 	public void addFontFace(FontFace face) throws IOException {

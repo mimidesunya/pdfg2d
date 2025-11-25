@@ -2,77 +2,91 @@ package net.zamasoft.pdfg2d.font;
 
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
-
 public class FontSourceWrapper implements FontSource {
 	private static final long serialVersionUID = 0L;
-
 	protected final FontSource source;
 
 	public FontSourceWrapper(FontSource source) {
 		this.source = source;
 	}
 
+	@Override
 	public String[] getAliases() {
-		return this.source.getAliases();
+		return source.getAliases();
 	}
 
+	@Override
 	public boolean canDisplay(int c) {
-		return this.source.canDisplay(c);
+		return source.canDisplay(c);
 	}
 
+	@Override
 	public Font createFont() {
-		return this.source.createFont();
+		return source.createFont();
 	}
 
+	@Override
 	public Direction getDirection() {
-		return this.source.getDirection();
+		return source.getDirection();
 	}
 
+	@Override
 	public short getAscent() {
-		return this.source.getAscent();
+		return source.getAscent();
 	}
 
+	@Override
 	public BBox getBBox() {
-		return this.source.getBBox();
+		return source.getBBox();
 	}
 
+	@Override
 	public short getCapHeight() {
-		return this.source.getCapHeight();
+		return source.getCapHeight();
 	}
 
+	@Override
 	public short getDescent() {
-		return this.source.getDescent();
+		return source.getDescent();
 	}
 
+	@Override
 	public String getFontName() {
-		return this.source.getFontName();
+		return source.getFontName();
 	}
 
+	@Override
 	public short getStemH() {
-		return this.source.getStemH();
+		return source.getStemH();
 	}
 
+	@Override
 	public short getStemV() {
-		return this.source.getStemV();
+		return source.getStemV();
 	}
 
+	@Override
 	public Weight getWeight() {
-		return this.source.getWeight();
+		return source.getWeight();
 	}
 
+	@Override
 	public short getXHeight() {
-		return this.source.getXHeight();
+		return source.getXHeight();
 	}
 
+	@Override
 	public short getSpaceAdvance() {
-		return this.source.getSpaceAdvance();
+		return source.getSpaceAdvance();
 	}
 
+	@Override
 	public boolean isItalic() {
-		return this.source.isItalic();
+		return source.isItalic();
 	}
 
+	@Override
 	public String toString() {
-		return "FontSourceWrapper:" + this.source.toString();
+		return "FontSourceWrapper:" + source.toString();
 	}
 }
