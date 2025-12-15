@@ -27,46 +27,26 @@ publishing {
     }
 }
 
-task generateEmojiIndex {
-    def emojiDir = file("src/main/resources/net/zamasoft/pdfg2d/font/emoji")
-    def indexFile = new File(emojiDir, "INDEX")
+task prepareEmoji(type: JavaExec) {
+    mainClass = 'BuildEmojiIndexTool'
+    classpath = sourceSets.main.runtimeClasspath + files('.') 
+    // files('.') includes BuildEmojiIndexTool.class compiled in root of module if we were compiling it there,
+    // but better to compile it on the fly or put in buildSrc.
+    // For simplicity, let's assume we run it as a script or compile it first.
     
-    inputs.dir emojiDir
-    outputs.file indexFile
-
-    doLast {
-        indexFile.withPrintWriter("ISO-8859-1") { out ->
-            Set<String> codes = new HashSet<>()
-            emojiDir.eachFile { file ->
-                if (file.name.endsWith(".svg")) {
-                    String code = file.name.substring(7, file.name.length() - 4)
-                    while (true) {
-                        if (!codes.contains(code)) {
-                            out.println(code)
-                            codes.add(code)
-                        }
-                        int ub = code.lastIndexOf('_')
-                        if (ub == -1) {
-                            break
-                        }
-                        code = code.substring(0, ub)
-                    }
-                }
-            }
-            out.println("200d")
-            
-            emojiDir.eachFile { file ->
-                if (file.name.endsWith(".svg")) {
-                    String code = file.name.substring(7, file.name.length() - 4)
-                     code.split("_").each { c ->
-                        if (!codes.contains(c)) {
-                             codes.add(c)
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // Actually, running a single file java program in Gradle 
+    // requires newer Gradle or some setup.
+    // Let's compile it using `javac` then run `java`.
 }
 
-processResources.dependsOn generateEmojiIndex
+task downloadAndGenerateEmoji(type: Exec) {
+    def toolFile = file("BuildEmojiIndexTool.java")
+    inputs.file toolFile
+    workingDir projectDir
+    
+    commandLine 'cmd', '/c', 'javac BuildEmojiIndexTool.java && java BuildEmojiIndexTool'
+}
+
+processResources.dependsOn downloadAndGenerateEmoji
+
+
