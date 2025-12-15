@@ -27,13 +27,21 @@ public class EmojiFontSource extends AbstractFontSource {
 	static {
 		Map<String, Integer> ctog = new HashMap<String, Integer>();
 		Map<Integer, String> gtoc = new HashMap<Integer, String>();
-		try (BufferedReader in = new BufferedReader(
-				new InputStreamReader(EmojiFontSource.class.getResourceAsStream("INDEX"), "ISO8859-1"))) {
-			int gid = 0;
-			for (String code = in.readLine(); code != null; code = in.readLine()) {
-				++gid;
-				ctog.put(code, gid);
-				gtoc.put(gid, code);
+		try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+				new java.io.BufferedInputStream(EmojiFontSource.class.getResourceAsStream("emoji.zip")))) {
+			java.util.zip.ZipEntry entry;
+			while ((entry = zis.getNextEntry()) != null) {
+				if ("INDEX".equals(entry.getName())) {
+					BufferedReader in = new BufferedReader(new InputStreamReader(zis, "ISO8859-1"));
+					int gid = 0;
+					for (String code = in.readLine(); code != null; code = in.readLine()) {
+						++gid;
+						ctog.put(code, gid);
+						gtoc.put(gid, code);
+					}
+					// Do not close 'in' as it closes 'zis'
+					break;
+				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);

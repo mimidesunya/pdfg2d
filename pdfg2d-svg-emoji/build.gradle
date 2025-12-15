@@ -8,6 +8,8 @@ dependencies {
     implementation 'org.apache.xmlgraphics:batik-anim:1.16'
     implementation 'xml-apis:xml-apis:1.4.01'
     implementation 'fr.sertelon.media:jpeg-cmyk:1.1.0'
+    // Emoji fonts resource - users need this JAR at runtime for emoji support
+    runtimeOnly project(':pdfg2d-svg-emoji-fonts')
 }
 
 publishing {
@@ -26,25 +28,3 @@ publishing {
         }
     }
 }
-
-task prepareEmoji(type: JavaExec) {
-    mainClass = 'BuildEmojiIndexTool'
-    classpath = sourceSets.main.runtimeClasspath + files('.') 
-    // files('.') includes BuildEmojiIndexTool.class compiled in root of module if we were compiling it there,
-    // but better to compile it on the fly or put in buildSrc.
-    // For simplicity, let's assume we run it as a script or compile it first.
-    
-    // Actually, running a single file java program in Gradle 
-    // requires newer Gradle or some setup.
-    // Let's compile it using `javac` then run `java`.
-}
-
-task setupEmoji(type: Exec) {
-    def toolFile = file("BuildEmojiIndexTool.java")
-    inputs.file toolFile
-    workingDir projectDir
-    
-    commandLine 'cmd', '/c', 'javac -encoding UTF-8 BuildEmojiIndexTool.java && java -cp . BuildEmojiIndexTool'
-}
-
-

@@ -25,6 +25,15 @@ subprojects {
         withJavadocJar()
     }
     
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+    
     compileJava {
         options.encoding = 'UTF-8'
     }
@@ -102,3 +111,17 @@ subprojects {
 }
 
 description = 'Mapping Java Graphics2D to PDF'
+
+// Skip pdfg2d-svg-emoji-fonts from default build to speed up builds
+// To build with emoji fonts: ./gradlew build -PincludeEmojiFonts=true
+// Or build just the fonts module: ./gradlew :pdfg2d-svg-emoji-fonts:build
+gradle.taskGraph.whenReady { graph ->
+    if (!project.hasProperty('includeEmojiFonts')) {
+        project(':pdfg2d-svg-emoji-fonts').tasks.each { task ->
+            if (task.name in ['jar', 'processResources', 'classes', 'compileJava', 
+                              'sourcesJar', 'javadocJar', 'javadoc', 'build', 'assemble']) {
+                task.enabled = false
+            }
+        }
+    }
+}

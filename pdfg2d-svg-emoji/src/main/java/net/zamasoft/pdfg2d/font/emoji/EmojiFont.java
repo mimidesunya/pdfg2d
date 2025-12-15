@@ -4,8 +4,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Dimension2D;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,33 +99,40 @@ class EmojiFont implements ImageFont {
 				if (code.endsWith("_200d")) {
 					code = code.substring(0, code.length() - 5);
 				}
-				URL url = EmojiFontSource.class.getResource("emoji_u" + code + ".svg");
-				if (url == null) {
-					return;
-				}
-				try (InputStream in = url.openStream()) {
-					SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(
-							XMLResourceDescriptor.getXMLParserClassName());
-					SVGOMDocument doc = (SVGOMDocument) factory.createDocument(null, in);
-					UserAgent ua = new SVGUserAgentImpl(VIEWPORT);
-					DocumentLoader loader = new DocumentLoader(ua);
-					BridgeContext ctx = new BridgeContext(ua, loader);
-					ctx.setDynamic(false);
-					GVTBuilder gvt = new GVTBuilderImpl();
-					gvtRoot = gvt.build(ctx, doc);
-					if (gc instanceof PDFGC && ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams().getVersion().v >= PDFParams.Version.V_1_4.v) {
-						image = ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().createGroupImage(1000, 1000);
-						PDFGC gc2 = new PDFGC(image);
-						gc2.transform(AffineTransform.getScaleInstance(1000.0 / VIEWPORT.getWidth(), 1000.0 / VIEWPORT.getHeight()));
-						gc2.begin();
-						Graphics2D g2d = new SVGBridgeGraphics2D(gc2);
-						gvtRoot.paint(g2d);
-						g2d.dispose();
-						gc2.end();
-						image.close();
-						this.gidToImage.put(gid, image);
-					} else {
-						this.gidToNode.put(gid, gvtRoot);
+				String fileName = "emoji_u" + code + ".svg";
+				try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+						new java.io.BufferedInputStream(EmojiFontSource.class.getResourceAsStream("emoji.zip")))) {
+					java.util.zip.ZipEntry entry;
+					while ((entry = zis.getNextEntry()) != null) {
+						if (fileName.equals(entry.getName())) {
+							SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(
+									XMLResourceDescriptor.getXMLParserClassName());
+							SVGOMDocument doc = (SVGOMDocument) factory.createDocument(null, zis);
+							UserAgent ua = new SVGUserAgentImpl(VIEWPORT);
+							DocumentLoader loader = new DocumentLoader(ua);
+							BridgeContext ctx = new BridgeContext(ua, loader);
+							ctx.setDynamic(false);
+							GVTBuilder gvt = new GVTBuilderImpl();
+							gvtRoot = gvt.build(ctx, doc);
+							if (gc instanceof PDFGC
+									&& ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().getParams()
+											.getVersion().v >= PDFParams.Version.V_1_4.v) {
+								image = ((PDFGC) gc).getPDFGraphicsOutput().getPdfWriter().createGroupImage(1000, 1000);
+								PDFGC gc2 = new PDFGC(image);
+								gc2.transform(AffineTransform.getScaleInstance(1000.0 / VIEWPORT.getWidth(),
+										1000.0 / VIEWPORT.getHeight()));
+								gc2.begin();
+								Graphics2D g2d = new SVGBridgeGraphics2D(gc2);
+								gvtRoot.paint(g2d);
+								g2d.dispose();
+								gc2.end();
+								image.close();
+								this.gidToImage.put(gid, image);
+							} else {
+								this.gidToNode.put(gid, gvtRoot);
+							}
+							break;
+						}
 					}
 				} catch (Exception e) {
 					throw new RuntimeException(e);
