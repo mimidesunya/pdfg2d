@@ -35,10 +35,12 @@ subprojects {
     
     javadoc {
         options.encoding = 'UTF-8'
-        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption('Xdoclint:none')
         if(JavaVersion.current().isJava9Compatible()) {
             options.addBooleanOption('html5', true)
         }
+        destinationDir = file("${buildDir}/docs/javadoc_custom")
+        enabled = false
     }
     
     publishing {
