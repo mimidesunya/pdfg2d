@@ -26,3 +26,47 @@ publishing {
         }
     }
 }
+
+task generateEmojiIndex {
+    def emojiDir = file("src/main/resources/net/zamasoft/pdfg2d/font/emoji")
+    def indexFile = new File(emojiDir, "INDEX")
+    
+    inputs.dir emojiDir
+    outputs.file indexFile
+
+    doLast {
+        indexFile.withPrintWriter("ISO-8859-1") { out ->
+            Set<String> codes = new HashSet<>()
+            emojiDir.eachFile { file ->
+                if (file.name.endsWith(".svg")) {
+                    String code = file.name.substring(7, file.name.length() - 4)
+                    while (true) {
+                        if (!codes.contains(code)) {
+                            out.println(code)
+                            codes.add(code)
+                        }
+                        int ub = code.lastIndexOf('_')
+                        if (ub == -1) {
+                            break
+                        }
+                        code = code.substring(0, ub)
+                    }
+                }
+            }
+            out.println("200d")
+            
+            emojiDir.eachFile { file ->
+                if (file.name.endsWith(".svg")) {
+                    String code = file.name.substring(7, file.name.length() - 4)
+                     code.split("_").each { c ->
+                        if (!codes.contains(c)) {
+                             codes.add(c)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+processResources.dependsOn generateEmojiIndex
