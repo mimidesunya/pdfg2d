@@ -39,14 +39,12 @@ task prepareEmoji(type: JavaExec) {
     // Let's compile it using `javac` then run `java`.
 }
 
-task downloadAndGenerateEmoji(type: Exec) {
+task setupEmoji(type: Exec) {
     def toolFile = file("BuildEmojiIndexTool.java")
     inputs.file toolFile
     workingDir projectDir
     
     commandLine 'cmd', '/c', 'javac -encoding UTF-8 BuildEmojiIndexTool.java && java -cp . BuildEmojiIndexTool'
 }
-
-processResources.dependsOn downloadAndGenerateEmoji
 
 
