@@ -44,7 +44,7 @@ task downloadAndGenerateEmoji(type: Exec) {
     inputs.file toolFile
     workingDir projectDir
     
-    commandLine 'cmd', '/c', 'javac BuildEmojiIndexTool.java && java BuildEmojiIndexTool'
+    commandLine 'cmd', '/c', 'javac -encoding UTF-8 BuildEmojiIndexTool.java && java -cp . BuildEmojiIndexTool'
 }
 
 processResources.dependsOn downloadAndGenerateEmoji
