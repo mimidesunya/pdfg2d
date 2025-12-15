@@ -20,6 +20,16 @@ import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 import net.zamasoft.pdfg2d.svg.SVGImage;
 
+/**
+ * Demonstrates rendering of a complex SVG image (Ghostscript Tiger) fetched
+ * from a URL.
+ * <p>
+ * This app downloads the Ghostscript Tiger SVG from Wikimedia Commons
+ * and renders it into a PDF page.
+ * </p>
+ * 
+ * @author MIYABE Tatsuhiko
+ */
 public class SVGTigerApp {
 	public static void main(String[] args) throws Exception {
 		String url = "https://upload.wikimedia.org/wikipedia/commons/f/fd/Ghostscript_Tiger.svg";
@@ -36,7 +46,8 @@ public class SVGTigerApp {
 		Dimension2D dim = ctx.getDocumentSize();
 		final SVGImage image = new SVGImage(gvtRoot, dim.getWidth(), dim.getHeight());
 
-		try (PDFWriter pdf = new PDFWriterImpl(new FileRandomBuilder(new File("out/svg-tiger.pdf")));
+		try (PDFWriter pdf = new PDFWriterImpl(
+				new FileRandomBuilder(new File(DemoUtils.getOutputDir(), "svg-tiger.pdf")));
 				PDFGC gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 			gc.drawImage(image);

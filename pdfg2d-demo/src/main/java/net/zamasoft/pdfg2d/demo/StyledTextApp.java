@@ -16,9 +16,19 @@ import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
+/**
+ * Demonstrates advanced styled text layout.
+ * <p>
+ * This app shows how to use PageLayoutGlyphHandler for justified text layout
+ * and mixing fonts/styles (Japanese serif and English sans-serif/italic).
+ * </p>
+ * 
+ * @author MIYABE Tatsuhiko
+ */
 public class StyledTextApp {
 	public static void main(String[] args) throws Exception {
-		try (PDFWriter pdf = new PDFWriterImpl(new FileRandomBuilder(new File("out/styled-text.pdf")));
+		try (PDFWriter pdf = new PDFWriterImpl(
+				new FileRandomBuilder(new File(DemoUtils.getOutputDir(), "styled-text.pdf")));
 				PDFGC gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));) {
 			gc.transform(AffineTransform.getTranslateInstance(PDFUtils.mmToPt(10), PDFUtils.mmToPt(10)));

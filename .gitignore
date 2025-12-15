@@ -27,5 +27,4 @@ Thumbs.db
 *.log
 
 # Generated output files
-draw.pdf
-draw.png
+output/

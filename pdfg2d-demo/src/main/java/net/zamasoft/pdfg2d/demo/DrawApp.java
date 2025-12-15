@@ -9,9 +9,19 @@ import java.io.File;
 import net.zamasoft.pdfg2d.PDFGraphics2D;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
+/**
+ * Demonstrates basic drawing using PDFGraphics2D.
+ * <p>
+ * This app draws a Mondrian-like composition using basic shapes (rectangles,
+ * lines)
+ * and colors via the high-level PDFGraphics2D API.
+ * </p>
+ * 
+ * @author MIYABE Tatsuhiko
+ */
 public class DrawApp {
 	public static void main(String[] args) throws Exception {
-		try (PDFGraphics2D g2d = new PDFGraphics2D(new File("out/draw.pdf"))) {
+		try (PDFGraphics2D g2d = new PDFGraphics2D(new File(DemoUtils.getOutputDir(), "draw.pdf"))) {
 			g2d.setColor(Color.WHITE);
 			g2d.fill(new Rectangle2D.Double(0, 0, PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 					PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));

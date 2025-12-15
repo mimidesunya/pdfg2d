@@ -9,9 +9,18 @@ import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
+/**
+ * Demonstrates multi-page PDF generation.
+ * <p>
+ * This app creates a PDF with multiple pages and draws content on each page.
+ * </p>
+ * 
+ * @author MIYABE Tatsuhiko
+ */
 public class PagesApp {
 	public static void main(String[] args) throws Exception {
-		try (PDFWriter pdf = new PDFWriterImpl(new FileRandomBuilder(new File("out/pages.pdf")))) {
+		try (PDFWriter pdf = new PDFWriterImpl(
+				new FileRandomBuilder(new File(DemoUtils.getOutputDir(), "pages.pdf")))) {
 			try (PDFGraphics2D g2d = new PDFGraphics2D(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 					PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 				g2d.setFont(new Font(Font.SERIF, Font.PLAIN, 38));
