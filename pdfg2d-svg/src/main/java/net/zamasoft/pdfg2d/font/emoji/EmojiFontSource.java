@@ -51,25 +51,32 @@ public class EmojiFontSource extends AbstractFontSource {
 		final var ctog = new HashMap<String, Integer>();
 		final var gtoc = new HashMap<Integer, String>();
 
-		try (final var zis = new ZipInputStream(
-				new BufferedInputStream(EmojiFontSource.class.getResourceAsStream("emoji.zip")))) {
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				if ("INDEX".equals(entry.getName())) {
-					// Read INDEX file containing emoji code mappings
-					final var in = new BufferedReader(new InputStreamReader(zis, StandardCharsets.ISO_8859_1));
-					int gid = 0;
-					for (String code = in.readLine(); code != null; code = in.readLine()) {
-						++gid;
-						ctog.put(code, gid);
-						gtoc.put(gid, code);
+		try (final var is = EmojiFontSource.class.getResourceAsStream("emoji.zip")) {
+			if (is != null) {
+				try (final var zis = new ZipInputStream(new BufferedInputStream(is))) {
+					ZipEntry entry;
+					while ((entry = zis.getNextEntry()) != null) {
+						if ("INDEX".equals(entry.getName())) {
+							// Read INDEX file containing emoji code mappings
+							final var in = new BufferedReader(new InputStreamReader(zis, StandardCharsets.ISO_8859_1));
+							int gid = 0;
+							for (String code = in.readLine(); code != null; code = in.readLine()) {
+								++gid;
+								ctog.put(code, gid);
+								gtoc.put(gid, code);
+							}
+							// Do not close 'in' as it would close the underlying ZipInputStream
+							break;
+						}
 					}
-					// Do not close 'in' as it would close the underlying ZipInputStream
-					break;
 				}
+			} else {
+				// System.err.println("Warning: emoji.zip not found. Emoji support will be
+				// disabled.");
 			}
 		} catch (final Exception e) {
-			throw new RuntimeException("Failed to load emoji index", e);
+			e.printStackTrace();
+			// Continue with empty maps
 		}
 
 		codeToFgid = Collections.unmodifiableMap(ctog);

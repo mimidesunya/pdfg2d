@@ -11,6 +11,7 @@ dependencies {
     implementation 'org.apache.xmlgraphics:batik-anim:1.16'
     implementation 'org.apache.xmlgraphics:batik-gvt:1.16'
     implementation 'xml-apis:xml-apis:1.4.01'
+    testImplementation 'org.apache.pdfbox:pdfbox:3.0.3'
 }
 
 publishing {

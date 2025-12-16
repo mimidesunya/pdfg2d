@@ -27,7 +27,7 @@ implementation 'io.github.mimidesunya:pdfg2d-pdf:1.2.0'
 ```
 
 ## List of features
-* Java 1.8 Support
+* Java 21 Support
 * PDF Versions
 	* 1.2 to 1.7
 	* PDF/A-1b
