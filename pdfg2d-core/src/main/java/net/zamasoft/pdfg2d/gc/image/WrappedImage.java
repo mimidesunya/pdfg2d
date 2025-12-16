@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.gc.image;
 
 /**
- * 画像を内包する画像です。
+ * Represents a wrapped image.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -9,10 +9,20 @@ package net.zamasoft.pdfg2d.gc.image;
 public abstract class WrappedImage implements Image {
 	protected final Image image;
 
-	public WrappedImage(Image image) {
+	/**
+	 * Creates a new WrappedImage.
+	 * 
+	 * @param image the image to wrap
+	 */
+	public WrappedImage(final Image image) {
 		this.image = image;
 	}
 
+	/**
+	 * Returns the wrapped image.
+	 * 
+	 * @return the image
+	 */
 	public Image getImage() {
 		return this.image;
 	}

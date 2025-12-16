@@ -4,7 +4,7 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
 /**
- * 描画可能なテキストです。
+ * Represents text that can be drawn.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

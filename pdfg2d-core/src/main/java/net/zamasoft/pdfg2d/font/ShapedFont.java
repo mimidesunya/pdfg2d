@@ -3,17 +3,17 @@ package net.zamasoft.pdfg2d.font;
 import java.awt.Shape;
 
 /**
- * フォントの字形を得られるフォントです。
+ * A font that can return the shape of a glyph.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface ShapedFont extends DrawableFont {
 	/**
-	 * フォントの字形を返します。
+	 * Returns the shape of a glyph.
 	 * 
-	 * @param gid
-	 * @return フォントの字形。
+	 * @param gid the glyph ID
+	 * @return the shape of the glyph
 	 */
 	public abstract Shape getShapeByGID(int gid);
 }

@@ -5,13 +5,20 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Default implementation of {@link FontStore}.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class DefaultFontStore implements FontStore, Serializable {
 	private static final long serialVersionUID = 0L;
 
-	private Map<FontSource, Font> fonts = new HashMap<FontSource, Font>();
+	private final Map<FontSource, Font> fonts = new HashMap<>();
 
-	public Font useFont(FontSource source) throws IOException {
-		Font font = (Font) this.fonts.get(source);
+	@Override
+	public Font useFont(final FontSource source) throws IOException {
+		var font = this.fonts.get(source);
 		if (font == null) {
 			font = source.createFont();
 			this.fonts.put(source, font);

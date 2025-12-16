@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.font;
 
 /**
- * 描画可能なフォントです。
+ * Represents a drawable font.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

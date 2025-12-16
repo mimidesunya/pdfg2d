@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.gc.text;
 
 /**
- * 文字列からグリフに変換するために文字列を処理します。
+ * Processes a string to convert it to glyphs.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

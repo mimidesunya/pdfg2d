@@ -5,6 +5,8 @@ import java.lang.Character.UnicodeBlock;
 import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
 
 /**
+ * Japanese hyphenation rules.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -13,82 +15,90 @@ public class JapaneseHyphenation implements Hyphenation {
 			"#$%&*+-/0123456789=@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\^_abcdefghijklmnopqrstuvwxyz|~");
 
 	/**
-	 * 半角英数字。
+	 * Half-width alphanumeric characters.
 	 */
-	private static final CharacterSet LATIN_OR_DIGIT = new CharacterSet() {
-		public boolean contains(char c) {
-			if (c > 0xFF) {
-				return false;
-			}
-			if (c > 0x7F) {
-				return true;
-			}
-			return ASCII.contains(c);
+	private static final CharacterSet LATIN_OR_DIGIT = c -> {
+		if (c > 0xFF) {
+			return false;
 		}
+		if (c > 0x7F) {
+			return true;
+		}
+		return ASCII.contains(c);
 	};
 
-	/** 行頭禁則和字(SPEC JIS-X4051 8.1.1 + 独自。 */
+	/**
+	 * Prohibited characters at the start of a line (SPEC JIS-X4051 8.1.1 + custom).
+	 */
 	private static final String GYOTO_KINSOKU = "～〜ヽヾゝゞ ー ァ ィ ゥ ェ ォ ッ ャ ュ ョ ヮ ヵ ヶ ぁ ぃ ぅ ぇ ぉ っ ゃ ゅ ょ ゎ ゕ ゖ ㇰ ㇱ ㇳ ㇲ ㇳ ㇴ ㇵ ㇶ ㇷ ㇸ ㇹ ㇺ ㇻ ㇼ ㇽ ㇾ ㇿ 々 〻\u3000・”";
-	/** 間違って行頭禁則とされてしまう圏点記号を除外。 */
+
+	/**
+	 * Exclude emphatic dots that are mistakenly treated as line-start prohibited.
+	 */
 	private static final String GYOTO_KINSOKU_EX = "\uFE45\uFE46";
 
 	/**
-	 * 行頭禁則処理。 SPEC JIS-X4051 7.3
+	 * Line-start prohibition processing. SPEC JIS-X4051 7.3
+	 * 
+	 * @param c the character to check
+	 * @return the character set required before the character
 	 */
-	protected CharacterSet requiresBefore(char c) {
-		// 行頭禁則
+	protected CharacterSet requiresBefore(final char c) {
+		// Line-start prohibition
 		if (GYOTO_KINSOKU.indexOf(c) != -1) {
 			return CharacterSet.ALL;
 		}
 		if (GYOTO_KINSOKU_EX.indexOf(c) != -1) {
 			return CharacterSet.NOTHING;
 		}
-		int type = Character.getType(c);
+		final int type = Character.getType(c);
 
-		switch (type) {
-		case Character.END_PUNCTUATION:
-		case Character.OTHER_PUNCTUATION:
-		case Character.MODIFIER_LETTER:
-		case Character.MODIFIER_SYMBOL:
-			// 終了括弧、区切り記号、修飾文字、修飾記号の前には文字が必要。
-			return CharacterSet.ALL;
-		}
-		return CharacterSet.NOTHING;
+		return switch (type) {
+			case Character.END_PUNCTUATION, Character.OTHER_PUNCTUATION, Character.MODIFIER_LETTER,
+					Character.MODIFIER_SYMBOL ->
+				// Characters required before closing parenthesis, delimiters, modifier letters,
+				// or modifier symbols.
+				CharacterSet.ALL;
+			default -> CharacterSet.NOTHING;
+		};
 	}
 
 	/**
-	 * 行末禁則処理。 SPEC JIS-X4051 7.4
+	 * Line-end prohibition processing. SPEC JIS-X4051 7.4
+	 * 
+	 * @param c the character to check
+	 * @return the character set required after the character
 	 */
-	protected CharacterSet requiresAfter(char c) {
-		int type = Character.getType(c);
+	protected CharacterSet requiresAfter(final char c) {
+		final int type = Character.getType(c);
 
 		if (c <= 0xFF || LATIN_OR_DIGIT.contains(c)) {
-			// 半角英数
+			// Half-width alphanumeric
 			switch (type) {
-			case Character.START_PUNCTUATION:
-				// 開始括弧の後には何らかの文字が必要。
-				return CharacterSet.ALL;
+				case Character.START_PUNCTUATION:
+					// Some character is required after an opening parenthesis.
+					return CharacterSet.ALL;
 
-			case Character.END_PUNCTUATION:
-				// 終了括弧の後には文字が不要。
-				return CharacterSet.NOTHING;
-
-			default:
-				if (c == '\u0020' || c == '-' || c == '!' || c == '?') {
-					// 区切りの後ではラップできる。
+				case Character.END_PUNCTUATION:
+					// No character is required after a closing parenthesis.
 					return CharacterSet.NOTHING;
-				}
-				// 英数字の後には英数字が必要。
-				return LATIN_OR_DIGIT;
+
+				default:
+					if (c == '\u0020' || c == '-' || c == '!' || c == '?') {
+						// Can wrap after a delimiter.
+						return CharacterSet.NOTHING;
+					}
+					// Alphanumeric characters require alphanumeric characters after them.
+					return LATIN_OR_DIGIT;
 			}
 		} else {
-			// その他の文字
+			// Other characters
 			switch (type) {
-			case Character.START_PUNCTUATION:
-				// 開始括弧の後には何らかの文字が必要。
-				return CharacterSet.ALL;
+				case Character.START_PUNCTUATION:
+					// Some character is required after an opening parenthesis.
+					return CharacterSet.ALL;
 			}
-			// ダッシュ等
+			// Dash, etc.
 			if (c == '─' || c == '“') {
 				return CharacterSet.ALL;
 			}
@@ -96,11 +106,13 @@ public class JapaneseHyphenation implements Hyphenation {
 		return CharacterSet.NOTHING;
 	}
 
-	public boolean atomic(char c1, char c2) {
+	@Override
+	public boolean atomic(final char c1, final char c2) {
 		return this.requiresAfter(c1).contains(c2) || this.requiresBefore(c2).contains(c1);
 	}
 
-	public boolean canSeparate(char c1, char c2) {
+	@Override
+	public boolean canSeparate(final char c1, final char c2) {
 		if (Character.isWhitespace(c1) || Character.isWhitespace(c2)) {
 			return c1 != '\u3000';
 		}
@@ -110,8 +122,8 @@ public class JapaneseHyphenation implements Hyphenation {
 		return false;
 	}
 
-	protected boolean isCJK(char c) {
-		UnicodeBlock b = UnicodeBlock.of(c);
+	protected boolean isCJK(final char c) {
+		final UnicodeBlock b = UnicodeBlock.of(c);
 		if (b == null) {
 			return true;
 		}

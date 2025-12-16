@@ -6,54 +6,80 @@ package net.zamasoft.pdfg2d.gc.font;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
+/**
+ * Represents font style attributes.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public interface FontStyle {
 	/**
-	 * 描画方向です。DIRECTION_XXXの値を使用します。
+	 * Returns the writing direction.
+	 * 
+	 * @return the direction
 	 */
 	public Direction getDirection();
 
-	public static enum Direction {
+	/**
+	 * Represents the writing direction.
+	 */
+	public enum Direction {
 		LTR, RTL, TB
 	}
 
 	/**
-	 * フォントのウェイトです。WIGHT_XXX定数を使用します。
+	 * Returns the font weight.
+	 * 
+	 * @return the font weight
 	 */
 	public Weight getWeight();
 
-	public static enum Weight {
-		W_100((short)100),W_200((short)200),W_300((short)300),W_400((short)400),W_500((short)500),W_600((short)600),W_700((short)70),W_800((short)800),W_900((short)900);
+	/**
+	 * Represents the font weight.
+	 */
+	public enum Weight {
+		W_100((short) 100), W_200((short) 200), W_300((short) 300), W_400((short) 400), W_500((short) 500),
+		W_600((short) 600), W_700((short) 700), W_800((short) 800), W_900((short) 900);
 
 		public final short w;
 
-		private Weight(short w) {
+		private Weight(final short w) {
 			this.w = w;
 		}
 	}
 
 	/**
-	 * フォントのスタイルです。STYLE_XXX定数を使用します。
+	 * Returns the font style (e.g., normal, italic).
+	 * 
+	 * @return the font style
 	 */
 	public Style getStyle();
-	
-	public static enum Style {
+
+	/**
+	 * Represents the font style.
+	 */
+	public enum Style {
 		NORMAL, ITALIC, OBLIQUE;
 	}
 
 	/**
-	 * フォントファミリです。
+	 * Returns the font family list.
+	 * 
+	 * @return the font family list
 	 */
 	public FontFamilyList getFamily();
 
 	/**
-	 * フォントの大きさです。
+	 * Returns the font size.
+	 * 
+	 * @return the font size
 	 */
 	public double getSize();
 
 	/**
-	 * フォントの埋め込みポリシーです。
+	 * Returns the font policy list.
 	 * 
-	 * @return
+	 * @return the font policy list
 	 */
 	public FontPolicyList getPolicy();
 }

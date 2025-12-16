@@ -8,65 +8,69 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
+ * Represents a font.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface Font extends Serializable {
 	/**
-	 * フォントソースを返します。
+	 * Returns the font source.
 	 * 
-	 * @return
+	 * @return the font source
 	 */
 	public FontSource getFontSource();
 
 	/**
-	 * 文字をグリフコードに変換します。
+	 * Converts a character to a glyph ID (GID).
 	 * 
-	 * @param c
-	 * @return
+	 * @param c the character to convert
+	 * @return the glyph ID
 	 */
 	public int toGID(int c);
 
 	/**
-	 * グリフの進行方向の進行幅を返します。
+	 * Returns the advance width of the glyph.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid the glyph ID
+	 * @return the advance width
 	 */
 	public short getAdvance(int gid);
 
 	/**
-	 * グリフの進行方向の横幅を返します。
+	 * Returns the width of the glyph.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid the glyph ID
+	 * @return the width
 	 */
 	public short getWidth(int gid);
 
 	/**
-	 * グリフのカーニングを返します。
+	 * Returns the kerning value between two glyphs.
 	 * 
-	 * @param sgid
-	 * @param gid
-	 * @return
+	 * @param sgid the previous glyph ID
+	 * @param gid  the current glyph ID
+	 * @return the kerning value
 	 */
 	public short getKerning(int sgid, int gid);
 
 	/**
-	 * 合字を返します。 合字が存在しない場合は0を返します。
+	 * Returns the ligature for a sequence of glyphs.
+	 * Returns 0 if no ligature exists.
 	 * 
-	 * @param gid
-	 * @param cid
-	 * @return
+	 * @param gid the glyph ID
+	 * @param cid the character ID
+	 * @return the ligature glyph ID, or 0
 	 */
 	public int getLigature(int gid, int cid);
 
 	/**
-	 * ランをグラフィックコンテキストに出力します。
+	 * Draws the text run to the graphics context.
 	 * 
-	 * @param gc
-	 * @param text
-	 * @throws IOException
+	 * @param gc   the graphics context
+	 * @param text the text to draw
+	 * @throws IOException       if an I/O error occurs
+	 * @throws GraphicsException if a graphics error occurs
 	 */
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException;
 }

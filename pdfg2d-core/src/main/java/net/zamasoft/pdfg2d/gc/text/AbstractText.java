@@ -1,25 +1,27 @@
 package net.zamasoft.pdfg2d.gc.text;
 
 /**
- * 描画可能なテキストです。
+ * Represents a text that can be drawn.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public abstract class AbstractText implements Text {
+	@Override
 	public Type getElementType() {
 		return Type.TEXT;
 	}
 
-	public void toGlyphs(GlyphHandler gh) {
-		int glen = this.getGLen();
+	@Override
+	public void toGlyphs(final GlyphHandler gh) {
+		final int glen = this.getGLen();
 		int charOffset = this.getCharOffset();
 		gh.startTextRun(charOffset, this.getFontStyle(), this.getFontMetrics());
-		byte[] clens = this.getCLens();
-		char[] ch = this.getChars();
-		int[] gids = this.getGIDs();
+		final byte[] clens = this.getCLens();
+		final char[] ch = this.getChars();
+		final int[] gids = this.getGIDs();
 		for (int i = 0, coff = 0; i < glen; ++i) {
-			byte clen = clens[i];
+			final byte clen = clens[i];
 			gh.glyph(charOffset, ch, coff, clen, gids[i]);
 			coff += clen;
 			charOffset += clen;
@@ -28,17 +30,18 @@ public abstract class AbstractText implements Text {
 	}
 
 	/**
-	 * テキストを文字列として返します。
+	 * Returns the text as a string.
 	 */
+	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		final StringBuilder buff = new StringBuilder();
 		buff.append("[Text]");
 		buff.append(this.getChars(), 0, this.getCLen());
 		buff.append("[");
-		int glen = this.getGLen();
-		int[] gids = this.getGIDs();
+		final int glen = this.getGLen();
+		final int[] gids = this.getGIDs();
 		for (int i = 0; i < glen; ++i) {
-			int gid = gids[i];
+			final int gid = gids[i];
 			if (i > 0) {
 				buff.append(',');
 			}

@@ -4,37 +4,38 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 
 /**
- * 画像です。
+ * Represents an image.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface Image {
 	/**
-	 * 画像の幅を返します。
+	 * Returns the image width.
 	 * 
-	 * @return
+	 * @return the width
 	 */
 	public double getWidth();
 
 	/**
-	 * 画像の高さを返します。
+	 * Returns the image height.
 	 * 
-	 * @return
+	 * @return the height
 	 */
 	public double getHeight();
 
 	/**
-	 * 画像を描画します。
+	 * Draws the image.
 	 * 
-	 * @param gc
+	 * @param gc the graphics context
+	 * @throws GraphicsException if a graphics error occurs
 	 */
-	public void drawTo(GC gc) throws GraphicsException;
+	public void drawTo(final GC gc) throws GraphicsException;
 
 	/**
-	 * 画像に相当する文字列を返します。
+	 * Returns the alternative string for the image.
 	 * 
-	 * @return
+	 * @return the alternative string
 	 */
 	public String getAltString();
 }

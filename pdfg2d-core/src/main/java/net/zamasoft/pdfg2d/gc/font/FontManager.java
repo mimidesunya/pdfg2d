@@ -11,10 +11,33 @@ import net.zamasoft.pdfg2d.gc.text.Glypher;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
+/**
+ * Decomposes text into multiple glyphs.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public interface FontManager extends Serializable {
+	/**
+	 * Adds a font face.
+	 * 
+	 * @param face the font face to add
+	 * @throws IOException if an I/O error occurs
+	 */
 	public void addFontFace(FontFace face) throws IOException;
 
+	/**
+	 * Returns the font list metrics for the specified font style.
+	 * 
+	 * @param fontStyle the font style
+	 * @return the font list metrics
+	 */
 	public FontListMetrics getFontListMetrics(FontStyle fontStyle);
 
+	/**
+	 * Returns a glypher for breaking text into glyphs.
+	 * 
+	 * @return the glypher
+	 */
 	public Glypher getGlypher();
 }

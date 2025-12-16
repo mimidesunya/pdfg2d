@@ -48,16 +48,17 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 
 	private FontStyle fontStyle;
 
-	public TextLayoutHandler(GC gc, Hyphenation hyphenation, GlyphHandler glyphHandler) {
+	public TextLayoutHandler(final GC gc, final Hyphenation hyphenation, final GlyphHandler glyphHandler) {
 		this.gc = gc;
-		FilterGlyphHandler textUnitizer = new TextUnitizer(hyphenation);
+		final FilterGlyphHandler textUnitizer = new TextUnitizer(hyphenation);
 		textUnitizer.setGlyphHandler(glyphHandler);
-		Glypher glypher = gc.getFontManager().getGlypher();
+		final Glypher glypher = gc.getFontManager().getGlypher();
 		glypher.setGlyphHander(textUnitizer);
 		this.setCharacterHandler(glypher);
 	}
 
-	public void fontStyle(FontStyle fontStyle) {
+	@Override
+	public void fontStyle(final FontStyle fontStyle) {
 		this.fontStyle = fontStyle;
 		this.styleChanged = false;
 		super.fontStyle(fontStyle);
@@ -71,23 +72,23 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 	private static final Set<TextAttribute> ATTRIBUTES = new HashSet<TextAttribute>(Arrays.asList(new TextAttribute[] {
 			TextAttribute.FAMILY, TextAttribute.WEIGHT, TextAttribute.SIZE, TextAttribute.POSTURE }));
 
-	public void characters(AttributedCharacterIterator aci) {
-		FontFamilyList defaultFamily = this.fontFamilies;
-		double defaultSize = this.size;
-		Weight defaultWeight = this.weight;
-		Style defaultStyle = this.style;
-		Direction defaultDirection = this.direction;
+	public void characters(final AttributedCharacterIterator aci) {
+		final FontFamilyList defaultFamily = this.fontFamilies;
+		final double defaultSize = this.size;
+		final Weight defaultWeight = this.weight;
+		final Style defaultStyle = this.style;
+		final Direction defaultDirection = this.direction;
 		while (aci.current() != CharacterIterator.DONE) {
 			this.setFontFamilies(
 					TextUtils.toFontFamilyList((String) aci.getAttribute(TextAttribute.FAMILY), defaultFamily));
 			this.setFontWeight(TextUtils.toFontWeight((Float) aci.getAttribute(TextAttribute.WEIGHT), defaultWeight));
 			this.setFontSize(TextUtils.toFontSize((Float) aci.getAttribute(TextAttribute.SIZE), defaultSize));
 			this.setFontStyle(TextUtils.toFontStyle((Float) aci.getAttribute(TextAttribute.POSTURE), defaultStyle));
-			Direction direction = (Direction) aci.getAttribute(TextUtils.WRITING_MODE);
+			final Direction direction = (Direction) aci.getAttribute(TextUtils.WRITING_MODE);
 			this.setDirection(direction == null ? defaultDirection : direction);
 
-			int nextRun = aci.getRunLimit(ATTRIBUTES);
-			int len = nextRun - aci.getIndex();
+			final int nextRun = aci.getRunLimit(ATTRIBUTES);
+			final int len = nextRun - aci.getIndex();
 			if (len > this.ch.length) {
 				this.ch = new char[len];
 			}
@@ -112,24 +113,25 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		}
 	}
 
-	public void characters(int charOffset, char[] ch, int off, int len) {
+	@Override
+	public void characters(final int charOffset, final char[] ch, final int off, final int len) {
 		if (len == 0) {
 			return;
 		}
 		this.applyStyle();
 		int ooff = 0;
 		for (int i = 0; i < len; ++i) {
-			char c = ch[i + off];
+			final char c = ch[i + off];
 			Quad quad = null;
 			if (Character.isISOControl(c)) {
-				FontListMetrics flm = this.gc.getFontManager().getFontListMetrics(this.fontStyle);
+				final FontListMetrics flm = this.gc.getFontManager().getFontListMetrics(this.fontStyle);
 				switch (c) {
-				case '\n':
-					quad = new LineBreak(flm, i);
-					break;
-				case '\t':
-					quad = new Tab(flm, i);
-					break;
+					case '\n':
+						quad = new LineBreak(flm, i);
+						break;
+					case '\t':
+						quad = new Tab(flm, i);
+						break;
 				}
 				if (quad != null) {
 					if (i > ooff) {
@@ -151,7 +153,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.styleChanged = true;
 	}
 
-	public void setFontFamilies(FontFamilyList families) {
+	public void setFontFamilies(final FontFamilyList families) {
 		if (this.fontFamilies.equals(families)) {
 			return;
 		}
@@ -159,7 +161,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.fontFamilies = families;
 	}
 
-	public void setFontSize(double size) {
+	public void setFontSize(final double size) {
 		if (this.size == size) {
 			return;
 		}
@@ -167,7 +169,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.size = size;
 	}
 
-	public void setFontStyle(Style style) {
+	public void setFontStyle(final Style style) {
 		if (this.style == style) {
 			return;
 		}
@@ -175,7 +177,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.style = style;
 	}
 
-	public void setFontWeight(Weight weight) {
+	public void setFontWeight(final Weight weight) {
 		if (this.weight == weight) {
 			return;
 		}
@@ -183,7 +185,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.weight = weight;
 	}
 
-	public void setDirection(Direction direction) {
+	public void setDirection(final Direction direction) {
 		if (this.direction == direction) {
 			return;
 		}
@@ -191,7 +193,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.direction = direction;
 	}
 
-	public void setFontPolicy(FontPolicyList fontPolicy) {
+	public void setFontPolicy(final FontPolicyList fontPolicy) {
 		if (this.fontPolicy.equals(fontPolicy)) {
 			return;
 		}
@@ -199,8 +201,8 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		this.fontPolicy = fontPolicy;
 	}
 
-	public void characters(String text) throws GraphicsException {
-		char[] ch = text.toCharArray();
+	public void characters(final String text) throws GraphicsException {
+		final char[] ch = text.toCharArray();
 		this.characters(-1, ch, 0, ch.length);
 	}
 }

@@ -20,41 +20,41 @@ import net.zamasoft.pdfg2d.gc.text.layout.control.Tab;
 
 public class PageLayoutGlyphHandler implements GlyphHandler {
 	/**
-	 * タブの幅です。
+	 * Tab width.
 	 */
 	private static final double TAB_WIDTH = 24.0;
 
-	/** 描画先です。 */
+	/** The graphics context to draw to. */
 	private GC gc;
 
-	/** 文字の方向です。 */
+	/** Text direction. */
 	private Direction direction = Direction.LTR;
 
-	/** 行幅です。 */
+	/** Line height. */
 	private double lineHeight = 1.2;
 
-	/** 最大行幅です。 */
+	/** Max line advance (width). */
 	private double lineAdvance = Double.MAX_VALUE;
 
-	/** 最大ページ方向幅です。 */
+	/** Max page advance (height). */
 	private double pageAdvance = Double.MAX_VALUE;
 
-	/** 実際の描画領域の最大行幅です。 */
+	/** Actual max line advance of the drawing area. */
 	private double maxLineAdvance = 0;
 
-	/** 実際の描画領域の最後の行幅です。 */
+	/** Actual last line advance of the drawing area. */
 	private double lastLineAdvance = 0;
 
-	/** 実際の描画領域の最大ページ方向幅です。 */
+	/** Actual max page advance of the drawing area. */
 	private double maxPageAdvance = 0;
 
-	public static enum FloatPosition {
+	public enum FloatPosition {
 		NONE, TOP_RIGHT
 	}
 
 	private FloatPosition floatPosition = FloatPosition.NONE;
 
-	public static enum Alignment {
+	public enum Alignment {
 		START, END, CENTER, JUSTIFY;
 	}
 
@@ -70,7 +70,10 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private int column = 0;
 
-	private List<Object> buffer = new ArrayList<Object>();
+	private record LineBufferItem(Element[] elements, boolean last) {
+	}
+
+	private List<LineBufferItem> buffer = new ArrayList<>();
 
 	private Element[] elements;
 
@@ -78,7 +81,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private TextImpl text = null;
 
-	private List<Element> textBuffer = new ArrayList<Element>();
+	private final List<Element> textBuffer = new ArrayList<>();
 
 	private double letterSpacing = 0;
 
@@ -92,7 +95,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private double fontSize = 0;
 
-	public PageLayoutGlyphHandler(GC gc) {
+	public PageLayoutGlyphHandler(final GC gc) {
 		this.gc = gc;
 	}
 
@@ -100,7 +103,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.gc;
 	}
 
-	public void setGC(GC gc) {
+	public void setGC(final GC gc) {
 		this.gc = gc;
 	}
 
@@ -108,7 +111,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.direction;
 	}
 
-	public void setDirection(Direction direction) {
+	public void setDirection(final Direction direction) {
 		this.direction = direction;
 	}
 
@@ -116,7 +119,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.align;
 	}
 
-	public void setAlign(Alignment align) {
+	public void setAlign(final Alignment align) {
 		this.align = align;
 	}
 
@@ -124,7 +127,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.lineHeight;
 	}
 
-	public void setLineHeight(double lineHeight) {
+	public void setLineHeight(final double lineHeight) {
 		this.lineHeight = lineHeight;
 	}
 
@@ -132,7 +135,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.letterSpacing;
 	}
 
-	public void setLetterSpacing(double letterSpacing) {
+	public void setLetterSpacing(final double letterSpacing) {
 		this.letterSpacing = letterSpacing;
 	}
 
@@ -140,7 +143,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.pageAdvance;
 	}
 
-	public void setPageAdvance(double pageAdvance) {
+	public void setPageAdvance(final double pageAdvance) {
 		this.pageAdvance = pageAdvance;
 	}
 
@@ -148,7 +151,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.columnCount;
 	}
 
-	public void setColumnCount(int columnCount) {
+	public void setColumnCount(final int columnCount) {
 		this.columnCount = columnCount;
 	}
 
@@ -156,11 +159,11 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.columnGap;
 	}
 
-	public void setColumnGap(double columnGap) {
+	public void setColumnGap(final double columnGap) {
 		this.columnGap = columnGap;
 	}
 
-	public void setLineAdvance(double lineAdvance) {
+	public void setLineAdvance(final double lineAdvance) {
 		this.lineAdvance = lineAdvance;
 	}
 
@@ -190,7 +193,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.justifyPage;
 	}
 
-	public void setJustifyPage(boolean justifyPage) {
+	public void setJustifyPage(final boolean justifyPage) {
 		this.justifyPage = justifyPage;
 	}
 
@@ -198,17 +201,17 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		return this.fontSize;
 	}
 
-	public void setFontSize(double fontSize) {
+	public void setFontSize(final double fontSize) {
 		this.fontSize = fontSize;
 	}
 
-	public void setFloat(FloatPosition position, double width, double height) {
+	public void setFloat(final FloatPosition position, final double width, final double height) {
 		this.floatPosition = position;
 		this.floatWidth = width;
 		this.floatHeight = height;
 	}
 
-	private void endLine(boolean last) {
+	private void endLine(final boolean last) {
 		double advance;
 		if (last) {
 			int elementCount = this.textBuffer.size();
@@ -217,7 +220,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			}
 			this.elements = new Element[elementCount];
 			for (int i = 0; i < this.textBuffer.size(); ++i) {
-				this.elements[i] = (Element) this.textBuffer.get(i);
+				this.elements[i] = this.textBuffer.get(i);
 			}
 			if (this.text != null) {
 				this.text.pack();
@@ -241,36 +244,34 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				}
 			}
 			this.elements = new Element[elementCount];
-			Iterator<Element> i = this.textBuffer.iterator();
+			final Iterator<Element> i = this.textBuffer.iterator();
 			for (int j = 0; j < count; ++j) {
-				Element e = (Element) i.next();
+				final Element e = i.next();
 				this.elements[j] = e;
 				advance += e.getAdvance();
 				i.remove();
 			}
 			if (this.text != null && this.text.getGLen() > this.textUnitGlyphCount) {
-				int pos = this.text.getGLen() - this.textUnitGlyphCount;
-				Element e = this.text.split(pos);
+				final int pos = this.text.getGLen() - this.textUnitGlyphCount;
+				final Element e = this.text.split(pos);
 				this.elements[elementCount - 1] = e;
 				advance += e.getAdvance();
 			}
 
-			// 両あわせ
+			// Justify
 			if (this.align == Alignment.JUSTIFY) {
-				// TODO ハイフネーション
+				// TODO Hyphenation
 				int glyphCount = 0;
-				for (int j = 0; j < this.elements.length; ++j) {
-					Element e = this.elements[j];
+				for (final Element e : this.elements) {
 					if (e.getElementType() == Type.TEXT) {
 						glyphCount += ((Text) e).getGLen();
 					}
 				}
 				if (glyphCount >= 2) {
-					double letterSpacing = (this.getMaxAdvance() - advance) / (double) (glyphCount - 1);
-					for (int j = 0; j < this.elements.length; ++j) {
-						Element e = this.elements[j];
+					final double letterSpacing = (this.getMaxAdvance() - advance) / (double) (glyphCount - 1);
+					for (final Element e : this.elements) {
 						if (e.getElementType() == Type.TEXT) {
-							TextImpl t = (TextImpl) e;
+							final TextImpl t = (TextImpl) e;
 							t.setLetterSpacing(t.getLetterSpacing() + letterSpacing);
 						}
 					}
@@ -281,16 +282,16 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		// assert (advance <= this.getMaxAdvance()) : this.textUnitElementCount
 		// + "/" + this.textUnitGlyphCount;
 
-		// アセント・ディセントを算出
-		double maxAscent = 0, maxDescent = 0;
-		for (int i = 0; i < this.elements.length; ++i) {
-			Element e = this.elements[i];
+		// Calculate ascent/descent
+		double maxAscent = 0;
+		double maxDescent = 0;
+		for (final Element e : this.elements) {
 			if (e.getElementType() == Type.TEXT) {
-				Text text = (Text) e;
+				final Text text = (Text) e;
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
 			} else {
-				Control control = (Control) e;
+				final Control control = (Control) e;
 				maxAscent = Math.max(maxAscent, control.getAscent());
 				maxDescent = Math.max(maxDescent, control.getDescent());
 			}
@@ -299,16 +300,16 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			maxDescent = this.fontSize - maxAscent;
 		}
 
-		// ページ方向の進行幅を求める
-		double lineMargin = (maxAscent + maxDescent) * (this.lineHeight - 1) / 2.0;
+		// Calculate page direction advance
+		final double lineMargin = (maxAscent + maxDescent) * (this.lineHeight - 1) / 2.0;
 		double pageAdvance1 = maxAscent + lineMargin;
-		double pageAdvance2 = maxDescent + lineMargin + this.lineFactor;
+		final double pageAdvance2 = maxDescent + lineMargin + this.lineFactor;
 
 		if (compare(this.pageOffset + pageAdvance1 + pageAdvance2, this.pageAdvance) > 0) {
-			// 描画
+			// Draw
 			this.endColumn();
 
-			// カラム移動
+			// Move column
 			++this.column;
 			if (this.column >= this.columnCount) {
 				this.overflow();
@@ -316,37 +317,36 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				this.pageOffset = 0;
 				this.lineOffset += (this.getMaxAdvance() + this.columnGap);
 			}
-			this.buffer = new ArrayList<Object>();
+			this.buffer = new ArrayList<>();
 			pageAdvance1 = maxAscent;
 		}
 
-		// 記録
-		this.buffer.add(this.elements);
-		this.buffer.add(Boolean.valueOf(last));
+		// Record
+		this.buffer.add(new LineBufferItem(this.elements, last));
 
-		// 行送り
+		// Line feed
 		this.pageOffset += pageAdvance1 + pageAdvance2;
 	}
 
-	public static int compare(double a, double b) {
-		double diff = a - b;
+	public static int compare(final double a, final double b) {
+		final double diff = a - b;
 		if (diff < .1 && diff > -.1) {
 			return 0;
 		}
 		return a < b ? -1 : 1;
 	}
 
-	private void drawLine(Element[] elements, boolean last) {
-		// アセント・ディセントを算出
-		double maxAscent = 0, maxDescent = 0;
-		for (int i = 0; i < elements.length; ++i) {
-			Element e = elements[i];
+	private void drawLine(final Element[] elements, final boolean last) {
+		// Calculate ascent/descent
+		double maxAscent = 0;
+		double maxDescent = 0;
+		for (final Element e : elements) {
 			if (e.getElementType() == Type.TEXT) {
-				Text text = (Text) e;
+				final Text text = (Text) e;
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
 			} else {
-				Control control = (Control) e;
+				final Control control = (Control) e;
 				maxAscent = Math.max(maxAscent, control.getAscent());
 				maxDescent = Math.max(maxDescent, control.getDescent());
 			}
@@ -355,33 +355,33 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			maxDescent = this.fontSize - maxAscent;
 		}
 
-		// ページ方向の進行幅を求める
-		double lineMargin = (maxAscent + maxDescent) * (this.lineHeight - 1) / 2.0;
-		double pageAdvance1 = maxAscent + lineMargin;
-		double pageAdvance2 = maxDescent + lineMargin + this.lineFactor;
+		// Calculate page direction advance
+		final double lineMargin = (maxAscent + maxDescent) * (this.lineHeight - 1) / 2.0;
+		final double pageAdvance1 = maxAscent + lineMargin;
+		final double pageAdvance2 = maxDescent + lineMargin + this.lineFactor;
 		this.pageOffset += pageAdvance1;
 
-		// 現在位置を算出
-		double lineAxis, pageAxis;
+		// Calculate current position
+		double lineAxis;
+		double pageAxis;
 		switch (this.direction) {
-		case LTR:
-		case RTL:// TODO RTL
-			// 横書き
-			lineAxis = this.lineOffset;
-			pageAxis = this.pageOffset;
-			break;
-		case TB:
-			// 縦書き
-			lineAxis = this.lineOffset;
-			pageAxis = -this.pageOffset;
-			break;
-		default:
-			throw new IllegalStateException();
+			case LTR:
+			case RTL:// TODO RTL
+				// Horizontal writing
+				lineAxis = this.lineOffset;
+				pageAxis = this.pageOffset;
+				break;
+			case TB:
+				// Vertical writing
+				lineAxis = this.lineOffset;
+				pageAxis = -this.pageOffset;
+				break;
+			default:
+				throw new IllegalStateException();
 		}
 		if (this.align == Alignment.END || this.align == Alignment.CENTER) {
 			double advance = 0;
-			for (int i = 0; i < elements.length; ++i) {
-				Element e = elements[i];
+			for (final Element e : elements) {
 				advance += e.getAdvance();
 			}
 			if (this.align == Alignment.END) {
@@ -391,28 +391,27 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			}
 		}
 
-		// 描画
-		for (int i = 0; i < elements.length; ++i) {
-			Element e = elements[i];
+		// Draw
+		for (final Element e : elements) {
 			if (this.gc != null && e.getElementType() == Type.TEXT) {
-				Text text = (Text) e;
+				final Text text = (Text) e;
 				switch (this.direction) {
-				case LTR:
-				case RTL:
-					// 横書き
-					this.gc.drawText(text, lineAxis, pageAxis);
-					break;
-				case TB:
-					// 縦書き
-					this.gc.drawText(text, pageAxis, lineAxis);
-					break;
-				default:
-					throw new IllegalArgumentException();
+					case LTR:
+					case RTL:
+						// Horizontal writing
+						this.gc.drawText(text, lineAxis, pageAxis);
+						break;
+					case TB:
+						// Vertical writing
+						this.gc.drawText(text, pageAxis, lineAxis);
+						break;
+					default:
+						throw new IllegalArgumentException();
 				}
 			}
 			lineAxis += e.getAdvance();
 		}
-		// 行送り
+		// Line feed
 		this.pageOffset += pageAdvance2;
 		this.maxLineAdvance = Math.max(this.maxLineAdvance, this.lastLineAdvance = lineAxis);
 		this.maxPageAdvance = Math.max(this.maxPageAdvance, this.pageOffset);
@@ -423,18 +422,21 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.column = 0;
 	}
 
-	public void startTextRun(int charOffset, FontStyle fontStyle, FontMetrics fontMetrics) {
+	@Override
+	public void startTextRun(final int charOffset, final FontStyle fontStyle, final FontMetrics fontMetrics) {
 		this.checkText();
 		this.text = new TextImpl(charOffset, fontStyle, fontMetrics);
 		this.text.setLetterSpacing(this.letterSpacing);
 	}
 
-	public void glyph(int charOffset, char[] ch, int coff, byte clen, int gid) {
+	@Override
+	public void glyph(final int charOffset, final char[] ch, final int coff, final byte clen, final int gid) {
 		this.advance += this.text.appendGlyph(ch, coff, clen, gid);
 		this.advance += this.letterSpacing;
 		++this.textUnitGlyphCount;
 	}
 
+	@Override
 	public void endTextRun() {
 		assert this.text.getGLen() > 0;
 	}
@@ -449,24 +451,25 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		}
 	}
 
-	public void quad(Quad quad) {
-		Control control = (Control) quad;
+	@Override
+	public void quad(final Quad quad) {
+		final Control control = (Control) quad;
 		switch (control.getControlChar()) {
-		case '\n':
-			this.endLine(true);
-			this.textUnitElementCount = 0;
-			this.textUnitGlyphCount = 0;
-			break;
+			case '\n':
+				this.endLine(true);
+				this.textUnitElementCount = 0;
+				this.textUnitGlyphCount = 0;
+				break;
 
-		case '\t':
-			// タブ文字
-			Tab tab = (Tab) control;
-			tab.advance = (TAB_WIDTH - (this.advance % TAB_WIDTH));
-			if (this.advance + tab.advance > this.getMaxAdvance()) {
-				this.endLine(false);
-				tab.advance = TAB_WIDTH;
-			}
-			break;
+			case '\t':
+				// Tab character
+				final Tab tab = (Tab) control;
+				tab.advance = (TAB_WIDTH - (this.advance % TAB_WIDTH));
+				if (this.advance + tab.advance > this.getMaxAdvance()) {
+					this.endLine(false);
+					tab.advance = TAB_WIDTH;
+				}
+				break;
 		}
 		this.checkText();
 		this.textBuffer.add(quad);
@@ -474,6 +477,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.advance += quad.getAdvance();
 	}
 
+	@Override
 	public void flush() {
 		if (this.advance > this.getMaxAdvance()) {
 			this.endLine(false);
@@ -484,21 +488,20 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	private void endColumn() {
 		if (this.justifyPage && this.columnCount > 1) {
-			// ページ方向両あわせ
+			// Vertical justification
 			this.lineFactor = (this.pageAdvance - this.pageOffset) / (this.buffer.size() / 2 - 1);
 		}
 
-		List<Object> list = this.buffer;
+		final List<LineBufferItem> list = this.buffer;
 		this.buffer = null;
 		this.pageOffset = 0;
-		for (int i = 0; i < list.size(); ++i) {
-			Element[] elements = (Element[]) list.get(i);
-			Boolean last = (Boolean) list.get(++i);
-			this.drawLine(elements, last.booleanValue());
+		for (final LineBufferItem item : list) {
+			this.drawLine(item.elements(), item.last());
 		}
 		this.lineFactor = 0;
 	}
 
+	@Override
 	public void close() {
 		this.endLine(true);
 		this.endColumn();

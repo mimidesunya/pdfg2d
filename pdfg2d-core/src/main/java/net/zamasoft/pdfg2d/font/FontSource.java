@@ -11,105 +11,121 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
+/**
+ * Represents a source of a font, such as a TTF file or a system font.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public interface FontSource extends Serializable {
 	/**
-	 * フォント名を返します。
+	 * Returns the font name.
 	 * 
-	 * @return
+	 * @return the font name
 	 */
 	public String getFontName();
 
 	/**
-	 * フォントの別名を列挙します。
+	 * Returns the aliases of the font.
 	 * 
-	 * @return
+	 * @return an array of aliases
 	 */
 	public String[] getAliases();
 
 	/**
-	 * 描画方向を返します。
+	 * Returns the direction of the font.
 	 * 
-	 * @return FontStyle.DIRECTION_XX値。
+	 * @return the direction
 	 */
 	public Direction getDirection();
 
 	/**
-	 * @return 斜体であればtrue。
+	 * Returns whether the font is italic.
+	 * 
+	 * @return true if italic, false otherwise
 	 */
 	public boolean isItalic();
 
 	/**
-	 * @return フォントのウェイト。
+	 * Returns the weight of the font.
+	 * 
+	 * @return the font weight
 	 */
 	public Weight getWeight();
 
 	/**
-	 * デフォルトの1em当たりのユニット数です。 CFFの出力もこのユニット数を基準にします。
+	 * The default units per em. CFF output is based on this unit count.
 	 */
 	public static final short DEFAULT_UNITS_PER_EM = 1000;
 
 	/**
-	 * 文字を表示可能であればtrueを返します。
+	 * Returns whether the character can be displayed.
 	 * 
-	 * @param c
-	 * @return
+	 * @param c the character to check
+	 * @return true if displayable, false otherwise
 	 */
 	public boolean canDisplay(int c);
 
 	/**
-	 * @return バウンディングボックス。
+	 * Returns the bounding box of the font.
+	 * 
+	 * @return the bounding box
 	 */
 	public BBox getBBox();
 
 	/**
-	 * ベースラインの上の高さを返します。
+	 * Returns the ascent of the font (height above baseline).
 	 * 
-	 * @return
+	 * @return the ascent
 	 */
 	public short getAscent();
 
 	/**
-	 * 大文字の高さ(em)を返します。
+	 * Returns the cap height of the font (height of uppercase letters).
 	 * 
-	 * @return
+	 * @return the cap height
 	 */
 	public short getCapHeight();
 
 	/**
-	 * ベースラインより下の高さを返します。
+	 * Returns the descent of the font (height below baseline).
 	 * 
-	 * @return
+	 * @return the descent
 	 */
 	public short getDescent();
 
 	/**
-	 * @return this.Returns the stemh.
+	 * Returns the horizontal stem width.
+	 * 
+	 * @return the horizontal stem width
 	 */
 	public short getStemH();
 
 	/**
-	 * @return this.Returns the stemv.
+	 * Returns the vertical stem width.
+	 * 
+	 * @return the vertical stem width
 	 */
 	public short getStemV();
 
 	/**
-	 * 小文字の高さ(ex)を返します。
+	 * Returns the x-height of the font (height of lowercase 'x').
 	 * 
-	 * @return
+	 * @return the x-height
 	 */
 	public short getXHeight();
 
 	/**
-	 * 空白文字の幅を返します。
+	 * Returns the advance width of a space character.
 	 * 
-	 * @return
+	 * @return the space advance width
 	 */
 	public short getSpaceAdvance();
 
 	/**
-	 * ドキュメント中のフォントを作成します。
+	 * Creates a font instance from this source.
 	 * 
-	 * @return
+	 * @return the created font
 	 */
 	public Font createFont();
 }

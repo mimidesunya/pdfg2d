@@ -5,18 +5,20 @@ import java.awt.geom.AffineTransform;
 import net.zamasoft.pdfg2d.gc.GC;
 
 /**
- * グラフィックコンテキストに直接描画されるフォントです。 これは絵文字の描画を想定したものであり、テキストの装飾、色、変形は適用しません。
+ * A font that draws directly to the graphics context.
+ * This is intended for drawing emojis and does not apply text decorations,
+ * colors, or transformations.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface ImageFont extends DrawableFont {
 	/**
-	 * グリフを描画します。
+	 * Draws a glyph.
 	 * 
-	 * @param gc
-	 * @param gid
-	 * @param at
+	 * @param gc  the graphics context
+	 * @param gid the glyph ID
+	 * @param at  the affine transform
 	 */
 	public abstract void drawGlyphForGid(GC gc, int gid, AffineTransform at);
 }

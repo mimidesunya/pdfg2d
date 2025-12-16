@@ -2,22 +2,35 @@ package net.zamasoft.pdfg2d.font.otf;
 
 import net.zamasoft.pdfg2d.util.CharList;
 
+/**
+ * An implementation of {@link OpenTypeFont} that caching unicode characters.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class OpenTypeFontImpl extends OpenTypeFont {
 	private static final long serialVersionUID = 1L;
 
-	protected CharList unicodes = new CharList();
+	protected final CharList unicodes = new CharList();
 
-	public OpenTypeFontImpl(OpenTypeFontSource source) {
+	/**
+	 * Creates a new OpenTypeFontImpl.
+	 * 
+	 * @param source the font source
+	 */
+	public OpenTypeFontImpl(final OpenTypeFontSource source) {
 		super(source);
 	}
 
-	public int toGID(int c) {
-		int gid = super.toGID(c);
+	@Override
+	public int toGID(final int c) {
+		final int gid = super.toGID(c);
 		this.unicodes.set(gid, (char) c);
 		return gid;
 	}
 
-	protected int toChar(int gid) {
+	@Override
+	protected int toChar(final int gid) {
 		return this.unicodes.get(gid);
 	}
 }

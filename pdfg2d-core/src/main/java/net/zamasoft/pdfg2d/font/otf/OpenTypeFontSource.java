@@ -10,12 +10,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.zamasoft.font.FontFile;
-import net.zamasoft.font.Glyph;
 import net.zamasoft.font.table.CmapTable;
 import net.zamasoft.font.table.GenericCmapFormat;
 import net.zamasoft.font.table.HeadTable;
 import net.zamasoft.font.table.HheaTable;
-import net.zamasoft.font.table.NameRecord;
 import net.zamasoft.font.table.NameTable;
 import net.zamasoft.font.table.Os2Table;
 import net.zamasoft.font.table.Table;
@@ -26,11 +24,16 @@ import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
-import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.Panose;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
 
 /**
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
+/**
+ * Represents a source of an OpenType font.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -39,7 +42,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 
 	private static final long serialVersionUID = 4L;
 
-	protected static Map<File, FontFile> fileToFont = new WeakHashMap<File, FontFile>();
+	protected static Map<File, FontFile> fileToFont = new WeakHashMap<>();
 
 	protected final File file;
 
@@ -61,33 +64,38 @@ public class OpenTypeFontSource extends AbstractFontSource {
 
 	protected final UvsCmapFormat uvsCmap;
 
-	public OpenTypeFontSource(File file, int index, Direction direction) throws IOException {
+	/**
+	 * Creates a new OpenTypeFontSource.
+	 * 
+	 * @param file      the font file
+	 * @param index     the font index within the file
+	 * @param direction the layout direction
+	 * @throws IOException if an error occurs while reading the font file
+	 */
+	public OpenTypeFontSource(final File file, final int index, final Direction direction) throws IOException {
 		this.index = index;
 		this.file = file;
-		net.zamasoft.font.OpenTypeFont ttFont = this.getOpenTypeFont();
+		final var ttFont = this.getOpenTypeFont();
 
-		// フォントメトリック情報
+		// Font metric information
 		{
-			// long time = System.currentTimeMillis();
-			HeadTable head = (HeadTable) ttFont.getTable(Table.head);
+			final var head = (HeadTable) ttFont.getTable(Table.head);
 			this.upm = head.getUnitsPerEm();
-			short llx = (short) (head.getXMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
-			short lly = (short) (head.getYMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
-			short urx = (short) (head.getXMax() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
-			short ury = (short) (head.getYMax() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
-			BBox bbox = new BBox(llx, lly, urx, ury);
-			this.bbox = bbox;
+			final short llx = (short) (head.getXMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
+			final short lly = (short) (head.getYMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
+			final short urx = (short) (head.getXMax() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
+			final short ury = (short) (head.getYMax() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
+			this.bbox = new BBox(llx, lly, urx, ury);
 			this.setItalic((head.getMacStyle() & 2) != 0);
 		}
 
-		Set<String> aliases = new TreeSet<String>();
+		final Set<String> aliases = new TreeSet<>();
 		String fontName = null;
 		{
-			// long time = System.currentTimeMillis();
-			NameTable name = (NameTable) ttFont.getTable(Table.name);
+			final var name = (NameTable) ttFont.getTable(Table.name);
 			for (int i = 0; i < name.size(); ++i) {
-				NameRecord record = name.get(i);
-				short nameId = record.getNameId();
+				final var record = name.get(i);
+				final short nameId = record.getNameId();
 				if (nameId == 1 || nameId == 3 || nameId == 4) {
 					aliases.add(record.getRecordString());
 				} else if (nameId == 6) {
@@ -95,7 +103,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 				}
 			}
 		}
-		this.aliases = aliases.toArray(new String[aliases.size()]);
+		this.aliases = aliases.toArray(new String[0]);
 
 		if (fontName == null) {
 			throw new NullPointerException();
@@ -103,23 +111,22 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		this.fontName = fontName;
 
 		{
-			// long time = System.currentTimeMillis();
-			Os2Table os2 = (Os2Table) ttFont.getTable(Table.OS_2);
-			Weight weight = TextUtils.decodeFontWeight((short) os2.getWeightClass());
+			final var os2 = (Os2Table) ttFont.getTable(Table.OS_2);
+			final var weight = TextUtils.decodeFontWeight((short) os2.getWeightClass());
 			this.setWeight(weight);
-			short cFamilyClass = os2.getFamilyClass();
-			net.zamasoft.font.table.Panose panose = os2.getPanose();
+			final short cFamilyClass = os2.getFamilyClass();
+			final var panose = os2.getPanose();
 			this.panose = new Panose(cFamilyClass, panose.code);
 		}
 
 		{
-			HheaTable hhea = (HheaTable) ttFont.getTable(Table.hhea);
+			final var hhea = (HheaTable) ttFont.getTable(Table.hhea);
 			this.ascent = (short) (hhea.getAscender() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 			this.descent = (short) (-hhea.getDescender() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 		}
 
-		CmapTable cmapt = (CmapTable) ttFont.getTable(Table.cmap);
-		GenericCmapFormat cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS4);
+		final var cmapt = (CmapTable) ttFont.getTable(Table.cmap);
+		var cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS4);
 		if (cmap == null) {
 			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS2);
 		}
@@ -140,17 +147,17 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		this.uvsCmap = (UvsCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingUVS);
 
 		{
-			int gid = this.cmap.mapCharCode(' ');
-			XmtxTable hmtx = (XmtxTable) ttFont.getTable(Table.hmtx);
+			final int gid = this.cmap.mapCharCode(' ');
+			final var hmtx = (XmtxTable) ttFont.getTable(Table.hmtx);
 			this.spaceAdvance = (short) (hmtx.getAdvanceWidth(gid) * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 		}
 
 		{
-			net.zamasoft.font.OpenTypeFont font = this.getOpenTypeFont();
-			Glyph gx = font.getGlyph(this.cmap.mapCharCode('x'));
+			final var font = this.getOpenTypeFont();
+			final var gx = font.getGlyph(this.cmap.mapCharCode('x'));
 			this.xHeight = (gx == null || gx.getPath() == null) ? DEFAULT_X_HEIGHT
 					: (short) gx.getPath().getBounds().height;
-			Glyph gh = font.getGlyph(this.cmap.mapCharCode('H'));
+			final var gh = font.getGlyph(this.cmap.mapCharCode('H'));
 			this.capHeight = (gh == null || gh.getPath() == null) ? DEFAULT_CAP_HEIGHT
 					: (short) gh.getPath().getBounds().height;
 		}
@@ -165,12 +172,24 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		this.direction = direction;
 	}
 
+	/**
+	 * Returns the OpenType font instance.
+	 * 
+	 * @return the OpenType font
+	 */
 	public net.zamasoft.font.OpenTypeFont getOpenTypeFont() {
 		return getOpenTypeFont(this.file, this.index);
 	}
 
-	public static synchronized net.zamasoft.font.OpenTypeFont getOpenTypeFont(File file, int index) {
-		FontFile fontFile = fileToFont.get(file);
+	/**
+	 * Returns the OpenType font for the given file and index.
+	 * 
+	 * @param file  the font file
+	 * @param index the font index
+	 * @return the OpenType font
+	 */
+	public static synchronized net.zamasoft.font.OpenTypeFont getOpenTypeFont(final File file, final int index) {
+		var fontFile = fileToFont.get(file);
 		try {
 			if (fontFile != null && fontFile.timestamp == file.lastModified()) {
 				return fontFile.getFont(index);
@@ -178,16 +197,17 @@ public class OpenTypeFontSource extends AbstractFontSource {
 			fontFile = new FontFile(file);
 			fileToFont.put(file, fontFile);
 			return fontFile.getFont(index);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
 	public Direction getDirection() {
 		return this.direction;
 	}
 
-	public void setFontName(String fontName) {
+	public void setFontName(final String fontName) {
 		this.fontName = fontName;
 	}
 
@@ -195,42 +215,51 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		return this.panose;
 	}
 
-	public void setPanose(Panose panose) {
+	public void setPanose(final Panose panose) {
 		this.panose = panose;
 	}
 
+	@Override
 	public BBox getBBox() {
 		return this.bbox;
 	}
 
+	@Override
 	public String getFontName() {
 		return this.fontName;
 	}
 
+	@Override
 	public short getXHeight() {
 		return this.xHeight;
 	}
 
+	@Override
 	public short getCapHeight() {
 		return this.capHeight;
 	}
 
+	@Override
 	public short getSpaceAdvance() {
 		return this.spaceAdvance;
 	}
 
+	@Override
 	public short getAscent() {
 		return this.ascent;
 	}
 
+	@Override
 	public short getDescent() {
 		return this.descent;
 	}
 
+	@Override
 	public short getStemH() {
 		return this.stemH;
 	}
 
+	@Override
 	public short getStemV() {
 		return this.stemV;
 	}
@@ -247,7 +276,8 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		return this.uvsCmap;
 	}
 
-	public boolean canDisplay(int c) {
+	@Override
+	public boolean canDisplay(final int c) {
 		if (this.getDirection() == Direction.TB) {
 			if (c <= 0xFF || (c >= 0xFF60 && c <= 0xFFDF)) {
 				return false;
@@ -262,6 +292,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		return false;
 	}
 
+	@Override
 	public Font createFont() {
 		return new OpenTypeFontImpl(this);
 	}

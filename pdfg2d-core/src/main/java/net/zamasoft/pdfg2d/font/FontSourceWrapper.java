@@ -2,91 +2,103 @@ package net.zamasoft.pdfg2d.font;
 
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
+
+/**
+ * A wrapper for {@link FontSource}.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class FontSourceWrapper implements FontSource {
 	private static final long serialVersionUID = 0L;
 	protected final FontSource source;
 
-	public FontSourceWrapper(FontSource source) {
+	/**
+	 * Creates a new FontSourceWrapper.
+	 * 
+	 * @param source the font source to wrap
+	 */
+	public FontSourceWrapper(final FontSource source) {
 		this.source = source;
 	}
 
 	@Override
 	public String[] getAliases() {
-		return source.getAliases();
+		return this.source.getAliases();
 	}
 
 	@Override
-	public boolean canDisplay(int c) {
-		return source.canDisplay(c);
+	public boolean canDisplay(final int c) {
+		return this.source.canDisplay(c);
 	}
 
 	@Override
 	public Font createFont() {
-		return source.createFont();
+		return this.source.createFont();
 	}
 
 	@Override
 	public Direction getDirection() {
-		return source.getDirection();
+		return this.source.getDirection();
 	}
 
 	@Override
 	public short getAscent() {
-		return source.getAscent();
+		return this.source.getAscent();
 	}
 
 	@Override
 	public BBox getBBox() {
-		return source.getBBox();
+		return this.source.getBBox();
 	}
 
 	@Override
 	public short getCapHeight() {
-		return source.getCapHeight();
+		return this.source.getCapHeight();
 	}
 
 	@Override
 	public short getDescent() {
-		return source.getDescent();
+		return this.source.getDescent();
 	}
 
 	@Override
 	public String getFontName() {
-		return source.getFontName();
+		return this.source.getFontName();
 	}
 
 	@Override
 	public short getStemH() {
-		return source.getStemH();
+		return this.source.getStemH();
 	}
 
 	@Override
 	public short getStemV() {
-		return source.getStemV();
+		return this.source.getStemV();
 	}
 
 	@Override
 	public Weight getWeight() {
-		return source.getWeight();
+		return this.source.getWeight();
 	}
 
 	@Override
 	public short getXHeight() {
-		return source.getXHeight();
+		return this.source.getXHeight();
 	}
 
 	@Override
 	public short getSpaceAdvance() {
-		return source.getSpaceAdvance();
+		return this.source.getSpaceAdvance();
 	}
 
 	@Override
 	public boolean isItalic() {
-		return source.isItalic();
+		return this.source.isItalic();
 	}
 
 	@Override
 	public String toString() {
-		return "FontSourceWrapper:" + source.toString();
+		return "FontSourceWrapper:" + this.source.toString();
 	}
 }

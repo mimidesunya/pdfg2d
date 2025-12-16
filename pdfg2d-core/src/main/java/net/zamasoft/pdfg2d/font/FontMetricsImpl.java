@@ -4,8 +4,13 @@ import java.io.IOException;
 
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
-import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 
+/**
+ * Implementation of {@link FontMetrics}.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class FontMetricsImpl implements FontMetrics {
 	private static final long serialVersionUID = 1L;
 
@@ -19,34 +24,37 @@ public class FontMetricsImpl implements FontMetrics {
 
 	protected Font font = null;
 
+	/**
+	 * Creates a new FontMetricsImpl.
+	 * 
+	 * @param fontStore  the font store
+	 * @param fontSource the font source
+	 * @param fontStyle  the font style
+	 */
 	public FontMetricsImpl(final FontStore fontStore, final FontSource fontSource, final FontStyle fontStyle) {
 		this.fontStore = fontStore;
 		this.source = fontSource;
 		this.size = fontStyle.getSize();
 		this.xheight = this.size * this.source.getXHeight() / FontSource.DEFAULT_UNITS_PER_EM;
 
+		final var direction = fontStyle.getDirection();
 		double ascent, descent;
-		Direction direction = fontStyle.getDirection();
 		switch (direction) {
-		case LTR:
-		case RTL:
-			// 横書き
-			ascent = this.size * this.source.getAscent() / FontSource.DEFAULT_UNITS_PER_EM;
-			descent = this.size * this.source.getDescent() / FontSource.DEFAULT_UNITS_PER_EM;
-			break;
-
-		case TB:
-			// 縦書き
-			ascent = descent = this.size / 2.0;
-			break;
-
-		default:
-			throw new IllegalStateException();
+			case LTR, RTL -> {
+				// Horizontal
+				ascent = this.size * this.source.getAscent() / FontSource.DEFAULT_UNITS_PER_EM;
+				descent = this.size * this.source.getDescent() / FontSource.DEFAULT_UNITS_PER_EM;
+			}
+			case TB -> {
+				// Vertical
+				ascent = descent = this.size / 2.0;
+			}
+			default -> throw new IllegalStateException();
 		}
-		double remainder = (this.size - ascent - descent);
+		final double remainder = (this.size - ascent - descent);
 		if (remainder != 0) {
-			double afrac = ascent / (ascent + descent);
-			double dfrac = descent / (ascent + descent);
+			final double afrac = ascent / (ascent + descent);
+			final double dfrac = descent / (ascent + descent);
 			ascent = this.size * afrac;
 			descent = this.size * dfrac;
 		}
@@ -55,58 +63,70 @@ public class FontMetricsImpl implements FontMetrics {
 	}
 
 	public Font getFont() {
-		try {
-			this.font = this.fontStore.useFont(this.source);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		if (this.font == null) {
+			try {
+				this.font = this.fontStore.useFont(this.source);
+			} catch (final IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return this.font;
 	}
 
+	@Override
 	public FontSource getFontSource() {
 		return this.source;
 	}
 
+	@Override
 	public double getAscent() {
 		return this.ascent;
 	}
 
+	@Override
 	public double getDescent() {
 		return this.descent;
 	}
 
+	@Override
 	public double getFontSize() {
 		return this.size;
 	}
 
+	@Override
 	public double getXHeight() {
 		return this.xheight;
 	}
 
+	@Override
 	public double getSpaceAdvance() {
 		return this.size * this.source.getSpaceAdvance() / FontSource.DEFAULT_UNITS_PER_EM;
 	}
 
-	public double getAdvance(int gid) {
+	@Override
+	public double getAdvance(final int gid) {
 		return this.size * this.getFont().getAdvance(gid) / FontSource.DEFAULT_UNITS_PER_EM;
 	}
 
-	public double getWidth(int gid) {
+	@Override
+	public double getWidth(final int gid) {
 		return this.size * this.getFont().getWidth(gid) / FontSource.DEFAULT_UNITS_PER_EM;
 	}
 
-	public double getKerning(int gid, int sgid) {
+	@Override
+	public double getKerning(final int gid, final int sgid) {
 		return this.size * this.getFont().getKerning(gid, sgid) / FontSource.DEFAULT_UNITS_PER_EM;
 	}
 
-	public int getLigature(int gid, int cid) {
+	public int getLigature(final int gid, final int cid) {
 		return this.getFont().getLigature(gid, cid);
 	}
 
-	public boolean canDisplay(int c) {
+	public boolean canDisplay(final int c) {
 		return this.getFontSource().canDisplay(c);
 	}
 
+	@Override
 	public String toString() {
 		return super.toString() + ":[fontSource=" + this.source + "]";
 	}

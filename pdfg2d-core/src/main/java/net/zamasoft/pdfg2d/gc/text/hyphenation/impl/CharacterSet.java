@@ -1,29 +1,25 @@
 package net.zamasoft.pdfg2d.gc.text.hyphenation.impl;
 
+/**
+ * Represents a set of characters.
+ */
+@FunctionalInterface
 public interface CharacterSet {
 	/**
-	 * 全ての文字を表す文字集合です。
+	 * A character set representing all characters.
 	 */
-	public static final CharacterSet ALL = new CharacterSet() {
-		public boolean contains(char c) {
-			return true;
-		}
-	};
+	public static final CharacterSet ALL = c -> true;
 
 	/**
-	 * 空の文字集合です。
+	 * An empty character set.
 	 */
-	public static final CharacterSet NOTHING = new CharacterSet() {
-		public boolean contains(char c) {
-			return false;
-		}
-	};
+	public static final CharacterSet NOTHING = c -> false;
 
 	/**
-	 * cがこの文字集合に含まれる場合trueを返します。
+	 * Returns true if the character is contained in this set.
 	 * 
-	 * @param c
-	 * @return
+	 * @param c the character to check
+	 * @return true if contained
 	 */
 	public boolean contains(char c);
 }

@@ -4,11 +4,20 @@ import java.io.Serializable;
 
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 
+/**
+ * Represents a font family.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class FontFamily implements Serializable {
 	private static final long serialVersionUID = 0;
 
-	public static enum GenericFamily {
-		NONE, SERIF, SANS_SERIF, CURSIVE, FANTASY, MONOSPACE;
+	/**
+	 * Represents a generic font family.
+	 */
+	public enum GenericFamily {
+		NONE, SERIF, SANS_SERIF, CURSIVE, FANTASY, MONOSPACE
 	}
 
 	public static final FontFamily SERIF_VALUE = new FontFamily(GenericFamily.SERIF, "serif");
@@ -25,71 +34,81 @@ public class FontFamily implements Serializable {
 
 	private final String name;
 
-	public static FontFamily create(String name) {
-		FontFamily family;
+	/**
+	 * Creates a FontFamily from a name.
+	 * 
+	 * @param name the font family name
+	 * @return the created FontFamily
+	 */
+	public static FontFamily create(final String name) {
 		if (name == null || name.equalsIgnoreCase("serif")) {
-			family = FontFamily.SERIF_VALUE;
+			return FontFamily.SERIF_VALUE;
 		} else if (name.equalsIgnoreCase("cursive")) {
-			family = FontFamily.CURSIVE_VALUE;
+			return FontFamily.CURSIVE_VALUE;
 		} else if (name.equalsIgnoreCase("fantasy")) {
-			family = FontFamily.FANTASY_VALUE;
+			return FontFamily.FANTASY_VALUE;
 		} else if (name.equalsIgnoreCase("monospace")) {
-			family = FontFamily.MONOSPACE_VALUE;
+			return FontFamily.MONOSPACE_VALUE;
 		} else if (name.equalsIgnoreCase("sans-serif")) {
-			family = FontFamily.SANS_SERIF_VALUE;
-		} else {
-			family = new FontFamily(name);
+			return FontFamily.SANS_SERIF_VALUE;
 		}
-		return family;
+		return new FontFamily(name);
 	}
 
-	private FontFamily(GenericFamily genericFamily, String name) {
+	private FontFamily(final GenericFamily genericFamily, final String name) {
 		this.genericFamily = genericFamily;
 		this.name = name;
 	}
 
-	public FontFamily(String name) {
+	/**
+	 * Creates a new FontFamily.
+	 * 
+	 * @param name the font family name
+	 */
+	public FontFamily(final String name) {
 		this.genericFamily = GenericFamily.NONE;
 		this.name = name;
 	}
 
 	/**
-	 * 一般ファミリならtrueを返します。
+	 * Returns whether this is a generic family.
 	 * 
-	 * @return
+	 * @return true if generic family, false otherwise
 	 */
 	public boolean isGenericFamily() {
 		return this.genericFamily != GenericFamily.NONE;
 	}
 
 	/**
-	 * 一般ファミリコードを返します。
+	 * Returns the generic family code.
 	 * 
-	 * @return
+	 * @return the generic family code
 	 */
 	public GenericFamily getGenericFamily() {
 		return this.genericFamily;
 	}
 
 	/**
-	 * ファミリ名を返します。
+	 * Returns the font family name.
 	 * 
-	 * @return
+	 * @return the family name
 	 */
 	public String getName() {
 		return this.name;
 	}
 
+	@Override
 	public String toString() {
 		return this.getName();
 	}
 
-	public boolean equals(Object o) {
+	@Override
+	public boolean equals(final Object o) {
 		if (o == null || !(o instanceof FontFamily)) {
 			return false;
 		}
-		FontFamily a = (FontFamily) o;
-		if (a.isGenericFamily ()!= this.isGenericFamily()) {
+		final var a = (FontFamily) o;
+		if (a.isGenericFamily() != this.isGenericFamily()) {
 			return false;
 		}
 		if (a.isGenericFamily()) {
@@ -98,6 +117,7 @@ public class FontFamily implements Serializable {
 		return FontUtils.normalizeName(a.name).equals(FontUtils.normalizeName(this.name));
 	}
 
+	@Override
 	public int hashCode() {
 		if (this.isGenericFamily()) {
 			return this.genericFamily.ordinal();

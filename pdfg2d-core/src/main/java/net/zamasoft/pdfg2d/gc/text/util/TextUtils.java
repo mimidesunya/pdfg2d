@@ -7,6 +7,12 @@ import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 
+/**
+ * Utility class for text processing.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public final class TextUtils {
 	private TextUtils() {
 		// ignore
@@ -20,16 +26,33 @@ public final class TextUtils {
 		}
 	}
 
+	/**
+	 * Attribute for writing mode.
+	 */
 	public static final Attribute WRITING_MODE = new WritingMode();
 
-	public static final FontFamilyList toFontFamilyList(String awtFamily, FontFamilyList defaultFamily) {
+	/**
+	 * Converts AWT font family name to {@link FontFamilyList}.
+	 * 
+	 * @param awtFamily     the AWT font family name
+	 * @param defaultFamily the default family to return if awtFamily is null
+	 * @return the FontFamilyList
+	 */
+	public static FontFamilyList toFontFamilyList(final String awtFamily, final FontFamilyList defaultFamily) {
 		if (awtFamily == null) {
 			return defaultFamily;
 		}
 		return FontFamilyList.create(awtFamily);
 	}
 
-	public static final Weight toFontWeight(Float awtWeight, Weight defaultWeight) {
+	/**
+	 * Converts AWT font weight to {@link Weight}.
+	 * 
+	 * @param awtWeight     the AWT font weight
+	 * @param defaultWeight the default weight to return if awtWeight is null
+	 * @return the Weight
+	 */
+	public static Weight toFontWeight(final Float awtWeight, final Weight defaultWeight) {
 		if (awtWeight == null) {
 			return defaultWeight;
 		} else if (awtWeight.compareTo(TextAttribute.WEIGHT_EXTRA_LIGHT) <= 0) {
@@ -56,7 +79,13 @@ public final class TextUtils {
 		return Weight.W_900;
 	}
 
-	public static final Weight decodeFontWeight(short weight) {
+	/**
+	 * Decodes numeric weight value to {@link Weight}.
+	 * 
+	 * @param weight the numeric weight
+	 * @return the Weight
+	 */
+	public static Weight decodeFontWeight(final short weight) {
 		if (weight < 149) {
 			return Weight.W_100;
 		} else if (weight < 249) {
@@ -77,11 +106,25 @@ public final class TextUtils {
 		return Weight.W_900;
 	}
 
-	public static final double toFontSize(Float awtSize, double defaultSize) {
+	/**
+	 * Converts AWT font size to double.
+	 * 
+	 * @param awtSize     the AWT font size
+	 * @param defaultSize the default size to return if awtSize is null
+	 * @return the font size
+	 */
+	public static double toFontSize(final Float awtSize, final double defaultSize) {
 		return awtSize != null ? awtSize.doubleValue() : defaultSize;
 	}
 
-	public static final Style toFontStyle(Float awtPosture, Style defaultStyle) {
+	/**
+	 * Converts AWT posture to {@link Style}.
+	 * 
+	 * @param awtPosture   the AWT posture
+	 * @param defaultStyle the default style to return if awtPosture is null
+	 * @return the Style
+	 */
+	public static Style toFontStyle(final Float awtPosture, final Style defaultStyle) {
 		if (awtPosture == null) {
 			return defaultStyle;
 		} else if (awtPosture.equals(TextAttribute.POSTURE_OBLIQUE)) {

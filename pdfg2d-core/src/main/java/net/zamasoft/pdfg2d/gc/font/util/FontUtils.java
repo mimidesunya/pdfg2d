@@ -20,7 +20,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
- * テキスト描画・フォント関連のユーティリティです。
+ * Utility class for text drawing and font related operations.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -31,15 +31,16 @@ public final class FontUtils {
 	}
 
 	/**
-	 * フォント名を大文字に統一し、ハイフン、スペースを除去します。
+	 * Normalizes the font name by converting to uppercase and removing hyphens and
+	 * spaces.
 	 * 
-	 * @param fontName
-	 * @return
+	 * @param fontName the font name
+	 * @return the normalized font name
 	 */
-	public static String normalizeName(String fontName) {
-		StringBuffer buff = new StringBuffer();
+	public static String normalizeName(final String fontName) {
+		final var buff = new StringBuilder();
 		for (int i = 0; i < fontName.length(); ++i) {
-			char ch = fontName.charAt(i);
+			final var ch = fontName.charAt(i);
 			if (Character.isWhitespace(ch) || ch == '-' || ch == '_') {
 				continue;
 			}
@@ -48,15 +49,15 @@ public final class FontUtils {
 		return buff.toString();
 	}
 
-	public static boolean equals(FontStyle a, FontStyle b) {
+	public static boolean equals(final FontStyle a, final FontStyle b) {
 		return a.getFamily().equals(b.getFamily()) && a.getSize() == b.getSize() && a.getStyle() == b.getStyle()
 				&& a.getWeight() == b.getWeight() && a.getDirection() == b.getDirection()
 				&& a.getPolicy().equals(b.getPolicy());
 	}
 
-	public static int hashCode(FontStyle fontStyle) {
+	public static int hashCode(final FontStyle fontStyle) {
 		int h = fontStyle.getFamily().hashCode();
-		long a = Double.doubleToLongBits(fontStyle.getSize());
+		final var a = Double.doubleToLongBits(fontStyle.getSize());
 		h = 31 * h + (int) (a ^ (a >>> 32));
 		h = 31 * h + fontStyle.getStyle().ordinal();
 		h = 31 * h + fontStyle.getWeight().w;
@@ -66,30 +67,32 @@ public final class FontUtils {
 	}
 
 	/**
-	 * テキストをパスに追加します。絵文字は除外されます。
+	 * Adds text to the path. Emoji characters are excluded.
 	 * 
-	 * @param path
-	 * @param font
-	 * @param text
+	 * @param path      the path to add content to
+	 * @param font      the font
+	 * @param text      the text to draw
+	 * @param transform the transform to apply
 	 */
-	public static void addTextPath(final GeneralPath path, ShapedFont font, Text text, AffineTransform transform) {
-		FontStyle fontStyle = text.getFontStyle();
-		Direction direction = fontStyle.getDirection();
-		double fontSize = fontStyle.getSize();
-		int glen = text.getGLen();
-		int[] gids = text.getGIDs();
-		double letterSpacing = text.getLetterSpacing();
-		double[] xadvances = text.getXAdvances(false);
-		FontMetrics fm = text.getFontMetrics();
+	public static void addTextPath(final GeneralPath path, final ShapedFont font, final Text text,
+			final AffineTransform transform) {
+		final var fontStyle = text.getFontStyle();
+		final var direction = fontStyle.getDirection();
+		final var fontSize = fontStyle.getSize();
+		final var glen = text.getGLen();
+		final var gids = text.getGIDs();
+		final var letterSpacing = text.getLetterSpacing();
+		final var xadvances = text.getXAdvances(false);
+		final var fm = text.getFontMetrics();
 
-		double s = fontSize / FontSource.DEFAULT_UNITS_PER_EM;
-		AffineTransform at = AffineTransform.getScaleInstance(s, s);
+		final var s = fontSize / FontSource.DEFAULT_UNITS_PER_EM;
+		final var at = AffineTransform.getScaleInstance(s, s);
 
-		boolean verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
+		final var verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
 		AffineTransform oblique = null;
-		Style style = fontStyle.getStyle();
+		final var style = fontStyle.getStyle();
 		if (style != Style.NORMAL && !font.getFontSource().isItalic()) {
-			// 自前でイタリックを再現する
+			// Simulate italic manually
 			if (verticalFont) {
 				oblique = AffineTransform.getShearInstance(0, 0.25);
 			} else {
@@ -98,12 +101,12 @@ public final class FontUtils {
 		}
 
 		if (verticalFont) {
-			// 縦書きモード
-			// 縦書き対応フォント
+			// Vertical writing mode
+			// Vertical font
 			at.preConcatenate(AffineTransform.getTranslateInstance(-fontSize / 2.0, fontSize * 0.88));
 			int pgid = 0;
 			for (int i = 0; i < glen; ++i) {
-				int gid = gids[i];
+				final var gid = gids[i];
 				if (i > 0) {
 					double dy = fm.getAdvance(pgid) + letterSpacing;
 					dy -= fm.getKerning(pgid, gid);
@@ -113,10 +116,10 @@ public final class FontUtils {
 					at.preConcatenate(AffineTransform.getTranslateInstance(0, dy));
 				}
 				pgid = gid;
-				Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+				var shape = ((ShapedFont) font).getShapeByGID(gid);
 				if (shape != null) {
-					AffineTransform at2 = new AffineTransform(transform);
-					double width = (fontSize - fm.getWidth(gid)) / 2.0;
+					final var at2 = new AffineTransform(transform);
+					final var width = (fontSize - fm.getWidth(gid)) / 2.0;
 					if (width != 0) {
 						at2.translate(width, 0);
 					}
@@ -128,7 +131,7 @@ public final class FontUtils {
 				}
 			}
 		} else {
-			// 横書き
+			// Horizontal writing
 			int pgid = 0;
 			for (int i = 0; i < glen; ++i) {
 				final int gid = gids[i];
@@ -142,8 +145,8 @@ public final class FontUtils {
 					}
 					at.preConcatenate(AffineTransform.getTranslateInstance(dx, 0));
 				}
-				AffineTransform at2 = new AffineTransform(transform);
-				Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+				final var at2 = new AffineTransform(transform);
+				var shape = ((ShapedFont) font).getShapeByGID(gid);
 				if (shape != null) {
 					at2.concatenate(at);
 					if (oblique != null) {
@@ -157,53 +160,43 @@ public final class FontUtils {
 	}
 
 	/**
-	 * テキストのアウトラインを直接描画します。
+	 * Draws text outline directly.
 	 * 
-	 * @param gc
-	 * @param font
-	 * @param text
+	 * @param gc   the graphics context
+	 * @param font the font
+	 * @param text the text
+	 * @throws GraphicsException if a graphics error occurs
 	 */
-	public static void drawText(GC gc, DrawableFont font, Text text) throws GraphicsException {
+	public static void drawText(final GC gc, final DrawableFont font, final Text text) throws GraphicsException {
 		gc.begin();
-		FontStyle fontStyle = text.getFontStyle();
-		Direction direction = fontStyle.getDirection();
-		double fontSize = fontStyle.getSize();
-		int glen = text.getGLen();
-		int[] gids = text.getGIDs();
-		double letterSpacing = text.getLetterSpacing();
-		double[] xadvances = text.getXAdvances(false);
-		FontMetrics fm = text.getFontMetrics();
+		final var fontStyle = text.getFontStyle();
+		final var direction = fontStyle.getDirection();
+		final var fontSize = fontStyle.getSize();
+		final var glen = text.getGLen();
+		final var gids = text.getGIDs();
+		final var letterSpacing = text.getLetterSpacing();
+		final var xadvances = text.getXAdvances(false);
+		final var fm = text.getFontMetrics();
 		AffineTransform at;
 		{
-			double s = fontSize / FontSource.DEFAULT_UNITS_PER_EM;
+			final var s = fontSize / FontSource.DEFAULT_UNITS_PER_EM;
 			at = AffineTransform.getScaleInstance(s, s);
 		}
 
-		TextMode textMode = gc.getTextMode();
+		var textMode = gc.getTextMode();
 		double enlargement;
-		Weight weight = fontStyle.getWeight();
+		final var weight = fontStyle.getWeight();
 		double xlineWidth = 0;
 		Object xstrokePaint = null;
 		if (textMode == TextMode.FILL && weight.w >= 500 && font.getFontSource().getWeight().w < 500) {
-			// 自前でBOLDを再現する
+			// Simulate BOLD manually
 			switch (weight) {
-			case W_500:
-				enlargement = fontSize / 28.0;
-				break;
-			case W_600:
-				enlargement = fontSize / 24.0;
-				break;
-			case W_700:
-				enlargement = fontSize / 20.0;
-				break;
-			case W_800:
-				enlargement = fontSize / 16.0;
-				break;
-			case W_900:
-				enlargement = fontSize / 12.0;
-				break;
-			default:
-				throw new IllegalStateException();
+				case W_500 -> enlargement = fontSize / 28.0;
+				case W_600 -> enlargement = fontSize / 24.0;
+				case W_700 -> enlargement = fontSize / 20.0;
+				case W_800 -> enlargement = fontSize / 16.0;
+				case W_900 -> enlargement = fontSize / 12.0;
+				default -> throw new IllegalStateException();
 			}
 			if (enlargement > 0) {
 				textMode = TextMode.FILL_STROKE;
@@ -216,11 +209,11 @@ public final class FontUtils {
 			enlargement = 0;
 		}
 
-		boolean verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
+		final var verticalFont = direction == Direction.TB && font.getFontSource().getDirection() == direction;
 		AffineTransform oblique = null;
-		Style style = fontStyle.getStyle();
+		final var style = fontStyle.getStyle();
 		if (style != Style.NORMAL && !font.getFontSource().isItalic()) {
-			// 自前でイタリックを再現する
+			// Simulate italic manually
 			if (verticalFont) {
 				oblique = AffineTransform.getShearInstance(0, 0.25);
 			} else {
@@ -230,13 +223,13 @@ public final class FontUtils {
 
 		GeneralPath path = null;
 		if (verticalFont) {
-			// 縦書きモード
-			// 縦書き対応フォント
+			// Vertical writing mode
+			// Vertical font
 			gc.transform(AffineTransform.getTranslateInstance(-fontSize / 2.0, fontSize * 0.88));
 			int pgid = 0;
 			for (int i = 0; i < glen; ++i) {
-				AffineTransform at2 = at;
-				int gid = gids[i];
+				var at2 = at;
+				final var gid = gids[i];
 				if (i > 0) {
 					double dy = fm.getAdvance(pgid) + letterSpacing;
 					dy -= fm.getKerning(pgid, gid);
@@ -247,9 +240,9 @@ public final class FontUtils {
 				}
 				pgid = gid;
 				if (font instanceof ShapedFont) {
-					Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+					var shape = ((ShapedFont) font).getShapeByGID(gid);
 					if (shape != null) {
-						double width = (fontSize - fm.getWidth(gid)) / 2.0;
+						final var width = (fontSize - fm.getWidth(gid)) / 2.0;
 						if (width != 0) {
 							at2 = AffineTransform.getTranslateInstance(width, 0);
 							at2.concatenate(at);
@@ -268,13 +261,13 @@ public final class FontUtils {
 			}
 		} else {
 			if (direction == Direction.TB) {
-				// 横倒し
+				// Rotated horizontal
 				gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
-				BBox bbox = font.getFontSource().getBBox();
-				double dy = ((bbox.lly + bbox.ury) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2.0;
+				final var bbox = font.getFontSource().getBBox();
+				final var dy = ((bbox.lly + bbox.ury) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2.0;
 				gc.transform(AffineTransform.getTranslateInstance(0, dy));
 			}
-			// 横書き
+			// Horizontal writing
 			int pgid = 0;
 			for (int i = 0; i < glen; ++i) {
 				final int gid = gids[i];
@@ -289,7 +282,7 @@ public final class FontUtils {
 					at.preConcatenate(AffineTransform.getTranslateInstance(dx, 0));
 				}
 				if (font instanceof ShapedFont) {
-					Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+					var shape = ((ShapedFont) font).getShapeByGID(gid);
 					if (shape != null) {
 						if (oblique != null) {
 							shape = oblique.createTransformedShape(shape);
@@ -316,19 +309,12 @@ public final class FontUtils {
 		gc.end();
 	}
 
-	private static void drawPath(GC gc, GeneralPath path, TextMode textMode) {
+	private static void drawPath(final GC gc, final GeneralPath path, final TextMode textMode) {
 		switch (textMode) {
-		case FILL:
-			gc.fill(path);
-			break;
-		case STROKE:
-			gc.draw(path);
-			break;
-		case FILL_STROKE:
-			gc.fillDraw(path);
-			break;
-		default:
-			throw new IllegalStateException();
+			case FILL -> gc.fill(path);
+			case STROKE -> gc.draw(path);
+			case FILL_STROKE -> gc.fillDraw(path);
+			default -> throw new IllegalStateException();
 		}
 	}
 }

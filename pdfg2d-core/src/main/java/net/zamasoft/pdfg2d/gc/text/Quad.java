@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.gc.text;
 
 /**
- * テキスト中の文字以外の埋め物です。
+ * Represents a non-character element (quad) in text.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -10,23 +10,34 @@ public abstract class Quad implements Element {
 	// U+200B ZERO WIDTH SPACE
 	// U+00A0 NO-BREAK SPACE
 	// U+2060 WORD JOINER
-	/** 文字列を区切りません。 */
+
+	/** Does not break the string. */
 	public static final String JOIN = "";
-	/** 文字列を区切ります。 */
+
+	/** Breaks the string. */
 	public static final String BREAK = "\u200B";
-	/** 前の文字として扱います。Quad自体は後の文字列の前にくっつきます。 */
+
+	/**
+	 * Treated as the previous character. The Quad itself attaches before the
+	 * following string.
+	 */
 	public static final String CONTINUE_BEFORE = "\u200B\u2060";
-	/** 前の文字として扱います。Quad自体は前の文字列の後にくっつきます。 */
+
+	/**
+	 * Treated as the previous character. The Quad itself attaches after the
+	 * previous string.
+	 */
 	public static final String CONTINUE_AFTER = "\u2060\u200B";
 
+	@Override
 	public Type getElementType() {
 		return Type.QUAD;
 	}
 
 	/**
-	 * 相当する文字列です。
+	 * Returns the corresponding string.
 	 * 
-	 * @return
+	 * @return the string
 	 */
 	public abstract String getString();
 }

@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.gc.image.WrappedImage;
 
 /**
- * UAの単位にスケールされた画像です。
+ * Represents an image scaled to UA units.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -18,58 +18,73 @@ public class TransformedImage extends WrappedImage {
 	private Double cachedWidth = null;
 	private Double cachedHeight = null;
 
-	public TransformedImage(Image image, AffineTransform at) {
+	/**
+	 * Creates a new TransformedImage.
+	 * 
+	 * @param image the image to transform
+	 * @param at    the affine transform
+	 */
+	public TransformedImage(final Image image, final AffineTransform at) {
 		super(image);
 		assert image != null;
 		assert at != null;
 		this.at = at;
 	}
 
+	/**
+	 * Returns the affine transform.
+	 * 
+	 * @return the affine transform
+	 */
 	public AffineTransform getTransform() {
 		return this.at;
 	}
 
-	public void drawTo(GC gc) {
+	@Override
+	public void drawTo(final GC gc) {
 		gc.begin();
 		gc.transform(this.at);
 		this.image.drawTo(gc);
 		gc.end();
 	}
 
+	@Override
 	public String getAltString() {
 		return this.image.getAltString();
 	}
 
+	@Override
 	public double getWidth() {
-		if (cachedWidth != null) return cachedWidth;
+		if (cachedWidth != null) {
+			return cachedWidth;
+		}
 		calculateDimensions();
 		return cachedWidth;
 	}
 
+	@Override
 	public double getHeight() {
-		if (cachedHeight != null) return cachedHeight;
+		if (cachedHeight != null) {
+			return cachedHeight;
+		}
 		calculateDimensions();
 		return cachedHeight;
 	}
 
 	private void calculateDimensions() {
-		double w = image.getWidth();
-		double h = image.getHeight();
+		final double w = image.getWidth();
+		final double h = image.getHeight();
 
-		Point2D[] pts = new Point2D[] {
-			new Point2D.Double(0, 0),
-			new Point2D.Double(w, 0),
-			new Point2D.Double(0, h),
-			new Point2D.Double(w, h)
-		};
+		final var pts = new Point2D[] { new Point2D.Double(0, 0), new Point2D.Double(w, 0), new Point2D.Double(0, h),
+				new Point2D.Double(w, h) };
 
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxY = Double.NEGATIVE_INFINITY;
 
-		for (Point2D pt : pts) {
-			Point2D dst = at.transform(pt, null);
+		for (final var pt : pts) {
+			final var dst = at.transform(pt, null);
 			minX = Math.min(minX, dst.getX());
 			maxX = Math.max(maxX, dst.getX());
 			minY = Math.min(minY, dst.getY());
@@ -80,6 +95,7 @@ public class TransformedImage extends WrappedImage {
 		cachedHeight = Math.abs(maxY - minY);
 	}
 
+	@Override
 	public String toString() {
 		return super.toString() + "/image=" + this.image + ",at=" + this.at;
 	}

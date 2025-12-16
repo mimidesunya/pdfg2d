@@ -5,75 +5,76 @@ import java.io.Serializable;
 import net.zamasoft.pdfg2d.font.FontSource;
 
 /**
- * 実際に割り付けられたフォントの情報です。
+ * Represents the metrics information of an allocated font.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface FontMetrics extends Serializable {
 	/**
-	 * フォントのサイズを返します。
+	 * Returns the font size.
 	 * 
-	 * @return
+	 * @return the font size
 	 */
 	public double getFontSize();
 
 	/**
-	 * フォントの高さを返します。
+	 * Returns the height of the font.
 	 * 
-	 * @return
+	 * @return the font height
 	 */
 	public double getXHeight();
 
 	/**
-	 * フォントのベースラインより上の部分の長さを返します。
+	 * Returns the ascent of the font (height above baseline).
 	 * 
-	 * @return
+	 * @return the ascent
 	 */
 	public double getAscent();
 
 	/**
-	 * フォントのベースラインより下の部分の長さを返します。
+	 * Returns the descent of the font (height below baseline).
 	 * 
-	 * @return
+	 * @return the descent
 	 */
 	public double getDescent();
 
 	/**
-	 * グリフの進行幅を返します。
+	 * Returns the advance width of the specified glyph.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid the glyph ID
+	 * @return the advance width
 	 */
 	public double getAdvance(int gid);
 
 	/**
-	 * グリフの横幅を返します。
+	 * Returns the width of the specified glyph.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid the glyph ID
+	 * @return the width
 	 */
 	public double getWidth(int gid);
 
 	/**
-	 * スペースの幅を返します。
+	 * Returns the advance width of a space character.
 	 * 
-	 * @return
+	 * @return the space advance width
 	 */
 	public double getSpaceAdvance();
 
 	/**
-	 * グリフ間のカーニングを返します。
+	 * Returns the kerning between two glyphs.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid  the first glyph ID
+	 * @param sgid the second glyph ID
+	 * @return the kerning value
 	 */
 	public double getKerning(int gid, int sgid);
 
 	/**
-	 * FontSourceを返します。
+	 * Returns the FontSource.
 	 * 
-	 * @return
+	 * @return the FontSource
 	 */
 	public FontSource getFontSource();
 }

@@ -6,50 +6,54 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
 /**
- * グリフ単位で分解されたテキストの送り先です。
+ * Handles text that has been decomposed into glyphs.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface GlyphHandler extends Closeable {
 	/**
-	 * テキストランを開始します。
+	 * Starts a text run.
 	 * 
-	 * @param fontStyle
-	 * @param fontMetrics
+	 * @param charOffset  the character offset
+	 * @param fontStyle   the font style
+	 * @param fontMetrics the font metrics
 	 */
 	public void startTextRun(int charOffset, FontStyle fontStyle, FontMetrics fontMetrics);
 
 	/**
-	 * テキストランを終わります。
+	 * Ends the current text run.
 	 */
 	public void endTextRun();
 
 	/**
-	 * グリフを送ります。
+	 * Sends a glyph.
 	 * 
-	 * @param charOffset
-	 * @param ch
-	 * @param coff
-	 * @param clen
-	 * @param gid
+	 * @param charOffset the character offset
+	 * @param ch         the characters
+	 * @param coff       the character offset in the array
+	 * @param clen       the character length
+	 * @param gid        the glyph ID
 	 */
 	public void glyph(int charOffset, char[] ch, int coff, byte clen, int gid);
 
 	/**
-	 * 込め物を送ります。
+	 * Sends a quad (spacing/break).
 	 * 
-	 * @param quad
+	 * @param quad the quad
 	 */
 	public void quad(Quad quad);
 
 	/**
-	 * 現在までのテキストを書き出します。これを明示的に呼ぶと禁則処理を無視してテキストを分断することがあります。
+	 * Flushes the text processed so far. Calling this method explicitly may split
+	 * the text
+	 * in a way that ignores prohibited line breaks.
 	 */
 	public void flush();
 
 	/**
-	 * テキストの書き出しを終了します。
+	 * Finishes writing the text.
 	 */
+	@Override
 	public void close();
 }

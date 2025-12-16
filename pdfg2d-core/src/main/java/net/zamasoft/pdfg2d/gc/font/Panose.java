@@ -2,6 +2,12 @@ package net.zamasoft.pdfg2d.gc.font;
 
 import java.io.Serializable;
 
+/**
+ * Represents the Panose system for font classification.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class Panose implements Serializable {
 	private static final long serialVersionUID = 0L;
 
@@ -29,7 +35,13 @@ public class Panose implements Serializable {
 
 	public final byte xHeight;
 
-	public Panose(int sFamilyClass, byte[] panose) {
+	/**
+	 * Creates a new Panose object.
+	 * 
+	 * @param sFamilyClass the family class
+	 * @param panose       the panose bytes
+	 */
+	public Panose(final int sFamilyClass, final byte[] panose) {
 		this.familyClassId = (byte) ((sFamilyClass >> 8) & 0xFF);
 		this.familySubclass = (byte) (sFamilyClass & 0xFF);
 		this.familyType = panose[0];
@@ -44,8 +56,9 @@ public class Panose implements Serializable {
 		this.xHeight = panose[9];
 	}
 
+	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		final var sb = new StringBuilder();
 		sb.append(String.valueOf(this.familyClassId)).append(" ").append(String.valueOf(this.familySubclass))
 				.append(" ").append(String.valueOf(this.familyType)).append(" ").append(String.valueOf(this.serifStyle))
 				.append(" ").append(String.valueOf(this.weight)).append(" ").append(String.valueOf(this.proportion))

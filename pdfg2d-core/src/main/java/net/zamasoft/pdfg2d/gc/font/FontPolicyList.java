@@ -3,31 +3,40 @@ package net.zamasoft.pdfg2d.gc.font;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * Represents a list of font policies.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class FontPolicyList implements Serializable {
 	private static final long serialVersionUID = 0;
 
-	public static enum FontPolicy {
+	/**
+	 * Represents a font policy.
+	 */
+	public enum FontPolicy {
 		/**
-		 * コア14フォントだけを使います。
+		 * Use only the Core 14 fonts.
 		 */
 		CORE,
 
 		/**
-		 * CID-Keyedフォントだけを使います。
+		 * Use only CID-Keyed fonts.
 		 */
-		CID_KEYED ,
+		CID_KEYED,
 
 		/**
-		 * 外部フォントを使います。
+		 * Use external fonts (CID-Identity).
 		 */
 		CID_IDENTITY,
 
 		/**
-		 * 埋め込みフォントを使います。
+		 * Use embedded fonts.
 		 */
 		EMBEDDED,
 		/**
-		 * パスに変換して描画します。
+		 * Convert text to outlines (paths).
 		 */
 		OUTLINES;
 	}
@@ -37,27 +46,45 @@ public class FontPolicyList implements Serializable {
 
 	private final FontPolicy[] policies;
 
-	public FontPolicyList(FontPolicy[] policies) {
+	/**
+	 * Creates a new FontPolicyList.
+	 * 
+	 * @param policies the array of font policies
+	 */
+	public FontPolicyList(final FontPolicy[] policies) {
 		assert policies.length > 0;
 		this.policies = policies;
 	}
 
+	/**
+	 * Returns the number of font policies.
+	 * 
+	 * @return the number of font policies
+	 */
 	public int getLength() {
 		return this.policies.length;
 	}
 
-	public FontPolicy get(int i) {
+	/**
+	 * Returns the font policy at the specified index.
+	 * 
+	 * @param i the index
+	 * @return the font policy
+	 */
+	public FontPolicy get(final int i) {
 		return this.policies[i];
 	}
 
-	public boolean equals(Object o) {
+	@Override
+	public boolean equals(final Object o) {
 		if (o == null || !(o instanceof FontPolicyList)) {
 			return false;
 		}
-		FontPolicyList a = (FontPolicyList) o;
+		final var a = (FontPolicyList) o;
 		return Arrays.equals(this.policies, a.policies);
 	}
 
+	@Override
 	public int hashCode() {
 		int h = this.policies[0].ordinal();
 		for (int i = 1; i < this.policies.length; ++i) {
@@ -66,27 +93,17 @@ public class FontPolicyList implements Serializable {
 		return h;
 	}
 
+	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		final var buff = new StringBuilder();
 		for (int i = 0; i < this.policies.length; ++i) {
 			switch (this.policies[i]) {
-			case CORE:
-				buff.append("core ");
-				break;
-			case CID_KEYED:
-				buff.append("cid-keyed ");
-				break;
-			case CID_IDENTITY:
-				buff.append("cid-identity ");
-				break;
-			case EMBEDDED:
-				buff.append("embedded ");
-				break;
-			case OUTLINES:
-				buff.append("outlines ");
-				break;
-			default:
-				throw new IllegalStateException();
+				case CORE -> buff.append("core ");
+				case CID_KEYED -> buff.append("cid-keyed ");
+				case CID_IDENTITY -> buff.append("cid-identity ");
+				case EMBEDDED -> buff.append("embedded ");
+				case OUTLINES -> buff.append("outlines ");
+				default -> throw new IllegalStateException();
 			}
 		}
 		return buff.toString();

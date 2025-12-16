@@ -5,46 +5,48 @@ import java.io.Closeable;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
 /**
- * 文字列からグリフに変換するために文字列を処理します。
+ * Handles characters to convert string to glyphs.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface CharacterHandler extends Closeable {
 	/**
-	 * カレントのスタイルを設定します。
+	 * Sets the current font style.
 	 * 
-	 * @param fontStyle
+	 * @param fontStyle the new font style
 	 */
 	public void fontStyle(FontStyle fontStyle);
 
 	/**
-	 * 処理する文字列を送ります。
+	 * Sends the characters to be processed.
 	 * 
-	 * @param ch
-	 * @param off
-	 * @param len
+	 * @param charOffset the offset of the characters
+	 * @param ch         the array of characters
+	 * @param off        the start offset in the array
+	 * @param len        the number of characters to process
 	 */
 	public void characters(int charOffset, char[] ch, int off, int len);
 
 	/**
-	 * 込め物を入れます。
+	 * Inserts a quad (spacing/break).
 	 * 
-	 * @param quad
+	 * @param quad the quad to insert
 	 */
 	public void quad(Quad quad);
 
 	/**
-	 * テキストを区切ります。
+	 * Flushes the current text segment.
 	 * 
-	 * <b>このメソッドはwordBreak()を呼びます。</b>
+	 * <b>This method calls wordBreak().</b>
 	 */
 	public void flush();
 
 	/**
-	 * 段落を終わります。
+	 * Ends the paragraph.
 	 * 
-	 * <b>このメソッドはwordBreak()を呼びます。</b>
+	 * <b>This method calls wordBreak().</b>
 	 */
+	@Override
 	public void close();
 }

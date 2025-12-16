@@ -8,6 +8,12 @@ import java.io.Serializable;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
+/**
+ * Represents a list of font families.
+ * 
+ * @author MIYABE Tatsuhiko
+ * @since 1.0
+ */
 public class FontFamilyList implements Serializable {
 	private static final long serialVersionUID = 0;
 
@@ -23,71 +29,93 @@ public class FontFamilyList implements Serializable {
 
 	private final FontFamily[] families;
 
-	public static FontFamilyList create(String name) {
-		FontFamilyList family;
+	/**
+	 * Creates a FontFamilyList from a name.
+	 * 
+	 * @param name the font family name
+	 * @return the created FontFamilyList
+	 */
+	public static FontFamilyList create(final String name) {
 		if (name == null || name.equalsIgnoreCase("serif")) {
-			family = FontFamilyList.SERIF;
+			return FontFamilyList.SERIF;
 		} else if (name.equalsIgnoreCase("cursive")) {
-			family = FontFamilyList.CURSIVE;
+			return FontFamilyList.CURSIVE;
 		} else if (name.equalsIgnoreCase("fantasy")) {
-			family = FontFamilyList.FANTASY;
+			return FontFamilyList.FANTASY;
 		} else if (name.equalsIgnoreCase("monospace")) {
-			family = FontFamilyList.MONOSPACE;
+			return FontFamilyList.MONOSPACE;
 		} else if (name.equalsIgnoreCase("sans-serif")) {
-			family = FontFamilyList.SANS_SERIF;
-		} else {
-			family = new FontFamilyList(new FontFamily(name));
+			return FontFamilyList.SANS_SERIF;
 		}
-		return family;
+		return new FontFamilyList(new FontFamily(name));
 	}
 
 	/**
-	 * 複数のフォントを指定してフォントリストを構築します。
+	 * Creates a new FontFamilyList with the given families.
 	 * 
-	 * @param families
+	 * @param families the font families
 	 */
-	public FontFamilyList(FontFamily[] families) {
+	public FontFamilyList(final FontFamily[] families) {
 		this.families = families;
 	}
 
-	public FontFamilyList(FontFamily f1) {
+	/**
+	 * Creates a new FontFamilyList with one family.
+	 * 
+	 * @param f1 the first font family
+	 */
+	public FontFamilyList(final FontFamily f1) {
 		this(new FontFamily[] { f1 });
 	}
 
-	public FontFamilyList(FontFamily f1, FontFamily f2) {
+	/**
+	 * Creates a new FontFamilyList with two families.
+	 * 
+	 * @param f1 the first font family
+	 * @param f2 the second font family
+	 */
+	public FontFamilyList(final FontFamily f1, final FontFamily f2) {
 		this(new FontFamily[] { f1, f2 });
 	}
 
-	public FontFamilyList(FontFamily f1, FontFamily f2, FontFamily f3) {
+	/**
+	 * Creates a new FontFamilyList with three families.
+	 * 
+	 * @param f1 the first font family
+	 * @param f2 the second font family
+	 * @param f3 the third font family
+	 */
+	public FontFamilyList(final FontFamily f1, final FontFamily f2, final FontFamily f3) {
 		this(new FontFamily[] { f1, f2, f3 });
 	}
 
 	/**
-	 * 指定されたインデックスのファミリを返します。
+	 * Returns the font family at the specified index.
 	 * 
-	 * @param index
-	 * @return
+	 * @param index the index of the font family
+	 * @return the font family
 	 */
-	public FontFamily get(int index) {
+	public FontFamily get(final int index) {
 		return this.families[index];
 	}
 
 	/**
-	 * 候補となっているフォントファミリーの数を返します。
+	 * Returns the number of font families in this list.
 	 * 
-	 * @return
+	 * @return the number of font families
 	 */
 	public int getLength() {
 		return this.families.length;
 	}
 
+	@Override
 	public String toString() {
 		if (this.families.length == 0) {
 			return "";
 		}
-		StringBuffer buffer = new StringBuffer();
+		final var buffer = new StringBuilder();
 		for (int i = 0; i < this.families.length; ++i) {
-			FontFamily entry = this.families[i];
+			final var entry = this.families[i];
 			if (entry.isGenericFamily()) {
 				buffer.append(entry.getName()).append(' ');
 			} else {
@@ -97,12 +125,13 @@ public class FontFamilyList implements Serializable {
 		return buffer.substring(0, buffer.length() - 1);
 	}
 
-	public boolean equals(Object o) {
+	@Override
+	public boolean equals(final Object o) {
 		if (o == null || !(o instanceof FontFamilyList)) {
 			return false;
 		}
-		FontFamily[] a = ((FontFamilyList) o).families;
-		FontFamily[] b = this.families;
+		final var a = ((FontFamilyList) o).families;
+		final var b = this.families;
 		if (a.length != b.length) {
 			return false;
 		}
@@ -114,6 +143,7 @@ public class FontFamilyList implements Serializable {
 		return true;
 	}
 
+	@Override
 	public int hashCode() {
 		int h = 0;
 		for (int i = 0; i < this.families.length; ++i) {
