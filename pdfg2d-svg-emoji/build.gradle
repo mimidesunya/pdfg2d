@@ -1,22 +1,13 @@
-description = 'SVG and Emoji support'
+description = 'Emoji SVG fonts resource'
 
-dependencies {
-    implementation project(':pdfg2d-pdf')
-    implementation project(':pdfg2d-core')
-    implementation project(':pdfg2d-font')
-    implementation 'org.apache.xmlgraphics:batik-bridge:1.16'
-    implementation 'org.apache.xmlgraphics:batik-anim:1.16'
-    implementation 'xml-apis:xml-apis:1.4.01'
-    implementation 'fr.sertelon.media:jpeg-cmyk:1.1.0'
-    // Emoji fonts resource - users need this JAR at runtime for emoji support
-    runtimeOnly project(':pdfg2d-svg-emoji-fonts')
-}
+// This module only contains the emoji.zip resource file
+// It should only be built when emoji fonts need to be updated
 
 publishing {
     publications {
         maven(MavenPublication) {
             pom {
-                description = 'SVG and Emoji support'
+                description = 'Emoji SVG fonts resource'
                 url = 'https://github.com/mimidesunya/pdfg2d/tree/main/pdfg2d-svg-emoji'
                 
                 scm {
@@ -28,3 +19,21 @@ publishing {
         }
     }
 }
+
+task setupEmoji(type: Exec) {
+    def toolFile = file("BuildEmojiIndexTool.java")
+    def emojiZip = file("src/main/resources/net/zamasoft/pdfg2d/font/emoji/emoji.zip")
+    
+    // Define inputs and outputs for incremental build support
+    inputs.file toolFile
+    outputs.file emojiZip
+    
+    workingDir projectDir
+    commandLine 'cmd', '/c', 'javac -encoding UTF-8 BuildEmojiIndexTool.java && java -cp . BuildEmojiIndexTool'
+    
+    // Only run if emoji.zip doesn't exist or tool source changed
+    onlyIf { !emojiZip.exists() || toolFile.lastModified() > emojiZip.lastModified() }
+}
+
+// Ensure emoji.zip is generated before processing resources
+processResources.dependsOn setupEmoji

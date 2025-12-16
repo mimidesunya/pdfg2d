@@ -112,12 +112,12 @@ subprojects {
 
 description = 'Mapping Java Graphics2D to PDF'
 
-// Skip pdfg2d-svg-emoji-fonts from default build to speed up builds
+// Skip pdfg2d-svg-emoji from default build to speed up builds
 // To build with emoji fonts: ./gradlew build -PincludeEmojiFonts=true
-// Or build just the fonts module: ./gradlew :pdfg2d-svg-emoji-fonts:build
+// Or build just the fonts module: ./gradlew :pdfg2d-svg-emoji:build
 gradle.taskGraph.whenReady { graph ->
     if (!project.hasProperty('includeEmojiFonts')) {
-        project(':pdfg2d-svg-emoji-fonts').tasks.each { task ->
+        project(':pdfg2d-svg-emoji').tasks.each { task ->
             if (task.name in ['jar', 'processResources', 'classes', 'compileJava', 
                               'sourcesJar', 'javadocJar', 'javadoc', 'build', 'assemble']) {
                 task.enabled = false

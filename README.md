@@ -8,7 +8,7 @@ pdfg2d is available on Maven Central Repository.
 
 [pdfg2d](https://search.maven.org/artifact/io.github.mimidesunya/pdfg2d-pdf)
 
-[Emoji support](https://search.maven.org/artifact/io.github.mimidesunya/pdfg2d-svg-emoji)
+[Emoji support](https://search.maven.org/artifact/io.github.mimidesunya/pdfg2d-svg)
 
 You can get Jars with Maven, Gradle etc.
 

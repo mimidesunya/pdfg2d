@@ -1,7 +1,7 @@
 description = 'Demo application'
 
 dependencies {
-    implementation project(':pdfg2d-svg-emoji')
+    implementation project(':pdfg2d-svg')
     implementation project(':pdfg2d-pdf')
     implementation project(':pdfg2d-core')
     implementation project(':pdfg2d-font')
