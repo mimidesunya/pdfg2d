@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.util;
 import java.io.Serializable;
 
 /**
- * 任意の位置の値をセット可能なint値の配列です。
+ * An expandable int array that allows setting values at arbitrary positions.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -13,68 +13,103 @@ public final class IntList implements Serializable, IntMap {
 
 	private static final int[] ZERO = new int[0];
 	private int[] array = ZERO;
-	private int defaultValue;
+	private final int defaultValue;
 	private int length = 0;
 
+	/**
+	 * Constructs a new IntList with default value 0.
+	 */
 	public IntList() {
 		this(0);
 	}
 
-	public IntList(int defaultValue) {
+	/**
+	 * Constructs a new IntList with the specified default value.
+	 * 
+	 * @param defaultValue the default value for new elements
+	 */
+	public IntList(final int defaultValue) {
 		this.defaultValue = defaultValue;
 	}
 
-	public void add(int value) {
-		set(length, value);
+	/**
+	 * Adds a value to the end of the list.
+	 * 
+	 * @param value the value to add
+	 */
+	public void add(final int value) {
+		this.set(this.length, value);
 	}
 
-	public void set(int pos, int value) {
-		if (length <= pos) {
-			length = pos + 1;
-			if (array.length <= pos) {
-				var newArray = new int[Math.max(length + 10, array.length * 3 / 2)];
-				for (int i = array.length; i < newArray.length; ++i) {
-					newArray[i] = defaultValue;
+	@Override
+	public void set(final int pos, final int value) {
+		if (this.length <= pos) {
+			this.length = pos + 1;
+			if (this.array.length <= pos) {
+				final var newArray = new int[Math.max(this.length + 10, this.array.length * 3 / 2)];
+				for (int i = this.array.length; i < newArray.length; ++i) {
+					newArray[i] = this.defaultValue;
 				}
-				System.arraycopy(array, 0, newArray, 0, array.length);
-				array = newArray;
+				System.arraycopy(this.array, 0, newArray, 0, this.array.length);
+				this.array = newArray;
 			}
 		}
-		array[pos] = value;
+		this.array[pos] = value;
 	}
 
+	/**
+	 * Returns the array as a packed int array.
+	 * 
+	 * @return the array
+	 */
 	public int[] toArray() {
 		this.pack();
 		return this.array;
 	}
 
-	public int get(int i) {
-		if (i >= array.length) {
-			return defaultValue;
+	@Override
+	public int get(final int i) {
+		if (i >= this.array.length) {
+			return this.defaultValue;
 		}
-		return array[i];
+		return this.array[i];
 	}
 
-	public boolean contains(int key) {
+	@Override
+	public boolean contains(final int key) {
 		return this.get(key) != this.defaultValue;
 	}
 
+	/**
+	 * Returns the size of the list.
+	 * 
+	 * @return the size
+	 */
 	public int size() {
-		return length;
+		return this.length;
 	}
 
+	/**
+	 * Packs the array to fit the current size.
+	 */
 	public void pack() {
-		if (length != array.length) {
-			var newArray = new int[length];
-			System.arraycopy(array, 0, newArray, 0, length);
-			array = newArray;
+		if (this.length != this.array.length) {
+			final var newArray = new int[this.length];
+			System.arraycopy(this.array, 0, newArray, 0, this.length);
+			this.array = newArray;
 		}
 	}
 
+	/**
+	 * Checks if the list is empty.
+	 * 
+	 * @return true if empty
+	 */
 	public boolean isEmpty() {
-		return length == 0;
+		return this.length == 0;
 	}
 
+	@Override
 	public IntMapIterator getIterator() {
 		this.pack();
 		return new ArrayIntMapIterator(this.array);

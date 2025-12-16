@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.util;
 import java.io.Serializable;
 
 /**
- * 任意の位置の値をセット可能なshort値の配列です。
+ * An expandable short array that allows setting values at arbitrary positions.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -13,57 +13,95 @@ public final class ShortList implements Serializable {
 
 	private static final short[] ZERO = new short[0];
 	private short[] array = ZERO;
-	private short defaultValue;
+	private final short defaultValue;
 	private int length = 0;
 
+	/**
+	 * Constructs a new ShortList with default value 0.
+	 */
 	public ShortList() {
 		this((short) 0);
 	}
 
-	public ShortList(short defaultValue) {
+	/**
+	 * Constructs a new ShortList with the specified default value.
+	 * 
+	 * @param defaultValue the default value for new elements
+	 */
+	public ShortList(final short defaultValue) {
 		this.defaultValue = defaultValue;
 	}
 
-	public void set(int pos, short value) {
-		if (length <= pos) {
-			length = pos + 1;
-			if (array.length <= pos) {
-				var newArray = new short[Math.max(length + 10, array.length * 3 / 2)];
-				for (int i = array.length; i < newArray.length; ++i) {
-					newArray[i] = defaultValue;
+	/**
+	 * Sets the value at the specified position.
+	 * 
+	 * @param pos   the index
+	 * @param value the value to set
+	 */
+	public void set(final int pos, final short value) {
+		if (this.length <= pos) {
+			this.length = pos + 1;
+			if (this.array.length <= pos) {
+				final var newArray = new short[Math.max(this.length + 10, this.array.length * 3 / 2)];
+				for (int i = this.array.length; i < newArray.length; ++i) {
+					newArray[i] = this.defaultValue;
 				}
-				System.arraycopy(array, 0, newArray, 0, array.length);
-				array = newArray;
+				System.arraycopy(this.array, 0, newArray, 0, this.array.length);
+				this.array = newArray;
 			}
 		}
-		array[pos] = value;
+		this.array[pos] = value;
 	}
 
+	/**
+	 * Returns the array as a packed short array.
+	 * 
+	 * @return the array
+	 */
 	public short[] toArray() {
-		pack();
-		return array;
+		this.pack();
+		return this.array;
 	}
 
-	public short get(int i) {
-		if (i >= array.length) {
-			return defaultValue;
+	/**
+	 * Returns the value at the specified position.
+	 * 
+	 * @param i the index
+	 * @return the value
+	 */
+	public short get(final int i) {
+		if (i >= this.array.length) {
+			return this.defaultValue;
 		}
-		return array[i];
+		return this.array[i];
 	}
 
+	/**
+	 * Returns the size of the list.
+	 * 
+	 * @return the size
+	 */
 	public int size() {
-		return length;
+		return this.length;
 	}
 
+	/**
+	 * Packs the array to fit the current size.
+	 */
 	public void pack() {
-		if (length != array.length) {
-			var newArray = new short[length];
-			System.arraycopy(array, 0, newArray, 0, length);
-			array = newArray;
+		if (this.length != this.array.length) {
+			final var newArray = new short[this.length];
+			System.arraycopy(this.array, 0, newArray, 0, this.length);
+			this.array = newArray;
 		}
 	}
 
+	/**
+	 * Checks if the list is empty.
+	 * 
+	 * @return true if empty
+	 */
 	public boolean isEmpty() {
-		return length == 0;
+		return this.length == 0;
 	}
 }
