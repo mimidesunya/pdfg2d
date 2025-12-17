@@ -15,7 +15,7 @@ import net.zamasoft.pdfg2d.gc.text.Text;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class NopGC implements GC {
+public class NoOpGC implements GC {
 	/**
 	 * Represents the graphics state.
 	 */
@@ -38,7 +38,7 @@ public class NopGC implements GC {
 
 		public final TextMode textMode;
 
-		public GraphicsState(final NopGC gc) {
+		public GraphicsState(final NoOpGC gc) {
 			this.transform = new AffineTransform(gc.transform);
 			this.strokePaintObject = gc.strokePaintObject;
 			this.fillPaintObject = gc.fillPaintObject;
@@ -51,7 +51,7 @@ public class NopGC implements GC {
 			this.textMode = gc.textMode;
 		}
 
-		public void restore(final NopGC gc) {
+		public void restore(final NoOpGC gc) {
 			gc.transform = this.transform;
 			gc.lineWidth = this.lineWidth;
 			gc.linePattern = this.linePattern;
@@ -88,11 +88,11 @@ public class NopGC implements GC {
 	protected final FontManager fm;
 
 	/**
-	 * Creates a new NopGC.
+	 * Creates a new NoOpGC.
 	 * 
 	 * @param fm the font manager
 	 */
-	public NopGC(final FontManager fm) {
+	public NoOpGC(final FontManager fm) {
 		this.fm = fm;
 	}
 
@@ -251,16 +251,16 @@ public class NopGC implements GC {
 	/**
 	 * A dummy image that does nothing.
 	 */
-	public static class NopImage implements Image {
+	public static class NoOpImage implements Image {
 		protected final double width, height;
 
 		/**
-		 * Creates a new NopImage.
+		 * Creates a new NoOpImage.
 		 * 
 		 * @param width  the width
 		 * @param height the height
 		 */
-		public NopImage(final double width, final double height) {
+		public NoOpImage(final double width, final double height) {
 			this.width = width;
 			this.height = height;
 		}
@@ -289,17 +289,17 @@ public class NopGC implements GC {
 	/**
 	 * A dummy group image graphics context that does nothing.
 	 */
-	public static class NopGroupImageGC extends NopGC implements GroupImageGC {
+	public static class NoOpGroupImageGC extends NoOpGC implements GroupImageGC {
 		private final double width, height;
 
 		/**
-		 * Creates a new NopGroupImageGC.
+		 * Creates a new NoOpGroupImageGC.
 		 * 
 		 * @param fm     the font manager
 		 * @param width  the width
 		 * @param height the height
 		 */
-		public NopGroupImageGC(final FontManager fm, final double width, final double height) {
+		public NoOpGroupImageGC(final FontManager fm, final double width, final double height) {
 			super(fm);
 			this.width = width;
 			this.height = height;
@@ -307,12 +307,12 @@ public class NopGC implements GC {
 
 		@Override
 		public Image finish() throws GraphicsException {
-			return new NopImage(this.width, this.height);
+			return new NoOpImage(this.width, this.height);
 		}
 	}
 
 	@Override
 	public GroupImageGC createGroupImage(final double width, final double height) throws GraphicsException {
-		return new NopGroupImageGC(this.getFontManager(), width, height);
+		return new NoOpGroupImageGC(this.getFontManager(), width, height);
 	}
 }

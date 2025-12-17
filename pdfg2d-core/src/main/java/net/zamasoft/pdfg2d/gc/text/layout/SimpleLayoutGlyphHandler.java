@@ -4,7 +4,7 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
-import net.zamasoft.pdfg2d.gc.text.Quad;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
 import net.zamasoft.pdfg2d.gc.text.TextImpl;
 import net.zamasoft.pdfg2d.gc.text.layout.control.Control;
 import net.zamasoft.pdfg2d.gc.text.layout.control.Tab;
@@ -78,10 +78,10 @@ public class SimpleLayoutGlyphHandler implements GlyphHandler {
 	}
 
 	@Override
-	public void quad(final Quad quad) {
-		final Control control = (Control) quad;
-		this.maxLineHeight = Math.max(this.maxLineHeight, control.getAscent() + control.getDescent());
-		switch (control.getControlChar()) {
+	public void control(final TextControl control) {
+		final Control c = (Control) control;
+		this.maxLineHeight = Math.max(this.maxLineHeight, c.getAscent() + c.getDescent());
+		switch (c.getControlChar()) {
 			case '\n':
 				this.line += this.maxLineHeight;
 				this.maxLineHeight = 0;
@@ -90,11 +90,11 @@ public class SimpleLayoutGlyphHandler implements GlyphHandler {
 
 			case '\t':
 				// Tab character
-				final Tab tab = (Tab) control;
+				final Tab tab = (Tab) c;
 				tab.advance = (TAB_WIDTH - (this.advance % TAB_WIDTH));
 				break;
 		}
-		this.advance += quad.getAdvance();
+		this.advance += control.getAdvance();
 	}
 
 	@Override

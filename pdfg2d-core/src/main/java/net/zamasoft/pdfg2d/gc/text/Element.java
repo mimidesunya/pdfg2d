@@ -10,8 +10,8 @@ public interface Element {
 	public enum Type {
 		/** Text element. */
 		TEXT,
-		/** Quad element (e.g., whitespace, tabs, newlines). */
-		QUAD
+		/** Control element (e.g., whitespace, tabs, newlines). */
+		CONTROL
 	}
 
 	/**

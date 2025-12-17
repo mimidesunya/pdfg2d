@@ -6,7 +6,7 @@ package net.zamasoft.pdfg2d.gc.text.hyphenation;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface Hyphenation {
+public interface TextBreakingRules {
 	/**
 	 * Returns true if the two characters should not be separated.
 	 * 

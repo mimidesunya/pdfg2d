@@ -20,7 +20,7 @@ import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.HyphenationBundle;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -99,7 +99,7 @@ public class TextOutlineDemo {
 				gc.setTextMode(GC.TextMode.FILL_STROKE);
 				SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 				lgh.setGC(gc);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("ja"), lgh)) {
+				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(FontStyle.Direction.TB);
 					tlf.setFontFamilies(FontFamilyList.create("IPAex明朝"));
 					tlf.setFontSize(32);
@@ -114,7 +114,7 @@ public class TextOutlineDemo {
 				gc.setTextMode(GC.TextMode.FILL);
 				SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 				lgh.setGC(gc);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("ja"), lgh)) {
+				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(FontStyle.Direction.TB);
 					tlf.setFontFamilies(FontFamilyList.create("IPAex明朝"));
 					tlf.setFontWeight(FontStyle.Weight.W_800);

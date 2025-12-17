@@ -38,11 +38,11 @@ public interface GlyphHandler extends Closeable {
 	public void glyph(int charOffset, char[] ch, int coff, byte clen, int gid);
 
 	/**
-	 * Sends a quad (spacing/break).
+	 * Sends a control (spacing/break).
 	 * 
-	 * @param quad the quad
+	 * @param control the control
 	 */
-	public void quad(Quad quad);
+	public void control(TextControl control);
 
 	/**
 	 * Flushes the text processed so far. Calling this method explicitly may split

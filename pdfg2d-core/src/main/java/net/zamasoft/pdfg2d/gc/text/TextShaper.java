@@ -6,6 +6,6 @@ package net.zamasoft.pdfg2d.gc.text;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface Glypher extends CharacterHandler {
+public interface TextShaper extends CharacterHandler {
 	public void setGlyphHander(GlyphHandler glyphHandler);
 }

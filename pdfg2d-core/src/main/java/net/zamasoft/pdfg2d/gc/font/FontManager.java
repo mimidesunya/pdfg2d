@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.gc.font;
 import java.io.IOException;
 import java.io.Serializable;
 
-import net.zamasoft.pdfg2d.gc.text.Glypher;
+import net.zamasoft.pdfg2d.gc.text.TextShaper;
 
 /**
  * テキストを複数のグリフに分解します。
@@ -39,5 +39,5 @@ public interface FontManager extends Serializable {
 	 * 
 	 * @return the glypher
 	 */
-	public Glypher getGlypher();
+	public TextShaper getTextShaper();
 }

@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.gc.text.hyphenation.impl;
 
 import java.lang.Character.UnicodeBlock;
 
-import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRules;
 
 /**
  * Japanese hyphenation rules.
@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class JapaneseHyphenation implements Hyphenation {
+public class JapaneseHyphenation implements TextBreakingRules {
 	private static final CharacterSet ASCII = new BitSetCharacterSet(
 			"#$%&*+-/0123456789=@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\^_abcdefghijklmnopqrstuvwxyz|~");
 

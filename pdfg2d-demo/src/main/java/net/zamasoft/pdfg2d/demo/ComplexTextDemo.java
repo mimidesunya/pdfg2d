@@ -20,7 +20,7 @@ import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.HyphenationBundle;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -124,7 +124,7 @@ public class ComplexTextDemo {
 			gc.transform(AffineTransform.getTranslateInstance(200, 0));
 			SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 			lgh.setGC(gc);
-			try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("ja"), lgh)) {
+			try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 				// Set text direction to top-to-bottom (vertical)
 				tlf.setDirection(FontStyle.Direction.TB);
 				tlf.setFontFamilies(FontFamilyList.create("IPAex明朝"));
@@ -149,7 +149,7 @@ public class ComplexTextDemo {
 			gc.transform(AffineTransform.getTranslateInstance(100, 0));
 			SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 			lgh.setGC(gc);
-			try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("ja"), lgh)) {
+			try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 				tlf.setDirection(FontStyle.Direction.TB);
 				tlf.setFontFamilies(FontFamilyList.create("Kenten Generic"));
 				tlf.setFontSize(16);
@@ -165,7 +165,7 @@ public class ComplexTextDemo {
 		// SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 		// lgh.setGC(gc);
 		// TextLayoutHandler tlf = new TextLayoutHandler(gc,
-		// HyphenationBundle.getHyphenation("ja"), lgh);
+		// TextBreakingRulesBundle.getRules("ja"), lgh);
 		// tlf.setDirection(FontStyle.DIRECTION_LTR);
 		// tlf.setFontFamilies(FontFamilyList.create("Hangul"));
 		// tlf.setFontSize(16);
@@ -180,7 +180,7 @@ public class ComplexTextDemo {
 		// SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
 		// lgh.setGC(gc);
 		// TextLayoutHandler tlf = new TextLayoutHandler(gc,
-		// HyphenationBundle.getHyphenation("ja"), lgh);
+		// TextBreakingRulesBundle.getRules("ja"), lgh);
 		// tlf.setDirection(FontStyle.DIRECTION_LTR);
 		// tlf.setFontFamilies(FontFamilyList.create("FT Meuang"));
 		// tlf.setFontSize(16);

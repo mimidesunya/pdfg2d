@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.gc.text.layout;
 
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.CharacterHandler;
-import net.zamasoft.pdfg2d.gc.text.Quad;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
 
 public class FilterCharacterHandler implements CharacterHandler {
 	protected CharacterHandler characterHandler;
@@ -29,8 +29,8 @@ public class FilterCharacterHandler implements CharacterHandler {
 	}
 
 	@Override
-	public void quad(final Quad quad) {
-		this.characterHandler.quad(quad);
+	public void control(final TextControl control) {
+		this.characterHandler.control(control);
 	}
 
 	@Override

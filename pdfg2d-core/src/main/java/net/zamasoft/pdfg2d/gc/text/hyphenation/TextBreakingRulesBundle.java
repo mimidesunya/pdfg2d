@@ -8,8 +8,8 @@ import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.JapaneseHyphenation;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class HyphenationBundle {
-	private static final Hyphenation DEFAULT_HYPHENATION = new JapaneseHyphenation();
+public class TextBreakingRulesBundle {
+	private static final TextBreakingRules DEFAULT_RULES = new JapaneseHyphenation();
 
 	/**
 	 * Returns the hyphenation rules for the specified language.
@@ -17,7 +17,7 @@ public class HyphenationBundle {
 	 * @param lang the language code
 	 * @return the hyphenation rules
 	 */
-	public static Hyphenation getHyphenation(String lang) {
-		return DEFAULT_HYPHENATION;
+	public static TextBreakingRules getRules(String lang) {
+		return DEFAULT_RULES;
 	}
 }

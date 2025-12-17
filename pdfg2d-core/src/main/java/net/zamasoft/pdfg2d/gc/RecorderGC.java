@@ -21,7 +21,7 @@ enum Command {
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class RecorderGC extends NopGC {
+public class RecorderGC extends NoOpGC {
 	protected final List<Object> contents = new ArrayList<>();
 
 	/**
@@ -168,7 +168,7 @@ public class RecorderGC extends NopGC {
 	/**
 	 * An image that records graphics operations.
 	 */
-	public static class RecorderImage extends NopImage {
+	public static class RecorderImage extends NoOpImage {
 		protected final Page page;
 
 		/**

@@ -46,7 +46,7 @@ import net.zamasoft.pdfg2d.gc.paint.Color;
 import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.HyphenationBundle;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
 
@@ -366,7 +366,7 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 	}
 
 	private void drawString(GlyphHandler gh, AttributedCharacterIterator aci) {
-		try (TextLayoutHandler tlf = new TextLayoutHandler(this.gc, HyphenationBundle.getHyphenation("ja"), gh)) {
+		try (TextLayoutHandler tlf = new TextLayoutHandler(this.gc, TextBreakingRulesBundle.getRules("ja"), gh)) {
 			Map<TextAttribute, ?> atts = this.font.getAttributes();
 			tlf.setFontFamilies(FontFamilyList.create(this.font.getFamily()));
 			int style = this.font.getStyle();

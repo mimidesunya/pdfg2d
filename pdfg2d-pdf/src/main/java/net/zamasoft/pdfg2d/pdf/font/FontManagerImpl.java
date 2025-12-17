@@ -18,8 +18,8 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
-import net.zamasoft.pdfg2d.gc.text.Glypher;
-import net.zamasoft.pdfg2d.gc.text.Quad;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
+import net.zamasoft.pdfg2d.gc.text.TextShaper;
 import net.zamasoft.pdfg2d.pdf.font.cid.missing.MissingCIDFontSource;
 import net.zamasoft.pdfg2d.pdf.font.cid.missing.SpaceCIDFontSource;
 
@@ -102,11 +102,11 @@ public class FontManagerImpl implements FontManager, Closeable {
 		return flm;
 	}
 
-	public Glypher getGlypher() {
+	public TextShaper getTextShaper() {
 		return new CharacterHandler();
 	}
 
-	protected class CharacterHandler implements Glypher {
+	protected class CharacterHandler implements TextShaper {
 		private GlyphHandler glyphHandler;
 
 		private final char[] ch = new char[12];
@@ -240,9 +240,9 @@ public class FontManagerImpl implements FontManager, Closeable {
 			}
 		}
 
-		public void quad(Quad quad) {
+		public void control(TextControl control) {
 			this.glyphBreak();
-			this.glyphHandler.quad(quad);
+			this.glyphHandler.control(control);
 		}
 
 		private void glyph() {

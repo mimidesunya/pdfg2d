@@ -12,7 +12,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Element;
 import net.zamasoft.pdfg2d.gc.text.Element.Type;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
-import net.zamasoft.pdfg2d.gc.text.Quad;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.gc.text.TextImpl;
 import net.zamasoft.pdfg2d.gc.text.layout.control.Control;
@@ -452,9 +452,9 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 	}
 
 	@Override
-	public void quad(final Quad quad) {
-		final Control control = (Control) quad;
-		switch (control.getControlChar()) {
+	public void control(final TextControl control) {
+		final Control c = (Control) control;
+		switch (c.getControlChar()) {
 			case '\n':
 				this.endLine(true);
 				this.textUnitElementCount = 0;
@@ -463,7 +463,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 			case '\t':
 				// Tab character
-				final Tab tab = (Tab) control;
+				final Tab tab = (Tab) c;
 				tab.advance = (TAB_WIDTH - (this.advance % TAB_WIDTH));
 				if (this.advance + tab.advance > this.getMaxAdvance()) {
 					this.endLine(false);
@@ -472,9 +472,9 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				break;
 		}
 		this.checkText();
-		this.textBuffer.add(quad);
+		this.textBuffer.add(control);
 		++this.textUnitElementCount;
-		this.advance += quad.getAdvance();
+		this.advance += control.getAdvance();
 	}
 
 	@Override

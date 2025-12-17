@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.HyphenationBundle;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler.Alignment;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -36,7 +36,7 @@ public class StyledTextApp {
 				lgh.setLineAdvance(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM - 20));
 				lgh.setAlign(Alignment.JUSTIFY);
 				lgh.setLineHeight(1.616);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("ja"), lgh)) {
+				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(Direction.LTR);
 					tlf.setFontFamilies(FontFamilyList.SERIF);
 					tlf.setFontSize(24);
@@ -45,7 +45,7 @@ public class StyledTextApp {
 					tlf.characters(
 							"故に能なるも之に不能を示し、用なるも之に不用を示し、近くとも之に遠きを示し、遠くとも之に近きを示し、利にして之を誘い、乱にして之を取り、実にして之に備え、強にして之を避け、怒にして之を撓し、卑にして之を驕らせ、佚にして之を労し、親にして之を離す。\n");
 				}
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, HyphenationBundle.getHyphenation("en"), lgh)) {
+				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("en"), lgh)) {
 					tlf.setFontFamilies(FontFamilyList.SANS_SERIF);
 					tlf.setFontStyle(Style.ITALIC);
 					tlf.setFontSize(12);

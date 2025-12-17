@@ -29,11 +29,11 @@ public interface CharacterHandler extends Closeable {
 	public void characters(int charOffset, char[] ch, int off, int len);
 
 	/**
-	 * Inserts a quad (spacing/break).
+	 * Inserts a control (spacing/break).
 	 * 
-	 * @param quad the quad to insert
+	 * @param control the control to insert
 	 */
-	public void quad(Quad quad);
+	public void control(TextControl control);
 
 	/**
 	 * Flushes the current text segment.

@@ -1,11 +1,11 @@
 package net.zamasoft.pdfg2d.gc.text.layout.control;
 
-import net.zamasoft.pdfg2d.gc.text.Quad;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
 
 /**
  * Abstract class representing a control character in the text layout.
  */
-public abstract class Control extends Quad {
+public abstract class Control extends TextControl {
 	public abstract int getCharOffset();
 
 	public abstract char getControlChar();

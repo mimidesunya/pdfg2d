@@ -4,8 +4,8 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.FilterGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
-import net.zamasoft.pdfg2d.gc.text.Quad;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
+import net.zamasoft.pdfg2d.gc.text.TextControl;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRules;
 
 /**
  * Decomposes text into unbreakable units for line breaking.
@@ -13,8 +13,8 @@ import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class TextUnitizer implements FilterGlyphHandler {
-	protected Hyphenation hyph;
+public class TextAtomizer implements FilterGlyphHandler {
+	protected TextBreakingRules rules;
 
 	private GlyphHandler glyphHandler;
 
@@ -23,18 +23,18 @@ public class TextUnitizer implements FilterGlyphHandler {
 	 */
 	private char prevChar = 0;
 
-	private Quad beforeQuad = null;
+	private TextControl beforeControl = null;
 
-	public TextUnitizer(final Hyphenation hyph) {
-		this.hyph = hyph;
+	public TextAtomizer(final TextBreakingRules rules) {
+		this.rules = rules;
 	}
 
-	public Hyphenation getHyphenation() {
-		return this.hyph;
+	public TextBreakingRules getTextBreakingRules() {
+		return this.rules;
 	}
 
-	public void setHyphenation(final Hyphenation hyph) {
-		this.hyph = hyph;
+	public void setTextBreakingRules(final TextBreakingRules rules) {
+		this.rules = rules;
 	}
 
 	@Override
@@ -57,37 +57,37 @@ public class TextUnitizer implements FilterGlyphHandler {
 		final char c1 = ch[coff];
 		final char c2 = ch[coff + clen - 1];
 		this.nextGlyph(c1, c2, clen);
-		if (this.beforeQuad != null) {
-			this.glyphHandler.quad(this.beforeQuad);
-			this.beforeQuad = null;
+		if (this.beforeControl != null) {
+			this.glyphHandler.control(this.beforeControl);
+			this.beforeControl = null;
 		}
 		this.glyphHandler.glyph(charOffset, ch, coff, clen, gid);
 	}
 
 	@Override
-	public void quad(final Quad quad) {
-		final String str = quad.getString();
-		// System.err.println("TU QUAD: " + quad + "/" +
+	public void control(final TextControl control) {
+		final String str = control.getString();
+		// System.err.println("TU CONTROL: " + control + "/" +
 		// Integer.toHexString(this.prevChar));
-		if (str == Quad.BREAK) {
+		if (str == TextControl.BREAK) {
 			// Separates strings except for CONTINUE_BEFORE, CONTINUE_AFTER
 			if (this.prevChar != 0 && this.prevChar != '\u2060') {
 				this.internalFlush();
 			}
 			this.prevChar = '\u200B';
-		} else if (str == Quad.CONTINUE_BEFORE) {
+		} else if (str == TextControl.CONTINUE_BEFORE) {
 			// Treat as previous character (attach to following string <span>...)
 			if (this.prevChar == '\u200B') {
 				this.internalFlush();
 				this.prevChar = '\u2060';
 			} else {
-				if (this.beforeQuad != null) {
-					this.glyphHandler.quad(this.beforeQuad);
+				if (this.beforeControl != null) {
+					this.glyphHandler.control(this.beforeControl);
 				}
-				this.beforeQuad = quad;
+				this.beforeControl = control;
 				return;
 			}
-		} else if (str == Quad.CONTINUE_AFTER) {
+		} else if (str == TextControl.CONTINUE_AFTER) {
 			// Treat as previous character (attach to previous string ...</span>)
 			if (this.prevChar == '\u200B') {
 				this.internalFlush();
@@ -106,11 +106,11 @@ public class TextUnitizer implements FilterGlyphHandler {
 			final char c2 = str.charAt(strlen - 1);
 			this.nextGlyph(c1, c2, strlen);
 		}
-		if (this.beforeQuad != null) {
-			this.glyphHandler.quad(this.beforeQuad);
-			this.beforeQuad = null;
+		if (this.beforeControl != null) {
+			this.glyphHandler.control(this.beforeControl);
+			this.beforeControl = null;
 		}
-		this.glyphHandler.quad(quad);
+		this.glyphHandler.control(control);
 	}
 
 	private void internalFlush() {
@@ -119,18 +119,18 @@ public class TextUnitizer implements FilterGlyphHandler {
 
 	@Override
 	public void flush() {
-		if (this.beforeQuad != null) {
-			this.glyphHandler.quad(this.beforeQuad);
-			this.beforeQuad = null;
+		if (this.beforeControl != null) {
+			this.glyphHandler.control(this.beforeControl);
+			this.beforeControl = null;
 		}
 		this.internalFlush();
 	}
 
 	@Override
 	public void close() {
-		if (this.beforeQuad != null) {
-			this.glyphHandler.quad(this.beforeQuad);
-			this.beforeQuad = null;
+		if (this.beforeControl != null) {
+			this.glyphHandler.control(this.beforeControl);
+			this.beforeControl = null;
 		}
 		this.glyphHandler.close();
 	}
@@ -143,7 +143,7 @@ public class TextUnitizer implements FilterGlyphHandler {
 	 */
 	private void nextGlyph(final char c1, final char c2, final int charCount) {
 		if (this.prevChar != 0 && this.prevChar != '\u2060'
-				&& (this.prevChar == '\u200B' || !this.hyph.atomic(this.prevChar, c1))) {
+				&& (this.prevChar == '\u200B' || !this.rules.atomic(this.prevChar, c1))) {
 			this.internalFlush();
 		}
 		this.prevChar = c2;

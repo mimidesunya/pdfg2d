@@ -18,8 +18,8 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.FontStyleImpl;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.Hyphenation;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.TextUnitizer;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRules;
+import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.TextAtomizer;
 import net.zamasoft.pdfg2d.gc.text.layout.FilterCharacterHandler;
 import net.zamasoft.pdfg2d.gc.text.layout.control.LineBreak;
 import net.zamasoft.pdfg2d.gc.text.layout.control.Tab;
@@ -48,12 +48,12 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 
 	private FontStyle fontStyle;
 
-	public TextLayoutHandler(final GC gc, final Hyphenation hyphenation, final GlyphHandler glyphHandler) {
+	public TextLayoutHandler(final GC gc, final TextBreakingRules rules, final GlyphHandler glyphHandler) {
 		this.gc = gc;
-		final FilterGlyphHandler textUnitizer = new TextUnitizer(hyphenation);
-		textUnitizer.setGlyphHandler(glyphHandler);
-		final Glypher glypher = gc.getFontManager().getGlypher();
-		glypher.setGlyphHander(textUnitizer);
+		final FilterGlyphHandler textAtomizer = new TextAtomizer(rules);
+		textAtomizer.setGlyphHandler(glyphHandler);
+		final TextShaper glypher = gc.getFontManager().getTextShaper();
+		glypher.setGlyphHander(textAtomizer);
 		this.setCharacterHandler(glypher);
 	}
 
@@ -122,23 +122,23 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		int ooff = 0;
 		for (int i = 0; i < len; ++i) {
 			final char c = ch[i + off];
-			Quad quad = null;
+			TextControl control = null;
 			if (Character.isISOControl(c)) {
 				final FontListMetrics flm = this.gc.getFontManager().getFontListMetrics(this.fontStyle);
 				switch (c) {
 					case '\n':
-						quad = new LineBreak(flm, i);
+						control = new LineBreak(flm, i);
 						break;
 					case '\t':
-						quad = new Tab(flm, i);
+						control = new Tab(flm, i);
 						break;
 				}
-				if (quad != null) {
+				if (control != null) {
 					if (i > ooff) {
 						super.characters(charOffset + ooff, ch, off + ooff, i - ooff);
 					}
 					ooff = i + 1;
-					super.quad(quad);
+					super.control(control);
 					continue;
 				}
 			}
