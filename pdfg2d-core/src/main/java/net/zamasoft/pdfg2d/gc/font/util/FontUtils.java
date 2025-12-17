@@ -1,10 +1,8 @@
 package net.zamasoft.pdfg2d.gc.font.util;
 
-import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 
-import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.DrawableFont;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ImageFont;
@@ -12,11 +10,12 @@ import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GC.TextMode;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
-import net.zamasoft.pdfg2d.gc.font.FontMetrics;
+
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
-import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
+import net.zamasoft.pdfg2d.gc.paint.Paint;
+
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
@@ -79,8 +78,8 @@ public final class FontUtils {
 		final var fontStyle = text.getFontStyle();
 		final var direction = fontStyle.getDirection();
 		final var fontSize = fontStyle.getSize();
-		final var glen = text.getGLen();
-		final var gids = text.getGIDs();
+		final var glyphCount = text.getGlyphCount();
+		final var glyphIds = text.getGlyphIds();
 		final var letterSpacing = text.getLetterSpacing();
 		final var xadvances = text.getXAdvances(false);
 		final var fm = text.getFontMetrics();
@@ -105,8 +104,8 @@ public final class FontUtils {
 			// Vertical font
 			at.preConcatenate(AffineTransform.getTranslateInstance(-fontSize / 2.0, fontSize * 0.88));
 			int pgid = 0;
-			for (int i = 0; i < glen; ++i) {
-				final var gid = gids[i];
+			for (int i = 0; i < glyphCount; ++i) {
+				final var gid = glyphIds[i];
 				if (i > 0) {
 					double dy = fm.getAdvance(pgid) + letterSpacing;
 					dy -= fm.getKerning(pgid, gid);
@@ -133,8 +132,8 @@ public final class FontUtils {
 		} else {
 			// Horizontal writing
 			int pgid = 0;
-			for (int i = 0; i < glen; ++i) {
-				final int gid = gids[i];
+			for (int i = 0; i < glyphCount; ++i) {
+				final int gid = glyphIds[i];
 				if (i > 0) {
 					double dx = fm.getAdvance(pgid) + letterSpacing;
 					if (i > 0) {
@@ -172,8 +171,8 @@ public final class FontUtils {
 		final var fontStyle = text.getFontStyle();
 		final var direction = fontStyle.getDirection();
 		final var fontSize = fontStyle.getSize();
-		final var glen = text.getGLen();
-		final var gids = text.getGIDs();
+		final var glyphCount = text.getGlyphCount();
+		final var glyphIds = text.getGlyphIds();
 		final var letterSpacing = text.getLetterSpacing();
 		final var xadvances = text.getXAdvances(false);
 		final var fm = text.getFontMetrics();
@@ -187,7 +186,7 @@ public final class FontUtils {
 		double enlargement;
 		final var weight = fontStyle.getWeight();
 		double xlineWidth = 0;
-		Object xstrokePaint = null;
+		Paint xstrokePaint = null;
 		if (textMode == TextMode.FILL && weight.w >= 500 && font.getFontSource().getWeight().w < 500) {
 			// Simulate BOLD manually
 			switch (weight) {
@@ -227,9 +226,9 @@ public final class FontUtils {
 			// Vertical font
 			gc.transform(AffineTransform.getTranslateInstance(-fontSize / 2.0, fontSize * 0.88));
 			int pgid = 0;
-			for (int i = 0; i < glen; ++i) {
+			for (int i = 0; i < glyphCount; ++i) {
 				var at2 = at;
-				final var gid = gids[i];
+				final var gid = glyphIds[i];
 				if (i > 0) {
 					double dy = fm.getAdvance(pgid) + letterSpacing;
 					dy -= fm.getKerning(pgid, gid);
@@ -264,13 +263,13 @@ public final class FontUtils {
 				// Rotated horizontal
 				gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
 				final var bbox = font.getFontSource().getBBox();
-				final var dy = ((bbox.lly + bbox.ury) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2.0;
+				final var dy = ((bbox.lly() + bbox.ury()) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2.0;
 				gc.transform(AffineTransform.getTranslateInstance(0, dy));
 			}
 			// Horizontal writing
 			int pgid = 0;
-			for (int i = 0; i < glen; ++i) {
-				final int gid = gids[i];
+			for (int i = 0; i < glyphCount; ++i) {
+				final int gid = glyphIds[i];
 				if (i > 0) {
 					double dx = fm.getAdvance(pgid) + letterSpacing;
 					if (i > 0) {

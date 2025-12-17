@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRulesBundle;
+import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler.Alignment;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;

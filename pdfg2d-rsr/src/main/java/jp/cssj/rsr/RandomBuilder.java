@@ -26,6 +26,7 @@ public interface RandomBuilder extends Closeable {
 	/**
 	 * 断片の位置情報です。
 	 */
+	@FunctionalInterface
 	public static interface PositionInfo {
 		/**
 		 * <p>

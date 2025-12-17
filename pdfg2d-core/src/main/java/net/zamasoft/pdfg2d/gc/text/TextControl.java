@@ -6,7 +6,7 @@ package net.zamasoft.pdfg2d.gc.text;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public abstract class TextControl implements Element {
+public non-sealed abstract class TextControl implements Element {
 	// U+200B ZERO WIDTH SPACE
 	// U+00A0 NO-BREAK SPACE
 	// U+2060 WORD JOINER
@@ -28,11 +28,6 @@ public abstract class TextControl implements Element {
 	 * previous string.
 	 */
 	public static final String CONTINUE_AFTER = "\u2060\u200B";
-
-	@Override
-	public Type getElementType() {
-		return Type.CONTROL;
-	}
 
 	/**
 	 * Returns the corresponding string.

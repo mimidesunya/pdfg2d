@@ -1,21 +1,15 @@
 package net.zamasoft.pdfg2d.gc.font;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
-/**
- * 1つまたは複数のフォントファミリーです。
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
- */
 /**
  * Represents a list of font families.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontFamilyList implements Serializable {
-	private static final long serialVersionUID = 0;
+public record FontFamilyList(FontFamily[] families) implements Serializable {
 
 	public static final FontFamilyList SERIF = new FontFamilyList(FontFamily.SERIF_VALUE);
 
@@ -27,8 +21,6 @@ public class FontFamilyList implements Serializable {
 
 	public static final FontFamilyList MONOSPACE = new FontFamilyList(FontFamily.MONOSPACE_VALUE);
 
-	private final FontFamily[] families;
-
 	/**
 	 * Creates a FontFamilyList from a name.
 	 * 
@@ -36,27 +28,17 @@ public class FontFamilyList implements Serializable {
 	 * @return the created FontFamilyList
 	 */
 	public static FontFamilyList create(final String name) {
-		if (name == null || name.equalsIgnoreCase("serif")) {
+		if (name == null) {
 			return FontFamilyList.SERIF;
-		} else if (name.equalsIgnoreCase("cursive")) {
-			return FontFamilyList.CURSIVE;
-		} else if (name.equalsIgnoreCase("fantasy")) {
-			return FontFamilyList.FANTASY;
-		} else if (name.equalsIgnoreCase("monospace")) {
-			return FontFamilyList.MONOSPACE;
-		} else if (name.equalsIgnoreCase("sans-serif")) {
-			return FontFamilyList.SANS_SERIF;
 		}
-		return new FontFamilyList(new FontFamily(name));
-	}
-
-	/**
-	 * Creates a new FontFamilyList with the given families.
-	 * 
-	 * @param families the font families
-	 */
-	public FontFamilyList(final FontFamily[] families) {
-		this.families = families;
+		return switch (name.toLowerCase(java.util.Locale.ROOT)) {
+			case "serif" -> FontFamilyList.SERIF;
+			case "cursive" -> FontFamilyList.CURSIVE;
+			case "fantasy" -> FontFamilyList.FANTASY;
+			case "monospace" -> FontFamilyList.MONOSPACE;
+			case "sans-serif" -> FontFamilyList.SANS_SERIF;
+			default -> new FontFamilyList(new FontFamily(name));
+		};
 	}
 
 	/**
@@ -110,45 +92,18 @@ public class FontFamilyList implements Serializable {
 
 	@Override
 	public String toString() {
-		if (this.families.length == 0) {
-			return "";
-		}
-		final var buffer = new StringBuilder();
-		for (int i = 0; i < this.families.length; ++i) {
-			final var entry = this.families[i];
-			if (entry.isGenericFamily()) {
-				buffer.append(entry.getName()).append(' ');
-			} else {
-				buffer.append('\'').append(entry.getName()).append("' ");
-			}
-		}
-		return buffer.substring(0, buffer.length() - 1);
+		return java.util.Arrays.stream(this.families)
+				.map(f -> f.isGenericFamily() ? f.getName() : "'" + f.getName() + "'")
+				.collect(java.util.stream.Collectors.joining(" "));
 	}
 
 	@Override
 	public boolean equals(final Object o) {
-		if (o == null || !(o instanceof FontFamilyList)) {
-			return false;
-		}
-		final var a = ((FontFamilyList) o).families;
-		final var b = this.families;
-		if (a.length != b.length) {
-			return false;
-		}
-		for (int i = 0; i < a.length; ++i) {
-			if (!a[i].equals(b[i])) {
-				return false;
-			}
-		}
-		return true;
+		return o instanceof FontFamilyList l && Arrays.equals(this.families, l.families);
 	}
 
 	@Override
 	public int hashCode() {
-		int h = 0;
-		for (int i = 0; i < this.families.length; ++i) {
-			h = 31 * h + this.families[i].hashCode();
-		}
-		return h;
+		return Arrays.hashCode(this.families);
 	}
 }

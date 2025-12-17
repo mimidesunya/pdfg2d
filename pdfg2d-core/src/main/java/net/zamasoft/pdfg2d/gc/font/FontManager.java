@@ -6,12 +6,6 @@ import java.io.Serializable;
 import net.zamasoft.pdfg2d.gc.text.TextShaper;
 
 /**
- * テキストを複数のグリフに分解します。
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
- */
-/**
  * Decomposes text into multiple glyphs.
  * 
  * @author MIYABE Tatsuhiko

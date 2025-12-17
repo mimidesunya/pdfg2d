@@ -9,7 +9,7 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface Text extends Element {
+public non-sealed interface Text extends Element {
 	public FontStyle getFontStyle();
 
 	public FontMetrics getFontMetrics();
@@ -22,13 +22,13 @@ public interface Text extends Element {
 
 	public char[] getChars();
 
-	public int getCLen();
+	public int getCharCount();
 
-	public int[] getGIDs();
+	public int[] getGlyphIds();
 
-	public byte[] getCLens();
+	public byte[] getClusterLengths();
 
-	public int getGLen();
+	public int getGlyphCount();
 
 	public double getLetterSpacing();
 

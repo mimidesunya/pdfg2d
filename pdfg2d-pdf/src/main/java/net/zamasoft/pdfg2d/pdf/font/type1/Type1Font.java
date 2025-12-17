@@ -69,15 +69,15 @@ class Type1Font implements PDFFont {
 		if (gc instanceof PDFGC) {
 			// PDF
 			PDFGraphicsOutput out = ((PDFGC) gc).getPDFGraphicsOutput();
-			int glen = text.getGLen();
-			int[] gids = text.getGIDs();
+			int glyphCount = text.getGlyphCount();
+			int[] glyphIds = text.getGlyphIds();
 			double[] xadvances = text.getXAdvances(false);
 			double size = text.getFontMetrics().getFontSize();
 			out.startArray();
 			int pgid = 0;
 			StringBuffer buff = new StringBuffer();
-			for (int j = 0; j < glen; ++j) {
-				int gid = gids[j];
+			for (int j = 0; j < glyphCount; ++j) {
+				int gid = glyphIds[j];
 				short kerning = this.source.getKerning(gid, pgid);
 				if (xadvances != null) {
 					if (j == 0) {

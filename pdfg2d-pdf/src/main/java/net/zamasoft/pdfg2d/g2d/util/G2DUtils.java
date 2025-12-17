@@ -120,35 +120,35 @@ public final class G2DUtils {
 	}
 
 	public static java.awt.Paint toAwtPaint(LinearGradient gradient) {
-		double[] fs = gradient.getFractions();
+		double[] fs = gradient.fractions();
 		float[] fractions = new float[fs.length];
 		for (int i = 0; i < fs.length; ++i) {
 			fractions[i] = (float) fs[i];
 		}
-		Color[] cs = gradient.getColors();
+		Color[] cs = gradient.colors();
 		java.awt.Color[] colors = new java.awt.Color[cs.length];
 		for (int i = 0; i < cs.length; ++i) {
 			colors[i] = toAwtColor(cs[i]);
 		}
-		return new LinearGradientPaint(new Point2D.Double(gradient.getX1(), gradient.getY1()),
-				new Point2D.Double(gradient.getX2(), gradient.getY2()), fractions, colors,
-				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.getTransform());
+		return new LinearGradientPaint(new Point2D.Double(gradient.x1(), gradient.y1()),
+				new Point2D.Double(gradient.x2(), gradient.y2()), fractions, colors,
+				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.transform());
 	}
 
 	public static java.awt.Paint toAwtPaint(RadialGradient gradient) {
-		double[] fs = gradient.getFractions();
+		double[] fs = gradient.fractions();
 		float[] fractions = new float[fs.length];
 		for (int i = 0; i < fs.length; ++i) {
 			fractions[i] = (float) fs[i];
 		}
-		Color[] cs = gradient.getColors();
+		Color[] cs = gradient.colors();
 		java.awt.Color[] colors = new java.awt.Color[cs.length];
 		for (int i = 0; i < cs.length; ++i) {
 			colors[i] = toAwtColor(cs[i]);
 		}
-		return new RadialGradientPaint(new Point2D.Double(gradient.getCX(), gradient.getCY()),
-				(float) gradient.getRadius(), new Point2D.Double(gradient.getFY(), gradient.getFX()), fractions, colors,
-				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.getTransform());
+		return new RadialGradientPaint(new Point2D.Double(gradient.cx(), gradient.cy()),
+				(float) gradient.radius(), new Point2D.Double(gradient.fy(), gradient.fx()), fractions, colors,
+				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.transform());
 	}
 
 	public static Color fromAwtColor(java.awt.Color color) {
@@ -187,21 +187,21 @@ public final class G2DUtils {
 
 	public static final String toAwtFamilyName(FontFamily ffe) {
 		switch (ffe.getGenericFamily()) {
-		case CURSIVE:
-			return "SansSerif";// AWT doesn't support logical font family
-		// 'cursive'.
-		case FANTASY:
-			return "SansSerif";// AWT doesn't support logical font family
-		// 'fantasy'.
-		case MONOSPACE:
-			return "Monospaced";
-		case SANS_SERIF:
-			return "SansSerif";
-		case SERIF:
-			return "Serif";
+			case CURSIVE:
+				return "SansSerif";// AWT doesn't support logical font family
+			// 'cursive'.
+			case FANTASY:
+				return "SansSerif";// AWT doesn't support logical font family
+			// 'fantasy'.
+			case MONOSPACE:
+				return "Monospaced";
+			case SANS_SERIF:
+				return "SansSerif";
+			case SERIF:
+				return "Serif";
 
-		default:
-			return ffe.getName();
+			default:
+				return ffe.getName();
 		}
 
 	}
@@ -222,49 +222,49 @@ public final class G2DUtils {
 
 		Float weight;
 		switch (fontStyle.getWeight()) {
-		case W_100:
-			weight = TextAttribute.WEIGHT_EXTRA_LIGHT;
-			break;
-		case W_200:
-			weight = TextAttribute.WEIGHT_LIGHT;
-			break;
-		case W_300:
-			weight = TextAttribute.WEIGHT_DEMILIGHT;
-			break;
-		case W_400:
-			weight = TextAttribute.WEIGHT_REGULAR;
-			break;
-		case W_500:
-			weight = TextAttribute.WEIGHT_SEMIBOLD;
-			break;
-		case W_600:
-			weight = TextAttribute.WEIGHT_DEMIBOLD;
-			break;
-		case W_700:
-			weight = TextAttribute.WEIGHT_BOLD;
-			break;
-		case W_800:
-			weight = TextAttribute.WEIGHT_EXTRABOLD;
-			break;
-		case W_900:
-			weight = TextAttribute.WEIGHT_ULTRABOLD;
-			break;
-		default:
-			throw new IllegalStateException();
+			case W_100:
+				weight = TextAttribute.WEIGHT_EXTRA_LIGHT;
+				break;
+			case W_200:
+				weight = TextAttribute.WEIGHT_LIGHT;
+				break;
+			case W_300:
+				weight = TextAttribute.WEIGHT_DEMILIGHT;
+				break;
+			case W_400:
+				weight = TextAttribute.WEIGHT_REGULAR;
+				break;
+			case W_500:
+				weight = TextAttribute.WEIGHT_SEMIBOLD;
+				break;
+			case W_600:
+				weight = TextAttribute.WEIGHT_DEMIBOLD;
+				break;
+			case W_700:
+				weight = TextAttribute.WEIGHT_BOLD;
+				break;
+			case W_800:
+				weight = TextAttribute.WEIGHT_EXTRABOLD;
+				break;
+			case W_900:
+				weight = TextAttribute.WEIGHT_ULTRABOLD;
+				break;
+			default:
+				throw new IllegalStateException();
 		}
 		atts.put(TextAttribute.WEIGHT, weight);
 
 		Float posture;
 		switch (fontStyle.getStyle()) {
-		case NORMAL:
-			posture = TextAttribute.POSTURE_REGULAR;
-			break;
-		case ITALIC:
-		case OBLIQUE:
-			posture = TextAttribute.POSTURE_OBLIQUE;
-			break;
-		default:
-			throw new IllegalStateException();
+			case NORMAL:
+				posture = TextAttribute.POSTURE_REGULAR;
+				break;
+			case ITALIC:
+			case OBLIQUE:
+				posture = TextAttribute.POSTURE_OBLIQUE;
+				break;
+			default:
+				throw new IllegalStateException();
 		}
 		atts.put(TextAttribute.POSTURE, posture);
 	}
@@ -366,27 +366,27 @@ public final class G2DUtils {
 
 	public static LineCap decodeLineCap(final short lineCap) {
 		switch (lineCap) {
-		case 0:
-			return LineCap.BUTT;
-		case 1:
-			return LineCap.ROUND;
-		case 2:
-			return LineCap.SQUARE;
-		default:
-			throw new IllegalStateException();
+			case 0:
+				return LineCap.BUTT;
+			case 1:
+				return LineCap.ROUND;
+			case 2:
+				return LineCap.SQUARE;
+			default:
+				throw new IllegalStateException();
 		}
 	}
 
 	public static LineJoin decodeLineJoin(final short lineJoin) {
 		switch (lineJoin) {
-		case 0:
-			return LineJoin.MITER;
-		case 1:
-			return LineJoin.ROUND;
-		case 2:
-			return LineJoin.BEVEL;
-		default:
-			throw new IllegalStateException();
+			case 0:
+				return LineJoin.MITER;
+			case 1:
+				return LineJoin.ROUND;
+			case 2:
+				return LineJoin.BEVEL;
+			default:
+				throw new IllegalStateException();
 		}
 	}
 }

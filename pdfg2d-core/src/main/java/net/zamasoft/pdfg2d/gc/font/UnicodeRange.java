@@ -8,21 +8,7 @@ import java.io.Serializable;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class UnicodeRange implements Serializable {
-	private static final long serialVersionUID = 2L;
-
-	public final int first, last;
-
-	/**
-	 * Creates a new UnicodeRange.
-	 * 
-	 * @param first the first character code
-	 * @param last  the last character code
-	 */
-	public UnicodeRange(final int first, final int last) {
-		this.first = first;
-		this.last = last;
-	}
+public record UnicodeRange(int first, int last) implements Serializable {
 
 	/**
 	 * Parses a string representation of a unicode range.

@@ -135,7 +135,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 			// ignore
 		}
 
-		public void setGlyphHander(GlyphHandler glyphHandler) {
+		public void setGlyphHandler(GlyphHandler glyphHandler) {
 			this.glyphHandler = glyphHandler;
 		}
 

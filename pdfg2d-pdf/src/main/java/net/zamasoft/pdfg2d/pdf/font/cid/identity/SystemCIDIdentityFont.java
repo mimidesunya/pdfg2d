@@ -49,11 +49,11 @@ class SystemCIDIdentityFont extends CIDFont {
 			PDFFontUtils.drawAwtFont(gc, source, source.getAwtFont(), text);
 		}
 
-		int glen = text.getGLen();
-		int[] gids = text.getGIDs();
+		int glyphCount = text.getGlyphCount();
+		int[] glyphIds = text.getGlyphIds();
 		char[] chars = text.getChars();
-		for (int i = 0; i < glen; ++i) {
-			int gid = gids[i];
+		for (int i = 0; i < glyphCount; ++i) {
+			int gid = glyphIds[i];
 			short nadvance = this.getAdvance(gid);
 			this.advances.set(gid, nadvance);
 			this.unicodes.set(gid, chars[i]);

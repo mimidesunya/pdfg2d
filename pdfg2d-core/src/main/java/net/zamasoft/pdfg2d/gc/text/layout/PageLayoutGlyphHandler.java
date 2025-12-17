@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.text.Element;
-import net.zamasoft.pdfg2d.gc.text.Element.Type;
+
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.TextControl;
 import net.zamasoft.pdfg2d.gc.text.Text;
@@ -234,7 +234,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 			int count = this.textBuffer.size() - this.textUnitElementCount;
 			int elementCount = count;
 			if (this.text != null) {
-				if (this.text.getGLen() <= this.textUnitGlyphCount) {
+				if (this.text.getGlyphCount() <= this.textUnitGlyphCount) {
 					if (this.textUnitElementCount > 0) {
 						++elementCount;
 						++count;
@@ -251,8 +251,8 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				advance += e.getAdvance();
 				i.remove();
 			}
-			if (this.text != null && this.text.getGLen() > this.textUnitGlyphCount) {
-				final int pos = this.text.getGLen() - this.textUnitGlyphCount;
+			if (this.text != null && this.text.getGlyphCount() > this.textUnitGlyphCount) {
+				final int pos = this.text.getGlyphCount() - this.textUnitGlyphCount;
 				final Element e = this.text.split(pos);
 				this.elements[elementCount - 1] = e;
 				advance += e.getAdvance();
@@ -263,15 +263,14 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 				// TODO Hyphenation
 				int glyphCount = 0;
 				for (final Element e : this.elements) {
-					if (e.getElementType() == Type.TEXT) {
-						glyphCount += ((Text) e).getGLen();
+					if (e instanceof Text text) {
+						glyphCount += text.getGlyphCount();
 					}
 				}
 				if (glyphCount >= 2) {
 					final double letterSpacing = (this.getMaxAdvance() - advance) / (double) (glyphCount - 1);
 					for (final Element e : this.elements) {
-						if (e.getElementType() == Type.TEXT) {
-							final TextImpl t = (TextImpl) e;
+						if (e instanceof TextImpl t) {
 							t.setLetterSpacing(t.getLetterSpacing() + letterSpacing);
 						}
 					}
@@ -286,12 +285,10 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		double maxAscent = 0;
 		double maxDescent = 0;
 		for (final Element e : this.elements) {
-			if (e.getElementType() == Type.TEXT) {
-				final Text text = (Text) e;
+			if (e instanceof Text text) {
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
-			} else {
-				final Control control = (Control) e;
+			} else if (e instanceof Control control) {
 				maxAscent = Math.max(maxAscent, control.getAscent());
 				maxDescent = Math.max(maxDescent, control.getDescent());
 			}
@@ -341,12 +338,10 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		double maxAscent = 0;
 		double maxDescent = 0;
 		for (final Element e : elements) {
-			if (e.getElementType() == Type.TEXT) {
-				final Text text = (Text) e;
+			if (e instanceof Text text) {
 				maxAscent = Math.max(maxAscent, text.getAscent());
 				maxDescent = Math.max(maxDescent, text.getDescent());
-			} else {
-				final Control control = (Control) e;
+			} else if (e instanceof Control control) {
 				maxAscent = Math.max(maxAscent, control.getAscent());
 				maxDescent = Math.max(maxDescent, control.getDescent());
 			}
@@ -362,23 +357,12 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 		this.pageOffset += pageAdvance1;
 
 		// Calculate current position
-		double lineAxis;
-		double pageAxis;
-		switch (this.direction) {
-			case LTR:
-			case RTL:// TODO RTL
-				// Horizontal writing
-				lineAxis = this.lineOffset;
-				pageAxis = this.pageOffset;
-				break;
-			case TB:
-				// Vertical writing
-				lineAxis = this.lineOffset;
-				pageAxis = -this.pageOffset;
-				break;
-			default:
-				throw new IllegalStateException();
-		}
+		// Calculate current position
+		double lineAxis = this.lineOffset;
+		double pageAxis = switch (this.direction) {
+			case LTR, RTL -> this.pageOffset; // TODO RTL
+			case TB -> -this.pageOffset;
+		};
 		if (this.align == Alignment.END || this.align == Alignment.CENTER) {
 			double advance = 0;
 			for (final Element e : elements) {
@@ -393,20 +377,10 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 		// Draw
 		for (final Element e : elements) {
-			if (this.gc != null && e.getElementType() == Type.TEXT) {
-				final Text text = (Text) e;
+			if (this.gc != null && e instanceof Text text) {
 				switch (this.direction) {
-					case LTR:
-					case RTL:
-						// Horizontal writing
-						this.gc.drawText(text, lineAxis, pageAxis);
-						break;
-					case TB:
-						// Vertical writing
-						this.gc.drawText(text, pageAxis, lineAxis);
-						break;
-					default:
-						throw new IllegalArgumentException();
+					case LTR, RTL -> this.gc.drawText(text, lineAxis, pageAxis);
+					case TB -> this.gc.drawText(text, pageAxis, lineAxis);
 				}
 			}
 			lineAxis += e.getAdvance();
@@ -438,7 +412,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 
 	@Override
 	public void endTextRun() {
-		assert this.text.getGLen() > 0;
+		assert this.text.getGlyphCount() > 0;
 	}
 
 	private void checkText() {
@@ -455,13 +429,13 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 	public void control(final TextControl control) {
 		final Control c = (Control) control;
 		switch (c.getControlChar()) {
-			case '\n':
+			case '\n' -> {
 				this.endLine(true);
 				this.textUnitElementCount = 0;
 				this.textUnitGlyphCount = 0;
-				break;
+			}
 
-			case '\t':
+			case '\t' -> {
 				// Tab character
 				final Tab tab = (Tab) c;
 				tab.advance = (TAB_WIDTH - (this.advance % TAB_WIDTH));
@@ -469,7 +443,7 @@ public class PageLayoutGlyphHandler implements GlyphHandler {
 					this.endLine(false);
 					tab.advance = TAB_WIDTH;
 				}
-				break;
+			}
 		}
 		this.checkText();
 		this.textBuffer.add(control);

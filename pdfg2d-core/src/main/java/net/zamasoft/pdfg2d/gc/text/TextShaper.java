@@ -7,5 +7,5 @@ package net.zamasoft.pdfg2d.gc.text;
  * @since 1.0
  */
 public interface TextShaper extends CharacterHandler {
-	public void setGlyphHander(GlyphHandler glyphHandler);
+	public void setGlyphHandler(GlyphHandler glyphHandler);
 }

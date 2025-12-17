@@ -6,6 +6,7 @@ import java.awt.geom.AffineTransform;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
+import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
@@ -90,15 +91,14 @@ public interface GC {
 	 * @param paint the paint object
 	 * @throws GraphicsException if a graphics error occurs
 	 */
-	// FIXME Object is used instead of Paint for compatibility
-	public void setStrokePaint(final Object paint) throws GraphicsException;
+	public void setStrokePaint(final Paint paint) throws GraphicsException;
 
 	/**
 	 * Returns the stroke paint.
 	 * 
 	 * @return the stroke paint object
 	 */
-	public Object getStrokePaint();
+	public Paint getStrokePaint();
 
 	/**
 	 * Sets the fill paint.
@@ -106,15 +106,14 @@ public interface GC {
 	 * @param paint the paint object
 	 * @throws GraphicsException if a graphics error occurs
 	 */
-	// FIXME Object is used instead of Paint for compatibility
-	public void setFillPaint(final Object paint) throws GraphicsException;
+	public void setFillPaint(final Paint paint) throws GraphicsException;
 
 	/**
 	 * Returns the fill paint.
 	 * 
 	 * @return the fill paint object
 	 */
-	public Object getFillPaint();
+	public Paint getFillPaint();
 
 	/**
 	 * Returns the stroke alpha.

@@ -10,7 +10,7 @@ package net.zamasoft.pdfg2d.gc.paint;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class RGBColor implements Color {
+public record RGBColor(float red, float green, float blue) implements Color {
 	public static final int R = 0, G = 1, B = 2;
 
 	/**
@@ -22,8 +22,6 @@ public class RGBColor implements Color {
 	 * White color (1, 1, 1).
 	 */
 	public static final RGBColor WHITE = new RGBColor(1, 1, 1);
-
-	protected final float red, green, blue;
 
 	/**
 	 * Creates a new RGB color.
@@ -43,10 +41,10 @@ public class RGBColor implements Color {
 		return new RGBColor(red, green, blue);
 	}
 
-	protected RGBColor(final float red, final float green, final float blue) {
-		this.red = Math.min(1.0f, Math.max(0f, red));
-		this.green = Math.min(1.0f, Math.max(0f, green));
-		this.blue = Math.min(1.0f, Math.max(0f, blue));
+	public RGBColor {
+		red = Math.min(1.0f, Math.max(0f, red));
+		green = Math.min(1.0f, Math.max(0f, green));
+		blue = Math.min(1.0f, Math.max(0f, blue));
 	}
 
 	@Override
@@ -87,12 +85,6 @@ public class RGBColor implements Color {
 	@Override
 	public float getAlpha() {
 		return 1f;
-	}
-
-	@Override
-	public boolean equals(final Object o) {
-		return o instanceof RGBColor color
-				&& this.red == color.red && this.green == color.green && this.blue == color.blue;
 	}
 
 	@Override

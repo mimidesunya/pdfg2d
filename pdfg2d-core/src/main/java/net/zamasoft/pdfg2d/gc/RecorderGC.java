@@ -8,12 +8,8 @@ import java.util.List;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
+import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.Text;
-
-enum Command {
-	BEGIN, END, LINE_WIDTH, LINE_PATTERN, LINE_CAP, LINE_JOIN, TEXT_MODE, STROKE_PAINT, FILL_PAINT, STROKE_ALPHA,
-	FILL_ALPHA, TRANSFORM, CLIP, RESET_STATE, DRAW_IMAGE, FILL, DRAW, FILL_DRAW, DRAW_TEXT
-}
 
 /**
  * A graphics context that records all graphics operations.
@@ -22,7 +18,70 @@ enum Command {
  * @since 1.0
  */
 public class RecorderGC extends NoOpGC {
-	protected final List<Object> contents = new ArrayList<>();
+	public sealed interface Command permits
+			Begin, End, SetLineWidth, SetLinePattern, SetLineCap, SetLineJoin,
+			SetTextMode, SetStrokePaint, SetFillPaint, SetStrokeAlpha, SetFillAlpha,
+			Transform, Clip, ResetState, DrawImage, Fill, Draw, FillDraw, DrawText {
+	}
+
+	public record Begin() implements Command {
+	}
+
+	public record End() implements Command {
+	}
+
+	public record SetLineWidth(double width) implements Command {
+	}
+
+	public record SetLinePattern(double[] pattern) implements Command {
+	}
+
+	public record SetLineCap(LineCap lineCap) implements Command {
+	}
+
+	public record SetLineJoin(LineJoin lineJoin) implements Command {
+	}
+
+	public record SetTextMode(TextMode textMode) implements Command {
+	}
+
+	public record SetStrokePaint(Paint paint) implements Command {
+	}
+
+	public record SetFillPaint(Paint paint) implements Command {
+	}
+
+	public record SetStrokeAlpha(float alpha) implements Command {
+	}
+
+	public record SetFillAlpha(float alpha) implements Command {
+	}
+
+	public record Transform(AffineTransform at) implements Command {
+	}
+
+	public record Clip(Shape shape) implements Command {
+	}
+
+	public record ResetState() implements Command {
+	}
+
+	public record DrawImage(Image image) implements Command {
+	}
+
+	public record Fill(Shape shape) implements Command {
+	}
+
+	public record Draw(Shape shape) implements Command {
+	}
+
+	public record FillDraw(Shape shape) implements Command {
+	}
+
+	public record DrawText(Text text, double x, double y) implements Command {
+	}
+
+	protected final List<Command> contents = new ArrayList<>();
 
 	/**
 	 * Creates a new RecorderGC.
@@ -36,133 +95,115 @@ public class RecorderGC extends NoOpGC {
 	@Override
 	public void begin() {
 		super.begin();
-		this.contents.add(Command.BEGIN);
+		this.contents.add(new Begin());
 	}
 
 	@Override
 	public void end() {
 		super.end();
-		this.contents.add(Command.END);
+		this.contents.add(new End());
 	}
 
 	@Override
 	public void setLineWidth(final double lineWidth) {
 		super.setLineWidth(lineWidth);
-		this.contents.add(Command.LINE_WIDTH);
-		this.contents.add(Double.valueOf(lineWidth));
+		this.contents.add(new SetLineWidth(lineWidth));
 	}
 
 	@Override
 	public void setLinePattern(final double[] linePattern) {
 		super.setLinePattern(linePattern);
-		this.contents.add(Command.LINE_PATTERN);
-		this.contents.add(linePattern);
+		this.contents.add(new SetLinePattern(linePattern));
 	}
 
 	@Override
 	public void setLineJoin(final LineJoin lineJoin) {
 		super.setLineJoin(lineJoin);
-		this.contents.add(Command.LINE_JOIN);
-		this.contents.add(lineJoin);
+		this.contents.add(new SetLineJoin(lineJoin));
 	}
 
 	@Override
 	public void setLineCap(final LineCap lineCap) {
 		super.setLineCap(lineCap);
-		this.contents.add(Command.LINE_CAP);
-		this.contents.add(lineCap);
+		this.contents.add(new SetLineCap(lineCap));
 	}
 
 	@Override
-	public void setStrokePaint(final Object paint) throws GraphicsException {
+	public void setStrokePaint(final Paint paint) throws GraphicsException {
 		super.setStrokePaint(paint);
-		this.contents.add(Command.STROKE_PAINT);
-		this.contents.add(paint);
+		this.contents.add(new SetStrokePaint(paint));
 	}
 
 	@Override
-	public void setFillPaint(final Object paint) throws GraphicsException {
+	public void setFillPaint(final Paint paint) throws GraphicsException {
 		super.setFillPaint(paint);
-		this.contents.add(Command.FILL_PAINT);
-		this.contents.add(paint);
+		this.contents.add(new SetFillPaint(paint));
 	}
 
 	@Override
 	public void setStrokeAlpha(final float alpha) {
 		super.setStrokeAlpha(alpha);
-		this.contents.add(Command.STROKE_ALPHA);
-		this.contents.add(alpha);
+		this.contents.add(new SetStrokeAlpha(alpha));
 	}
 
 	@Override
 	public void setFillAlpha(final float alpha) {
 		super.setFillAlpha(alpha);
-		this.contents.add(Command.FILL_ALPHA);
-		this.contents.add(alpha);
+		this.contents.add(new SetFillAlpha(alpha));
 	}
 
 	@Override
 	public void setTextMode(final TextMode textMode) {
 		super.setTextMode(textMode);
-		this.contents.add(Command.TEXT_MODE);
-		this.contents.add(textMode);
+		this.contents.add(new SetTextMode(textMode));
 	}
 
 	@Override
 	public void transform(final AffineTransform at) {
 		super.transform(at);
-		this.contents.add(Command.TRANSFORM);
-		this.contents.add(at);
+		this.contents.add(new Transform(at));
 	}
 
 	@Override
 	public void clip(final Shape clip) {
 		super.clip(clip);
-		this.contents.add(Command.CLIP);
-		this.contents.add(clip);
+		this.contents.add(new Clip(clip));
 	}
 
 	@Override
 	public void resetState() {
 		super.resetState();
-		this.contents.add(Command.RESET_STATE);
+		this.contents.add(new ResetState());
 	}
 
 	@Override
 	public void drawImage(final Image image) throws GraphicsException {
 		super.drawImage(image);
-		this.contents.add(Command.DRAW_IMAGE);
-		this.contents.add(image);
+		this.contents.add(new DrawImage(image));
 	}
 
 	@Override
 	public void fill(final Shape shape) {
 		super.fill(shape);
-		this.contents.add(Command.FILL);
-		this.contents.add(shape);
+		this.contents.add(new Fill(shape));
 	}
 
 	@Override
 	public void draw(final Shape shape) {
 		super.draw(shape);
-		this.contents.add(Command.DRAW);
-		this.contents.add(shape);
+		this.contents.add(new Draw(shape));
 	}
 
 	@Override
 	public void fillDraw(final Shape shape) {
 		super.fillDraw(shape);
-		this.contents.add(Command.FILL_DRAW);
-		this.contents.add(shape);
+		this.contents.add(new FillDraw(shape));
 	}
 
 	@Override
 	public void drawText(final Text text, final double x, final double y) throws GraphicsException {
 		super.drawText(text, x, y);
-		this.contents.add(Command.DRAW_TEXT);
-		this.contents.add(text);
-		this.contents.add(x);
-		this.contents.add(y);
+		this.contents.add(new DrawText(text, x, y));
 	}
 
 	/**
@@ -226,23 +267,13 @@ public class RecorderGC extends NoOpGC {
 	 * @return the recorded page
 	 */
 	public Page getPage() {
-		return new Page(this.contents.toArray(new Object[0]));
+		return new Page(List.copyOf(this.contents));
 	}
 
 	/**
 	 * Represents a page of recorded graphics operations.
 	 */
-	public static class Page {
-		protected final Object[] data;
-
-		/**
-		 * Creates a new Page.
-		 * 
-		 * @param data the recorded data
-		 */
-		protected Page(final Object[] data) {
-			this.data = data;
-		}
+	public record Page(List<Command> commands) {
 
 		/**
 		 * Replays the recorded operations to the given graphics context.
@@ -250,79 +281,27 @@ public class RecorderGC extends NoOpGC {
 		 * @param gc the graphics context
 		 */
 		public void drawTo(final GC gc) {
-			for (int i = 0; i < this.data.length; ++i) {
-				final var e = (Command) this.data[i];
-				switch (e) {
-					case BEGIN -> gc.begin();
-					case END -> gc.end();
-					case LINE_WIDTH -> {
-						final var width = (Double) this.data[++i];
-						gc.setLineWidth(width);
-					}
-					case LINE_PATTERN -> {
-						final var pattern = (double[]) this.data[++i];
-						gc.setLinePattern(pattern);
-					}
-					case LINE_CAP -> {
-						final var lineCap = (LineCap) this.data[++i];
-						gc.setLineCap(lineCap);
-					}
-					case LINE_JOIN -> {
-						final var lineJoin = (LineJoin) this.data[++i];
-						gc.setLineJoin(lineJoin);
-					}
-					case TEXT_MODE -> {
-						final var textMode = (TextMode) this.data[++i];
-						gc.setTextMode(textMode);
-					}
-					case STROKE_PAINT -> {
-						final var paint = this.data[++i];
-						gc.setStrokePaint(paint);
-					}
-					case FILL_PAINT -> {
-						final var paint = this.data[++i];
-						gc.setFillPaint(paint);
-					}
-					case STROKE_ALPHA -> {
-						final var paint = (Float) this.data[++i];
-						gc.setStrokeAlpha(paint);
-					}
-					case FILL_ALPHA -> {
-						final var paint = (Float) this.data[++i];
-						gc.setFillAlpha(paint);
-					}
-					case TRANSFORM -> {
-						final var at = (AffineTransform) this.data[++i];
-						gc.transform(at);
-					}
-					case CLIP -> {
-						final var shape = (Shape) this.data[++i];
-						gc.clip(shape);
-					}
-					case RESET_STATE -> gc.resetState();
-					case DRAW_IMAGE -> {
-						final var image = (Image) this.data[++i];
-						gc.drawImage(image);
-					}
-					case FILL -> {
-						final var shape = (Shape) this.data[++i];
-						gc.fill(shape);
-					}
-					case DRAW -> {
-						final var shape = (Shape) this.data[++i];
-						gc.draw(shape);
-					}
-					case FILL_DRAW -> {
-						final var shape = (Shape) this.data[++i];
-						gc.fillDraw(shape);
-					}
-					case DRAW_TEXT -> {
-						final var text = (Text) this.data[++i];
-						final var x = (Double) this.data[++i];
-						final var y = (Double) this.data[++i];
-						gc.drawText(text, x.doubleValue(), y.doubleValue());
-					}
-					default -> throw new IllegalStateException(String.valueOf(e));
+			for (final var cmd : this.commands) {
+				switch (cmd) {
+					case Begin() -> gc.begin();
+					case End() -> gc.end();
+					case SetLineWidth(double width) -> gc.setLineWidth(width);
+					case SetLinePattern(double[] pattern) -> gc.setLinePattern(pattern);
+					case SetLineCap(LineCap lineCap) -> gc.setLineCap(lineCap);
+					case SetLineJoin(LineJoin lineJoin) -> gc.setLineJoin(lineJoin);
+					case SetTextMode(TextMode textMode) -> gc.setTextMode(textMode);
+					case SetStrokePaint(Paint paint) -> gc.setStrokePaint(paint);
+					case SetFillPaint(Paint paint) -> gc.setFillPaint(paint);
+					case SetStrokeAlpha(float alpha) -> gc.setStrokeAlpha(alpha);
+					case SetFillAlpha(float alpha) -> gc.setFillAlpha(alpha);
+					case Transform(AffineTransform at) -> gc.transform(at);
+					case Clip(Shape shape) -> gc.clip(shape);
+					case ResetState() -> gc.resetState();
+					case DrawImage(Image image) -> gc.drawImage(image);
+					case Fill(Shape shape) -> gc.fill(shape);
+					case Draw(Shape shape) -> gc.draw(shape);
+					case FillDraw(Shape shape) -> gc.fillDraw(shape);
+					case DrawText(Text text, double x, double y) -> gc.drawText(text, x, y);
 				}
 			}
 		}

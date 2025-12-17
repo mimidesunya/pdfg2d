@@ -1,46 +1,27 @@
 package net.zamasoft.pdfg2d.gc.font;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
-/**
- * 複数のフォントのメトリックス情報です。
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
- */
 /**
  * Represents the metrics information for multiple fonts.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontListMetrics implements Serializable {
-	private static final long serialVersionUID = -1L;
-
-	protected final FontMetrics[] fontMetricses;
-
-	protected double maxAscent = -1, maxDescent = -1, maxXHeight = -1;
+public record FontListMetrics(FontMetrics[] metrics, double maxAscent, double maxDescent, double maxXHeight)
+		implements Serializable {
 
 	/**
 	 * Creates a new FontListMetrics.
 	 * 
-	 * @param fontMetricses the array of font metrics
+	 * @param metrics the array of font metrics
 	 */
-	public FontListMetrics(final FontMetrics[] fontMetricses) {
-		this.fontMetricses = fontMetricses;
-	}
-
-	protected void calculate() {
-		double ascent = 0, descent = 0, xHeight = 0;
-		for (int i = 0; i < this.fontMetricses.length; ++i) {
-			final var fontMetrics = this.fontMetricses[i];
-			ascent = Math.max(ascent, fontMetrics.getAscent());
-			descent = Math.max(descent, fontMetrics.getDescent());
-			xHeight = Math.max(xHeight, fontMetrics.getXHeight());
-		}
-		this.maxAscent = ascent;
-		this.maxDescent = descent;
-		this.maxXHeight = xHeight;
+	public FontListMetrics(final FontMetrics[] metrics) {
+		this(metrics,
+				Arrays.stream(metrics).mapToDouble(FontMetrics::getAscent).max().orElse(0),
+				Arrays.stream(metrics).mapToDouble(FontMetrics::getDescent).max().orElse(0),
+				Arrays.stream(metrics).mapToDouble(FontMetrics::getXHeight).max().orElse(0));
 	}
 
 	/**
@@ -49,7 +30,7 @@ public class FontListMetrics implements Serializable {
 	 * @return the number of font metrics
 	 */
 	public int getLength() {
-		return this.fontMetricses.length;
+		return this.metrics.length;
 	}
 
 	/**
@@ -59,7 +40,7 @@ public class FontListMetrics implements Serializable {
 	 * @return the font metrics
 	 */
 	public FontMetrics getFontMetrics(final int i) {
-		return this.fontMetricses[i];
+		return this.metrics[i];
 	}
 
 	/**
@@ -68,9 +49,6 @@ public class FontListMetrics implements Serializable {
 	 * @return the maximum ascent
 	 */
 	public double getMaxAscent() {
-		if (this.maxAscent == -1) {
-			this.calculate();
-		}
 		return this.maxAscent;
 	}
 
@@ -80,9 +58,6 @@ public class FontListMetrics implements Serializable {
 	 * @return the maximum descent
 	 */
 	public double getMaxDescent() {
-		if (this.maxDescent == -1) {
-			this.calculate();
-		}
 		return this.maxDescent;
 	}
 
@@ -92,20 +67,35 @@ public class FontListMetrics implements Serializable {
 	 * @return the maximum x-height
 	 */
 	public double getMaxXHeight() {
-		if (this.maxXHeight == -1) {
-			this.calculate();
-		}
 		return this.maxXHeight;
 	}
 
 	@Override
 	public String toString() {
-		final var buff = new StringBuilder(super.toString());
-		buff.append(":[");
-		for (int i = 0; i < this.fontMetricses.length; ++i) {
-			buff.append(this.fontMetricses[i]).append(',');
-		}
-		buff.append("]");
-		return buff.toString();
+		return "FontListMetrics:[" + Arrays.stream(this.metrics)
+				.map(String::valueOf)
+				.collect(java.util.stream.Collectors.joining(",")) + "]";
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof FontListMetrics))
+			return false;
+		FontListMetrics that = (FontListMetrics) o;
+		return Double.compare(that.maxAscent, maxAscent) == 0 &&
+				Double.compare(that.maxDescent, maxDescent) == 0 &&
+				Double.compare(that.maxXHeight, maxXHeight) == 0 &&
+				Arrays.equals(metrics, that.metrics);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = Arrays.hashCode(metrics);
+		result = 31 * result + Double.hashCode(maxAscent);
+		result = 31 * result + Double.hashCode(maxDescent);
+		result = 31 * result + Double.hashCode(maxXHeight);
+		return result;
 	}
 }

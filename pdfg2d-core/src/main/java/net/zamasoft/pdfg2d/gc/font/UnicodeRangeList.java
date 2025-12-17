@@ -1,25 +1,18 @@
 package net.zamasoft.pdfg2d.gc.font;
 
+import java.util.Objects;
+import java.util.Arrays;
+
 /**
  * Represents a list of unicode ranges.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class UnicodeRangeList {
-	private final UnicodeRange[] includes;
+public record UnicodeRangeList(UnicodeRange[] includes) {
 
-	/**
-	 * Creates a new UnicodeRangeList.
-	 * 
-	 * @param includes the array of unicode ranges
-	 * @throws NullPointerException if the array is null
-	 */
-	public UnicodeRangeList(final UnicodeRange[] includes) {
-		if (includes == null) {
-			throw new NullPointerException();
-		}
-		this.includes = includes;
+	public UnicodeRangeList {
+		Objects.requireNonNull(includes);
 	}
 
 	/**
@@ -42,14 +35,9 @@ public class UnicodeRangeList {
 
 	@Override
 	public String toString() {
-		final var buff = new StringBuilder();
-		for (int i = 0; i < this.includes.length; ++i) {
-			if (i > 0) {
-				buff.append(", ");
-			}
-			buff.append(this.includes[i]);
-		}
-		return buff.toString();
+		return java.util.Arrays.stream(this.includes)
+				.map(UnicodeRange::toString)
+				.collect(java.util.stream.Collectors.joining(", "));
 	}
 
 	/**
@@ -59,5 +47,15 @@ public class UnicodeRangeList {
 	 */
 	public boolean isEmpty() {
 		return this.includes.length == 0;
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		return o instanceof UnicodeRangeList u && Arrays.equals(this.includes, u.includes);
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(this.includes);
 	}
 }

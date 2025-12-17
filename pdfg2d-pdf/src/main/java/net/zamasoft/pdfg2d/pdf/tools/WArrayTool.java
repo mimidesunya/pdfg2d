@@ -58,7 +58,7 @@ public class WArrayTool {
 
 		BBox bbox = fs.getBBox();
 		System.out.println("FontName: " + fs.getFontName());
-		System.out.println("BBox: " + bbox.llx + ' ' + bbox.lly + ' ' + bbox.urx + ' ' + bbox.ury);
+		System.out.println("BBox: " + bbox.llx() + ' ' + bbox.lly() + ' ' + bbox.urx() + ' ' + bbox.ury());
 		System.out.println("Ascent: " + fs.getAscent());
 		System.out.println("Descent: " + fs.getDescent());
 		System.out.println("CapHeight: " + fs.getCapHeight());

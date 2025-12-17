@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
+import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.Text;
 
 /**
@@ -19,36 +20,24 @@ public class NoOpGC implements GC {
 	/**
 	 * Represents the graphics state.
 	 */
-	protected static class GraphicsState {
-		public final AffineTransform transform;
-
-		public final double lineWidth;
-
-		public final double[] linePattern;
-
-		public final LineJoin lineJoin;
-
-		public final LineCap lineCap;
-
-		public final Object strokePaintObject;
-
-		public final Object fillPaintObject;
-
-		public final float fillAlpha, strokeAlpha;
-
-		public final TextMode textMode;
+	/**
+	 * Represents the graphics state.
+	 */
+	protected record GraphicsState(
+			AffineTransform transform,
+			double lineWidth,
+			double[] linePattern,
+			LineJoin lineJoin,
+			LineCap lineCap,
+			Paint strokePaint,
+			Paint fillPaint,
+			float fillAlpha,
+			float strokeAlpha,
+			TextMode textMode) {
 
 		public GraphicsState(final NoOpGC gc) {
-			this.transform = new AffineTransform(gc.transform);
-			this.strokePaintObject = gc.strokePaintObject;
-			this.fillPaintObject = gc.fillPaintObject;
-			this.lineWidth = gc.lineWidth;
-			this.linePattern = gc.linePattern;
-			this.lineJoin = gc.lineJoin;
-			this.lineCap = gc.lineCap;
-			this.strokeAlpha = gc.strokeAlpha;
-			this.fillAlpha = gc.fillAlpha;
-			this.textMode = gc.textMode;
+			this(new AffineTransform(gc.transform), gc.lineWidth, gc.linePattern, gc.lineJoin, gc.lineCap,
+					gc.strokePaint, gc.fillPaint, gc.fillAlpha, gc.strokeAlpha, gc.textMode);
 		}
 
 		public void restore(final NoOpGC gc) {
@@ -57,8 +46,8 @@ public class NoOpGC implements GC {
 			gc.linePattern = this.linePattern;
 			gc.lineJoin = this.lineJoin;
 			gc.lineCap = this.lineCap;
-			gc.fillPaintObject = this.fillPaintObject;
-			gc.strokePaintObject = this.strokePaintObject;
+			gc.fillPaint = this.fillPaint;
+			gc.strokePaint = this.strokePaint;
 			gc.fillAlpha = this.fillAlpha;
 			gc.strokeAlpha = this.strokeAlpha;
 			gc.textMode = this.textMode;
@@ -75,9 +64,9 @@ public class NoOpGC implements GC {
 
 	protected LineCap lineCap = GC.LineCap.BUTT;
 
-	protected Object strokePaintObject;
+	protected Paint strokePaint;
 
-	protected Object fillPaintObject;
+	protected Paint fillPaint;
 
 	protected float fillAlpha = 1, strokeAlpha = 1;
 
@@ -108,7 +97,7 @@ public class NoOpGC implements GC {
 
 	@Override
 	public void end() {
-		final var state = this.stack.remove(this.stack.size() - 1);
+		final var state = this.stack.removeLast();
 		state.restore(this);
 	}
 
@@ -153,23 +142,23 @@ public class NoOpGC implements GC {
 	}
 
 	@Override
-	public void setStrokePaint(final Object paint) throws GraphicsException {
-		this.strokePaintObject = paint;
+	public void setStrokePaint(final Paint paint) throws GraphicsException {
+		this.strokePaint = paint;
 	}
 
 	@Override
-	public Object getStrokePaint() {
-		return this.strokePaintObject;
+	public Paint getStrokePaint() {
+		return this.strokePaint;
 	}
 
 	@Override
-	public void setFillPaint(final Object paint) throws GraphicsException {
-		this.fillPaintObject = paint;
+	public void setFillPaint(final Paint paint) throws GraphicsException {
+		this.fillPaint = paint;
 	}
 
 	@Override
-	public Object getFillPaint() {
-		return this.fillPaintObject;
+	public Paint getFillPaint() {
+		return this.fillPaint;
 	}
 
 	@Override
@@ -219,7 +208,7 @@ public class NoOpGC implements GC {
 
 	@Override
 	public void resetState() {
-		final var state = this.stack.get(this.stack.size() - 1);
+		final var state = this.stack.getLast();
 		state.restore(this);
 	}
 

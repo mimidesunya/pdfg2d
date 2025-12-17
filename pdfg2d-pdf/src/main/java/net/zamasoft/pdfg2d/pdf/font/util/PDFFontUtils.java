@@ -80,15 +80,15 @@ public class PDFFontUtils {
 	 * @throws IOException
 	 */
 	public static void drawCIDTo(PDFGraphicsOutput out, Text text, boolean verticalFont) throws IOException {
-		int[] gids = text.getGIDs();
-		int glen = text.getGLen();
+		int[] gids = text.getGlyphIds();
+		int glyphCount = text.getGlyphCount();
 		double[] xadvances = text.getXAdvances(false);
 		FontMetrics fm = text.getFontMetrics();
 		out.startArray();
 		int len = 0;
 		int off = 0;
 		double size = fm.getFontSize();
-		for (int i = 0; i < glen; ++i) {
+		for (int i = 0; i < glyphCount; ++i) {
 			double xadvance = xadvances == null ? 0 : xadvances[i];
 			if (i > 0) {
 				xadvance -= fm.getKerning(gids[i - 1], gids[i]);
@@ -128,9 +128,9 @@ public class PDFFontUtils {
 		Map<TextAttribute, Object> atts = new HashMap<TextAttribute, Object>();
 		G2DUtils.setFontAttributes(atts, text.getFontStyle());
 		awtFont = awtFont.deriveFont(atts);
-		int glen = text.getGLen();
-		int[] gids = text.getGIDs();
-		byte[] clens = text.getCLens();
+		int glyphCount = text.getGlyphCount();
+		int[] glyphIds = text.getGlyphIds();
+		final byte[] clens = text.getClusterLengths();
 		char[] chars = text.getChars();
 		double letterSpacing = text.getLetterSpacing();
 		double[] xadvances = text.getXAdvances(false);
@@ -142,12 +142,12 @@ public class PDFFontUtils {
 			gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
 			BBox bbox = fontSource.getBBox();
 			gc.transform(AffineTransform.getTranslateInstance(0,
-					((bbox.lly + bbox.ury) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2f));
+					((bbox.lly() + bbox.ury()) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2f));
 		}
 		// 横書き
 		int pgid = 0;
-		for (int i = 0, k = 0; i < glen; ++i) {
-			int gid = gids[i];
+		for (int i = 0, k = 0; i < glyphCount; ++i) {
+			int gid = glyphIds[i];
 			byte gclen = clens[i];
 			try {
 				GlyphVector gv;
@@ -159,21 +159,22 @@ public class PDFFontUtils {
 				}
 				Shape s = gv.getOutline();
 				switch (textMode) {
-				case FILL:
-					gc.fill(s);
-					break;
-				case STROKE:
-					gc.draw(s);
-					break;
-				case FILL_STROKE:
-					gc.fill(s);
-					gc.draw(s);
-					break;
-				default:
-					throw new IllegalStateException();
+					case FILL:
+						gc.fill(s);
+						break;
+					case STROKE:
+						gc.draw(s);
+						break;
+					case FILL_STROKE:
+						gc.fill(s);
+						gc.draw(s);
+						break;
+					default:
+						throw new IllegalStateException();
 				}
 			} catch (Exception e) {
-				LOG.log(Level.WARNING, new String(chars) + "/k=" + k + "/gclen=" + gclen + "/clen=" + text.getCLen(),
+				LOG.log(Level.WARNING,
+						new String(chars) + "/k=" + k + "/gclen=" + gclen + "/clen=" + text.getCharCount(),
 						e);
 			}
 			double dx = fm.getAdvance(gid) + letterSpacing;

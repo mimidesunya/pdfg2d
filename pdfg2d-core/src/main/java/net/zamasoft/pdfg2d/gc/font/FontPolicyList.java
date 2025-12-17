@@ -9,8 +9,7 @@ import java.util.Arrays;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontPolicyList implements Serializable {
-	private static final long serialVersionUID = 0;
+public record FontPolicyList(FontPolicy[] policies) implements Serializable {
 
 	/**
 	 * Represents a font policy.
@@ -44,16 +43,8 @@ public class FontPolicyList implements Serializable {
 	public static final FontPolicyList FONT_POLICY_CORE_CID_KEYED_VALUE = new FontPolicyList(
 			new FontPolicy[] { FontPolicy.CORE, FontPolicy.CID_KEYED });
 
-	private final FontPolicy[] policies;
-
-	/**
-	 * Creates a new FontPolicyList.
-	 * 
-	 * @param policies the array of font policies
-	 */
-	public FontPolicyList(final FontPolicy[] policies) {
+	public FontPolicyList {
 		assert policies.length > 0;
-		this.policies = policies;
 	}
 
 	/**
@@ -77,35 +68,24 @@ public class FontPolicyList implements Serializable {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (o == null || !(o instanceof FontPolicyList)) {
-			return false;
-		}
-		final var a = (FontPolicyList) o;
-		return Arrays.equals(this.policies, a.policies);
+		return o instanceof FontPolicyList a && Arrays.equals(this.policies, a.policies);
 	}
 
 	@Override
 	public int hashCode() {
-		int h = this.policies[0].ordinal();
-		for (int i = 1; i < this.policies.length; ++i) {
-			h = 31 * h + this.policies[i].ordinal();
-		}
-		return h;
+		return Arrays.hashCode(this.policies);
 	}
 
 	@Override
 	public String toString() {
-		final var buff = new StringBuilder();
-		for (int i = 0; i < this.policies.length; ++i) {
-			switch (this.policies[i]) {
-				case CORE -> buff.append("core ");
-				case CID_KEYED -> buff.append("cid-keyed ");
-				case CID_IDENTITY -> buff.append("cid-identity ");
-				case EMBEDDED -> buff.append("embedded ");
-				case OUTLINES -> buff.append("outlines ");
-				default -> throw new IllegalStateException();
-			}
-		}
-		return buff.toString();
+		return Arrays.stream(this.policies)
+				.map(p -> switch (p) {
+					case CORE -> "core";
+					case CID_KEYED -> "cid-keyed";
+					case CID_IDENTITY -> "cid-identity";
+					case EMBEDDED -> "embedded";
+					case OUTLINES -> "outlines";
+				})
+				.collect(java.util.stream.Collectors.joining(" "));
 	}
 }

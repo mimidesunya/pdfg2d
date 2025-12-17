@@ -8,7 +8,8 @@ import java.io.Serializable;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class CMYKColor implements Color, Serializable {
+public record CMYKColor(float cyan, float magenta, float yellow, float black, byte overprint)
+		implements Color, Serializable {
 	private static final long serialVersionUID = 1L;
 	public static final int C = 0, M = 1, Y = 2, K = 3;
 
@@ -28,11 +29,6 @@ public class CMYKColor implements Color, Serializable {
 	public static final byte OVERPRINT_ILLUSTRATOR = 2;
 
 	/**
-	 * Overprint applying mode.
-	 */
-	public final byte overprint;
-
-	/**
 	 * Creates a CMYK color.
 	 * 
 	 * @param cyan    the cyan component
@@ -42,7 +38,7 @@ public class CMYKColor implements Color, Serializable {
 	 * @return the CMYK color
 	 */
 	public static CMYKColor create(final float cyan, final float magenta, final float yellow, final float black) {
-		return new CMYKColor(cyan, magenta, yellow, black);
+		return new CMYKColor(cyan, magenta, yellow, black, OVERPRINT_NONE);
 	}
 
 	/**
@@ -60,19 +56,15 @@ public class CMYKColor implements Color, Serializable {
 		return new CMYKColor(cyan, magenta, yellow, black, overprint);
 	}
 
-	private final float cyan, magenta, yellow, black;
-
-	protected CMYKColor(final float cyan, final float magenta, final float yellow, final float black) {
+	public CMYKColor(final float cyan, final float magenta, final float yellow, final float black) {
 		this(cyan, magenta, yellow, black, OVERPRINT_NONE);
 	}
 
-	protected CMYKColor(final float cyan, final float magenta, final float yellow, final float black,
-			final byte overprint) {
-		this.cyan = Math.min(1.0f, Math.max(0f, cyan));
-		this.magenta = Math.min(1.0f, Math.max(0f, magenta));
-		this.yellow = Math.min(1.0f, Math.max(0f, yellow));
-		this.black = Math.min(1.0f, Math.max(0f, black));
-		this.overprint = overprint;
+	public CMYKColor {
+		cyan = Math.min(1.0f, Math.max(0f, cyan));
+		magenta = Math.min(1.0f, Math.max(0f, magenta));
+		yellow = Math.min(1.0f, Math.max(0f, yellow));
+		black = Math.min(1.0f, Math.max(0f, black));
 	}
 
 	@Override
@@ -118,13 +110,6 @@ public class CMYKColor implements Color, Serializable {
 
 	public byte getOverprint() {
 		return this.overprint;
-	}
-
-	@Override
-	public boolean equals(final Object o) {
-		return o instanceof CMYKColor color
-				&& this.cyan == color.cyan && this.magenta == color.magenta && this.yellow == color.yellow
-				&& this.black == color.black && this.overprint == color.overprint;
 	}
 
 	@Override

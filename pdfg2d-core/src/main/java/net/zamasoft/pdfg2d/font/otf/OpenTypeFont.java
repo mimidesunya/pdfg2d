@@ -18,8 +18,8 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.text.Text;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.BitSetCharacterSet;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.CharacterSet;
+import net.zamasoft.pdfg2d.gc.text.breaking.impl.BitSetCharacterSet;
+import net.zamasoft.pdfg2d.gc.text.breaking.impl.CharacterSet;
 
 /**
  * Represents an OpenType font.

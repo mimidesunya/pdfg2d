@@ -1,9 +1,7 @@
 package net.zamasoft.pdfg2d.gc.paint;
 
-public class RGBAColor extends RGBColor {
+public record RGBAColor(float red, float green, float blue, float alpha) implements Color {
 	public static final int A = 3;
-
-	protected final float alpha;
 
 	/**
 	 * Creates a new RGB(A) color.
@@ -14,16 +12,23 @@ public class RGBAColor extends RGBColor {
 	 * @param alpha the alpha component
 	 * @return the RGB or RGBA color
 	 */
-	public static RGBColor create(final float red, final float green, final float blue, final float alpha) {
+	public static Color create(final float red, final float green, final float blue, final float alpha) {
 		if (alpha == 1) {
 			return RGBColor.create(red, green, blue);
 		}
 		return new RGBAColor(red, green, blue, alpha);
 	}
 
-	protected RGBAColor(final float red, final float green, final float blue, final float alpha) {
-		super(red, green, blue);
-		this.alpha = alpha;
+	public RGBAColor {
+		red = Math.min(1.0f, Math.max(0f, red));
+		green = Math.min(1.0f, Math.max(0f, green));
+		blue = Math.min(1.0f, Math.max(0f, blue));
+		alpha = Math.min(1.0f, Math.max(0f, alpha));
+	}
+
+	@Override
+	public Paint.Type getPaintType() {
+		return Paint.Type.COLOR;
 	}
 
 	@Override
@@ -43,15 +48,23 @@ public class RGBAColor extends RGBColor {
 	}
 
 	@Override
-	public float getAlpha() {
-		return this.alpha;
+	public float getRed() {
+		return this.red;
 	}
 
 	@Override
-	public boolean equals(final Object o) {
-		return o instanceof RGBAColor color
-				&& this.red == color.red && this.green == color.green && this.blue == color.blue
-				&& this.alpha == color.alpha;
+	public float getGreen() {
+		return this.green;
+	}
+
+	@Override
+	public float getBlue() {
+		return this.blue;
+	}
+
+	@Override
+	public float getAlpha() {
+		return this.alpha;
 	}
 
 	@Override

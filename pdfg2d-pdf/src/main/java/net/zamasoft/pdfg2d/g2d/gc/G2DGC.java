@@ -43,13 +43,13 @@ public class G2DGC implements GC {
 
 		public final Stroke stroke;
 
-		public final Object strokePaintObject;
+		public final Paint strokePaint;
 
-		public final Object fillPaintObject;
+		public final Paint fillPaint;
 
 		public final java.awt.Color strokeColor;
 
-		public final java.awt.Paint fillPaint;
+		public final java.awt.Paint awtFillPaint;
 
 		public final AffineTransform fillAt, strokeAt;
 
@@ -63,12 +63,12 @@ public class G2DGC implements GC {
 			Graphics2D g = gc.g;
 			this.transform = g.getTransform();
 			this.clip = g.getClip();
-			this.strokePaintObject = gc.strokePaintObject;
-			this.fillPaintObject = gc.fillPaintObject;
+			this.strokePaint = gc.strokePaint;
+			this.fillPaint = gc.fillPaint;
 			this.stroke = g.getStroke();
 			this.strokeColor = g.getColor();
 			this.composite = g.getComposite();
-			this.fillPaint = gc.fillPaint;
+			this.awtFillPaint = gc.awtFillPaint;
 			this.fillAt = gc.fillAt;
 			this.fillAlpha = gc.fillAlpha;
 			this.strokeAt = gc.strokeAt;
@@ -82,9 +82,9 @@ public class G2DGC implements GC {
 			g.setStroke(this.stroke);
 			g.setColor(this.strokeColor);
 			g.setComposite(this.composite);
-			gc.fillPaintObject = this.fillPaintObject;
-			gc.strokePaintObject = this.strokePaintObject;
 			gc.fillPaint = this.fillPaint;
+			gc.strokePaint = this.strokePaint;
+			gc.awtFillPaint = this.awtFillPaint;
 			gc.fillAt = this.fillAt;
 			gc.fillAlpha = this.fillAlpha;
 			gc.strokeAt = this.strokeAt;
@@ -96,11 +96,11 @@ public class G2DGC implements GC {
 
 	protected boolean drewAnything = false;
 
-	protected Object strokePaintObject;
+	protected Paint strokePaint;
 
-	protected Object fillPaintObject;
+	protected Paint fillPaint;
 
-	protected java.awt.Paint fillPaint;
+	protected java.awt.Paint awtFillPaint;
 
 	protected AffineTransform fillAt, strokeAt;
 
@@ -115,7 +115,7 @@ public class G2DGC implements GC {
 	public G2DGC(Graphics2D g, FontManager fm) {
 		this.g = g;
 		this.g.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-		this.fillPaint = this.g.getPaint();
+		this.awtFillPaint = this.g.getPaint();
 		this.fm = fm;
 	}
 
@@ -190,67 +190,63 @@ public class G2DGC implements GC {
 
 	public void setLineCap(LineCap lineCap) {
 		BasicStroke stroke = (BasicStroke) this.g.getStroke();
-		this.g.setStroke(new BasicStroke(stroke.getLineWidth(), lineCap.code, stroke.getLineJoin(), stroke.getMiterLimit(),
-				stroke.getDashArray(), stroke.getDashPhase()));
+		this.g.setStroke(
+				new BasicStroke(stroke.getLineWidth(), lineCap.code, stroke.getLineJoin(), stroke.getMiterLimit(),
+						stroke.getDashArray(), stroke.getDashPhase()));
 	}
 
 	public LineCap getLineCap() {
 		return G2DUtils.decodeLineCap((short) ((BasicStroke) this.g.getStroke()).getEndCap());
 	}
 
-	protected void setPaint(Object _paint, boolean fill) throws GraphicsException {
-		java.awt.Paint awtPaint;
-		AffineTransform at;
-		Paint paint = (net.zamasoft.pdfg2d.gc.paint.Paint) _paint;
+	protected void setPaint(Paint paint, boolean fill) throws GraphicsException {
+		final java.awt.Paint awtPaint;
+		final AffineTransform at;
 
-		switch (paint.getPaintType()) {
-		case COLOR:
-			awtPaint = G2DUtils.toAwtColor((Color) paint);
-			at = null;
-			break;
-
-		case PATTERN:
-			Pattern pattern = (Pattern) paint;
-			awtPaint = G2DUtils.toAwtPaint(pattern, this);
-			at = pattern.getTransform();
-			break;
-
-		case LINEAR_GRADIENT:
-			awtPaint = G2DUtils.toAwtPaint((LinearGradient) paint);
-			at = null;
-			break;
-		case RADIAL_GRADIENT:
-			awtPaint = G2DUtils.toAwtPaint((RadialGradient) paint);
-			at = null;
-			break;
-		default:
-			throw new IllegalStateException();
+		switch (paint) {
+			case Color color -> {
+				awtPaint = G2DUtils.toAwtColor(color);
+				at = null;
+			}
+			case Pattern pattern -> {
+				awtPaint = G2DUtils.toAwtPaint(pattern, this);
+				at = pattern.getTransform();
+			}
+			case LinearGradient linearGradient -> {
+				awtPaint = G2DUtils.toAwtPaint(linearGradient);
+				at = null;
+			}
+			case RadialGradient radialGradient -> {
+				awtPaint = G2DUtils.toAwtPaint(radialGradient);
+				at = null;
+			}
 		}
+
 		if (fill) {
-			this.fillPaintObject = _paint;
-			this.fillPaint = awtPaint;
+			this.fillPaint = paint;
+			this.awtFillPaint = awtPaint;
 			this.fillAt = at;
 		} else {
 			this.g.setPaint(awtPaint);
-			this.strokePaintObject = _paint;
+			this.strokePaint = paint;
 			this.strokeAt = at;
 		}
 	}
 
-	public void setStrokePaint(Object paint) throws GraphicsException {
+	public void setStrokePaint(Paint paint) throws GraphicsException {
 		this.setPaint(paint, false);
 	}
 
-	public Object getStrokePaint() {
-		return this.strokePaintObject;
+	public Paint getStrokePaint() {
+		return this.strokePaint;
 	}
 
-	public void setFillPaint(Object paint) throws GraphicsException {
+	public void setFillPaint(Paint paint) throws GraphicsException {
 		this.setPaint(paint, true);
 	}
 
-	public Object getFillPaint() {
-		return this.fillPaintObject;
+	public Paint getFillPaint() {
+		return this.fillPaint;
 	}
 
 	public void setStrokeAlpha(float alpha) {
@@ -315,7 +311,7 @@ public class G2DGC implements GC {
 	public void fill(Shape shape) {
 		this.drewAnything = true;
 		java.awt.Paint paint = this.g.getPaint();
-		this.g.setPaint(this.fillPaint);
+		this.g.setPaint(this.awtFillPaint);
 
 		Composite composite = this.g.getComposite();
 		if (this.fillAlpha == 1) {

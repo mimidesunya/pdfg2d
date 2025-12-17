@@ -10,8 +10,7 @@ import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontFamily implements Serializable {
-	private static final long serialVersionUID = 0;
+public record FontFamily(GenericFamily genericFamily, String name) implements Serializable {
 
 	/**
 	 * Represents a generic font family.
@@ -30,10 +29,6 @@ public class FontFamily implements Serializable {
 
 	public static final FontFamily MONOSPACE_VALUE = new FontFamily(GenericFamily.MONOSPACE, "monospace");
 
-	private final GenericFamily genericFamily;
-
-	private final String name;
-
 	/**
 	 * Creates a FontFamily from a name.
 	 * 
@@ -41,23 +36,17 @@ public class FontFamily implements Serializable {
 	 * @return the created FontFamily
 	 */
 	public static FontFamily create(final String name) {
-		if (name == null || name.equalsIgnoreCase("serif")) {
+		if (name == null) {
 			return FontFamily.SERIF_VALUE;
-		} else if (name.equalsIgnoreCase("cursive")) {
-			return FontFamily.CURSIVE_VALUE;
-		} else if (name.equalsIgnoreCase("fantasy")) {
-			return FontFamily.FANTASY_VALUE;
-		} else if (name.equalsIgnoreCase("monospace")) {
-			return FontFamily.MONOSPACE_VALUE;
-		} else if (name.equalsIgnoreCase("sans-serif")) {
-			return FontFamily.SANS_SERIF_VALUE;
 		}
-		return new FontFamily(name);
-	}
-
-	private FontFamily(final GenericFamily genericFamily, final String name) {
-		this.genericFamily = genericFamily;
-		this.name = name;
+		return switch (name.toLowerCase(java.util.Locale.ROOT)) {
+			case "serif" -> FontFamily.SERIF_VALUE;
+			case "cursive" -> FontFamily.CURSIVE_VALUE;
+			case "fantasy" -> FontFamily.FANTASY_VALUE;
+			case "monospace" -> FontFamily.MONOSPACE_VALUE;
+			case "sans-serif" -> FontFamily.SANS_SERIF_VALUE;
+			default -> new FontFamily(name);
+		};
 	}
 
 	/**
@@ -66,8 +55,7 @@ public class FontFamily implements Serializable {
 	 * @param name the font family name
 	 */
 	public FontFamily(final String name) {
-		this.genericFamily = GenericFamily.NONE;
-		this.name = name;
+		this(GenericFamily.NONE, name);
 	}
 
 	/**
@@ -104,17 +92,16 @@ public class FontFamily implements Serializable {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (o == null || !(o instanceof FontFamily)) {
-			return false;
+		if (o instanceof FontFamily a) {
+			if (a.isGenericFamily() != this.isGenericFamily()) {
+				return false;
+			}
+			if (a.isGenericFamily()) {
+				return a.genericFamily == this.genericFamily;
+			}
+			return FontUtils.normalizeName(a.name).equals(FontUtils.normalizeName(this.name));
 		}
-		final var a = (FontFamily) o;
-		if (a.isGenericFamily() != this.isGenericFamily()) {
-			return false;
-		}
-		if (a.isGenericFamily()) {
-			return a.genericFamily == this.genericFamily;
-		}
-		return FontUtils.normalizeName(a.name).equals(FontUtils.normalizeName(this.name));
+		return false;
 	}
 
 	@Override

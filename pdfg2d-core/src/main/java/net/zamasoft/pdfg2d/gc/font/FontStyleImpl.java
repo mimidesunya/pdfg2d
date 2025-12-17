@@ -2,48 +2,19 @@ package net.zamasoft.pdfg2d.gc.font;
 
 import java.io.Serializable;
 
-import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
-
 /**
  * Implementation of FontStyle.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class FontStyleImpl implements FontStyle, Serializable {
-	private static final long serialVersionUID = 0L;
-
-	private final FontFamilyList families;
-
-	private final double size;
-
-	private final Style style;
-
-	private final Weight weight;
-
-	private final Direction direction;
-
-	private final FontPolicyList policy;
-
-	/**
-	 * Creates a new FontStyleImpl.
-	 * 
-	 * @param families  the font family list
-	 * @param size      the font size
-	 * @param style     the font style
-	 * @param weight    the font weight
-	 * @param direction the writing direction
-	 * @param policy    the font policy list
-	 */
-	public FontStyleImpl(final FontFamilyList families, final double size, final Style style, final Weight weight,
-			final Direction direction, final FontPolicyList policy) {
-		this.families = families;
-		this.size = size;
-		this.style = style;
-		this.weight = weight;
-		this.direction = direction;
-		this.policy = policy;
-	}
+public record FontStyleImpl(
+		FontFamilyList families,
+		double size,
+		Style style,
+		Weight weight,
+		Direction direction,
+		FontPolicyList policy) implements FontStyle, Serializable {
 
 	@Override
 	public FontFamilyList getFamily() {
@@ -76,23 +47,21 @@ public class FontStyleImpl implements FontStyle, Serializable {
 	}
 
 	@Override
-	public boolean equals(final Object o) {
-		if (o == null || !(o instanceof FontStyle)) {
-			return false;
-		}
-		final var b = (FontStyle) o;
-		return FontUtils.equals(this, b);
-	}
-
-	@Override
-	public int hashCode() {
-		return FontUtils.hashCode(this);
-	}
-
-	@Override
-	public String toString() {
-		return super.toString() + "[families=" + this.getFamily() + ",size=" + this.getSize() + ",style="
-				+ this.getStyle() + ",weight=" + this.getWeight() + ",writingMode=" + this.getDirection() + ",policy="
-				+ this.getPolicy() + "]";
+	public String toString() { // Keep toString to match original format if strictly needed, or rely on record
+								// default?
+		// Original: super.toString() + "[families=" + ...
+		// Records toString is FontStyleImpl[families=..., size=...]
+		// Original super.toString() uses Object.toString() (ClassName@Hex).
+		// Record's toString is much better.
+		// Use record's default toString? Use original if format matters for debugging.
+		// Original format:
+		// "net.zamasoft.pdfg2d.gc.font.FontStyleImpl@...[families=...,size=...]"
+		// I'll stick to record default which is "FontStyleImpl[families=..., size=...]"
+		// - cleaner.
+		// BUT the user asked to "rewrite to use Java 21 features". Records are one.
+		// If I remove toString, output changes format.
+		// "Compatibility is not a concern". So I will use record default.
+		return "FontStyleImpl[families=" + this.families + ", size=" + this.size + ", style=" + this.style + ", weight="
+				+ this.weight + ", direction=" + this.direction + ", policy=" + this.policy + "]";
 	}
 }

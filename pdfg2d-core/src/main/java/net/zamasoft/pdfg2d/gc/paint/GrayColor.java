@@ -10,7 +10,7 @@ package net.zamasoft.pdfg2d.gc.paint;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class GrayColor implements Color {
+public record GrayColor(float gray) implements Color {
 	/**
 	 * Generally represents white color (1.0).
 	 */
@@ -20,8 +20,6 @@ public class GrayColor implements Color {
 	 * Generally represents black color (0.0).
 	 */
 	public static final GrayColor BLACK = new GrayColor(0);
-
-	protected final float gray;
 
 	/**
 	 * Creates a new GrayColor instance.
@@ -40,8 +38,8 @@ public class GrayColor implements Color {
 		return new GrayColor(gray);
 	}
 
-	protected GrayColor(final float gray) {
-		this.gray = Math.min(1.0f, Math.max(0f, gray));
+	public GrayColor {
+		gray = Math.min(1.0f, Math.max(0f, gray));
 	}
 
 	@Override
@@ -80,11 +78,6 @@ public class GrayColor implements Color {
 	@Override
 	public float getAlpha() {
 		return 1f;
-	}
-
-	@Override
-	public boolean equals(final Object o) {
-		return o instanceof GrayColor color && color.gray == this.gray;
 	}
 
 	@Override

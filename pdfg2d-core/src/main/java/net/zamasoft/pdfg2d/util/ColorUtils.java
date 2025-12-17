@@ -34,8 +34,8 @@ public final class ColorUtils {
 				return color;
 			}
 			case RGBA -> {
-				gray = ColorUtils.toGray(color.getComponent(RGBAColor.R), color.getComponent(RGBAColor.G),
-						color.getComponent(RGBAColor.B));
+				gray = ColorUtils.toGray(color.getComponent(RGBColor.R), color.getComponent(RGBColor.G),
+						color.getComponent(RGBColor.B));
 				return RGBAColor.create(gray, gray, gray, color.getComponent(RGBAColor.A));
 			}
 			default -> throw new IllegalStateException();

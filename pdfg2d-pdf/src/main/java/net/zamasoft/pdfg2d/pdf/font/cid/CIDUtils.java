@@ -53,25 +53,25 @@ public final class CIDUtils {
 		int flags = CID_SYMBOLIC;
 		Panose panose = source.getPanose();
 		if (panose != null) {
-			if (panose.proportion >= 8) {
+			if (panose.proportion() >= 8) {
 				flags |= CID_FIXED_WIDTH;
 			}
-			if (panose.serifStyle <= 3) {
+			if (panose.serifStyle() <= 3) {
 				flags |= CID_SERIF;
 			}
-			if (panose.familyType == 3) {
+			if (panose.familyType() == 3) {
 				flags |= CID_SCRIPT;
 			}
-			if (panose.letterForm >= 9) {
+			if (panose.letterForm() >= 9) {
 				flags |= CID_ITALIC;
 			}
-			if (panose.familyType == 4 && panose.xHeight == 4) {
+			if (panose.familyType() == 4 && panose.xHeight() == 4) {
 				flags |= CID_ALL_CAP;
 			}
-			if (panose.familyType == 4 && panose.xHeight == 5) {
+			if (panose.familyType() == 4 && panose.xHeight() == 5) {
 				flags |= CID_SMALL_CAP;
 			}
-			if (panose.weight >= 8) {
+			if (panose.weight() >= 8) {
 				flags |= CID_FORCE_BOLD;
 			}
 		} else {
@@ -89,18 +89,18 @@ public final class CIDUtils {
 
 		if (panose != null) {
 			byte[] bytes = new byte[12];
-			bytes[0] = panose.familyClassId;
-			bytes[1] = panose.familySubclass;
-			bytes[2] = panose.familyType;
-			bytes[3] = panose.serifStyle;
-			bytes[4] = panose.weight;
-			bytes[5] = panose.proportion;
-			bytes[6] = panose.contrast;
-			bytes[7] = panose.strokeVariation;
-			bytes[8] = panose.armStyle;
-			bytes[9] = panose.letterForm;
-			bytes[10] = panose.midline;
-			bytes[11] = panose.xHeight;
+			bytes[0] = panose.familyClassId();
+			bytes[1] = panose.familySubclass();
+			bytes[2] = panose.familyType();
+			bytes[3] = panose.serifStyle();
+			bytes[4] = panose.weight();
+			bytes[5] = panose.proportion();
+			bytes[6] = panose.contrast();
+			bytes[7] = panose.strokeVariation();
+			bytes[8] = panose.armStyle();
+			bytes[9] = panose.letterForm();
+			bytes[10] = panose.midline();
+			bytes[11] = panose.xHeight();
 			out.writeName("Style");
 			out.startHash();
 			out.writeName("Panose");
@@ -304,10 +304,10 @@ public final class CIDUtils {
 		out.writeName("FontBBox");
 		BBox bbox = source.getBBox();
 		out.startArray();
-		out.writeInt(bbox.llx);
-		out.writeInt(bbox.lly);
-		out.writeInt(bbox.urx);
-		out.writeInt(bbox.ury);
+		out.writeInt(bbox.llx());
+		out.writeInt(bbox.lly());
+		out.writeInt(bbox.urx());
+		out.writeInt(bbox.ury());
 		out.endArray();
 		out.lineBreak();
 		out.writeName("StemV");
@@ -549,10 +549,10 @@ public final class CIDUtils {
 		out.writeName("FontBBox");
 		BBox bbox = source.getBBox();
 		out.startArray();
-		out.writeInt(bbox.llx);
-		out.writeInt(bbox.lly);
-		out.writeInt(bbox.urx);
-		out.writeInt(bbox.ury);
+		out.writeInt(bbox.llx());
+		out.writeInt(bbox.lly());
+		out.writeInt(bbox.urx());
+		out.writeInt(bbox.ury());
 		out.endArray();
 		out.lineBreak();
 		out.writeName("StemV");
@@ -611,8 +611,9 @@ public final class CIDUtils {
 		out.lineBreak();
 
 		try (OutputStream cout = out.startStreamFromHash(PDFFragmentOutput.Mode.BINARY)) {
-//			InputStream in = new InflaterInputStream(new FileInputStream("/home/miyabe/workspaces/copper/CopperPDF.dev/files/misc/fontfile.bin"));
-//			IOUtils.copy(in, cout);
+			// InputStream in = new InflaterInputStream(new
+			// FileInputStream("/home/miyabe/workspaces/copper/CopperPDF.dev/files/misc/fontfile.bin"));
+			// IOUtils.copy(in, cout);
 			CFFGenerator cff = new CFFGenerator();
 			cff.setSubsetName(subsetName);
 			cff.setEmbedableFont(font);

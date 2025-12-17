@@ -36,8 +36,8 @@ class IntList implements Serializable {
 			this.length = pos + 1;
 			if (this.array.length <= pos) {
 				int[] array = new int[Math.max(this.length + 10, this.array.length * 3 / 2)];
-				for (int i = this.array.length; i < array.length; ++i) {
-					array[i] = this.defaultValue;
+				if (this.defaultValue != 0) {
+					java.util.Arrays.fill(array, this.array.length, array.length, this.defaultValue);
 				}
 				System.arraycopy(this.array, 0, array, 0, this.array.length);
 				this.array = array;

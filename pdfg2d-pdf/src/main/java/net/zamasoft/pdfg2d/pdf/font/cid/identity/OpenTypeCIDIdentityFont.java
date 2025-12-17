@@ -93,15 +93,15 @@ class OpenTypeCIDIdentityFont extends OpenTypeFont implements PDFFont {
 			FontUtils.drawText(gc, this, text);
 		}
 
-		int glen = text.getGLen();
-		int[] gids = text.getGIDs();
+		int glyphCount = text.getGlyphCount();
+		int[] glyphIds = text.getGlyphIds();
 		char[] chars = text.getChars();
-		for (int i = 0; i < glen; ++i) {
-			this.widths.set(gids[i], this.getHAdvance(gids[i]));
+		for (int i = 0; i < glyphCount; ++i) {
+			this.widths.set(glyphIds[i], this.getHAdvance(glyphIds[i]));
 			if (this.isVertical()) {
-				this.heights.set(gids[i], this.getVAdvance(gids[i]));
+				this.heights.set(glyphIds[i], this.getVAdvance(glyphIds[i]));
 			}
-			this.unicodes.set(gids[i], chars[i]);
+			this.unicodes.set(glyphIds[i], chars[i]);
 		}
 	}
 

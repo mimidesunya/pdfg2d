@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.gc.image.Image;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class Pattern implements Paint {
+public final class Pattern implements Paint {
 	protected final Image image;
 
 	protected final AffineTransform at;

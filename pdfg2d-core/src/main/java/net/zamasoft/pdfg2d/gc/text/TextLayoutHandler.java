@@ -3,8 +3,7 @@ package net.zamasoft.pdfg2d.gc.text;
 import java.awt.font.TextAttribute;
 import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
-import java.util.Arrays;
-import java.util.HashSet;
+
 import java.util.Set;
 
 import net.zamasoft.pdfg2d.gc.GC;
@@ -18,8 +17,8 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.FontStyleImpl;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.TextBreakingRules;
-import net.zamasoft.pdfg2d.gc.text.hyphenation.impl.TextAtomizer;
+import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRules;
+import net.zamasoft.pdfg2d.gc.text.breaking.impl.TextAtomizer;
 import net.zamasoft.pdfg2d.gc.text.layout.FilterCharacterHandler;
 import net.zamasoft.pdfg2d.gc.text.layout.control.LineBreak;
 import net.zamasoft.pdfg2d.gc.text.layout.control.Tab;
@@ -53,7 +52,7 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 		final FilterGlyphHandler textAtomizer = new TextAtomizer(rules);
 		textAtomizer.setGlyphHandler(glyphHandler);
 		final TextShaper glypher = gc.getFontManager().getTextShaper();
-		glypher.setGlyphHander(textAtomizer);
+		glypher.setGlyphHandler(textAtomizer);
 		this.setCharacterHandler(glypher);
 	}
 
@@ -69,8 +68,8 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 	}
 
 	private char[] ch = new char[10];
-	private static final Set<TextAttribute> ATTRIBUTES = new HashSet<TextAttribute>(Arrays.asList(new TextAttribute[] {
-			TextAttribute.FAMILY, TextAttribute.WEIGHT, TextAttribute.SIZE, TextAttribute.POSTURE }));
+	private static final Set<TextAttribute> ATTRIBUTES = Set.of(
+			TextAttribute.FAMILY, TextAttribute.WEIGHT, TextAttribute.SIZE, TextAttribute.POSTURE);
 
 	public void characters(final AttributedCharacterIterator aci) {
 		final FontFamilyList defaultFamily = this.fontFamilies;
@@ -125,14 +124,11 @@ public class TextLayoutHandler extends FilterCharacterHandler {
 			TextControl control = null;
 			if (Character.isISOControl(c)) {
 				final FontListMetrics flm = this.gc.getFontManager().getFontListMetrics(this.fontStyle);
-				switch (c) {
-					case '\n':
-						control = new LineBreak(flm, i);
-						break;
-					case '\t':
-						control = new Tab(flm, i);
-						break;
-				}
+				control = switch (c) {
+					case '\n' -> new LineBreak(flm, i);
+					case '\t' -> new Tab(flm, i);
+					default -> null;
+				};
 				if (control != null) {
 					if (i > ooff) {
 						super.characters(charOffset + ooff, ch, off + ooff, i - ooff);

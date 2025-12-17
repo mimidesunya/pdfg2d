@@ -6,7 +6,7 @@ package net.zamasoft.pdfg2d.gc.paint;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface Color extends Paint {
+public sealed interface Color extends Paint permits RGBColor, CMYKColor, GrayColor, RGBAColor {
 	public enum Type {
 		RGB, CMYK, GRAY, RGBA
 	}

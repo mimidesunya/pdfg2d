@@ -192,15 +192,9 @@ class EmojiFont implements ImageFont {
 	 */
 	@Override
 	public void drawGlyphForGid(final GC gc, final int gid, final AffineTransform at) {
-		GraphicsNode gvtRoot = null;
-		var image = this.gidToImage.get(gid);
-
-		if (image == null) {
-			gvtRoot = this.gidToNode.get(gid);
-			if (gvtRoot == null) {
-				gvtRoot = loadEmojiGraphicsNode(gc, gid);
-			}
-		}
+		final var cachedImage = this.gidToImage.get(gid);
+		final var gvtRoot = cachedImage != null ? null
+				: this.gidToNode.computeIfAbsent(gid, k -> loadEmojiGraphicsNode(gc, gid));
 
 		// Render the emoji to the graphics context
 		gc.begin();
@@ -209,9 +203,9 @@ class EmojiFont implements ImageFont {
 		}
 		gc.transform(AffineTransform.getTranslateInstance(0, -this.source.getAscent()));
 
-		if (image != null) {
+		if (cachedImage != null) {
 			gc.begin();
-			gc.drawImage(image);
+			gc.drawImage(cachedImage);
 		} else {
 			gc.transform(AffineTransform.getScaleInstance(
 					1000.0 / VIEWPORT.getWidth(),

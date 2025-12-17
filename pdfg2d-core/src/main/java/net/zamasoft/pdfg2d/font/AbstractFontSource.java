@@ -82,8 +82,8 @@ public abstract class AbstractFontSource implements FontSource {
 	public String toString() {
 		final var buff = new StringBuilder(this.getFontName());
 		final var aliases = this.getAliases();
-		for (final var alias : aliases) {
-			buff.append("; ").append(alias);
+		if (aliases != null && aliases.length > 0) {
+			buff.append("; ").append(String.join("; ", aliases));
 		}
 		buff.append(this.getClass());
 		return buff.toString();

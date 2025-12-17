@@ -6,7 +6,7 @@ package net.zamasoft.pdfg2d.gc.paint;
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public interface Paint {
+public sealed interface Paint permits Color, Pattern, LinearGradient, RadialGradient {
 	public enum Type {
 		COLOR, PATTERN, LINEAR_GRADIENT, RADIAL_GRADIENT
 	}

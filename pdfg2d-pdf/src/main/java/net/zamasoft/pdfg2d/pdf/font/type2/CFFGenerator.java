@@ -75,10 +75,10 @@ public class CFFGenerator {
 				cout2.writeOperator(CFFOutputStream.ROS);
 
 				// FontBBox
-				cout2.writeInteger(bbox.llx);
-				cout2.writeInteger(bbox.lly);
-				cout2.writeInteger(bbox.urx);
-				cout2.writeInteger(bbox.ury);
+				cout2.writeInteger(bbox.llx());
+				cout2.writeInteger(bbox.lly());
+				cout2.writeInteger(bbox.urx());
+				cout2.writeInteger(bbox.ury());
 				cout2.writeOperator(CFFOutputStream.FONT_BBOX);
 
 				// CIDCount
@@ -141,174 +141,174 @@ public class CFFGenerator {
 						LOOP: while (!j.isDone()) {
 							int type = j.currentSegment(cord);
 							switch (type) {
-							case PathIterator.SEG_MOVETO: {
-								double x = cord[0];
-								double y = -cord[1];
-								short dx = (short) Math.round(x - cx);
-								short dy = (short) Math.round(y - cy);
-								if (dx == 0) {
-									tout3.writeShort(dy);
-									tout3.writeOperator(Type2OutputStream.VMOVETO);
-									if (DEBUG) {
-										System.err.println("vmoveto " + dy);
-									}
-									cy += dy;
-								} else if (dy == 0) {
-									tout3.writeShort(dx);
-									tout3.writeOperator(Type2OutputStream.HMOVETO);
-									if (DEBUG) {
-										System.err.println("hmoveto " + dx);
-									}
-									cx += dx;
-								} else {
-									tout3.writeShort(dx);
-									tout3.writeShort(dy);
-									tout3.writeOperator(Type2OutputStream.RMOVETO);
-									if (DEBUG) {
-										System.err.println("rmoveto " + dx + " " + dy);
-									}
-									cx += dx;
-									cy += dy;
-								}
-								closed = false;
-							}
-								break;
-
-							case PathIterator.SEG_LINETO: {
-								if (closed) {
-									tout3.writeShort((short) 0);
-									tout3.writeOperator(Type2OutputStream.HMOVETO);
-									if (DEBUG) {
-										System.err.println("hmoveto " + 0);
+								case PathIterator.SEG_MOVETO: {
+									double x = cord[0];
+									double y = -cord[1];
+									short dx = (short) Math.round(x - cx);
+									short dy = (short) Math.round(y - cy);
+									if (dx == 0) {
+										tout3.writeShort(dy);
+										tout3.writeOperator(Type2OutputStream.VMOVETO);
+										if (DEBUG) {
+											System.err.println("vmoveto " + dy);
+										}
+										cy += dy;
+									} else if (dy == 0) {
+										tout3.writeShort(dx);
+										tout3.writeOperator(Type2OutputStream.HMOVETO);
+										if (DEBUG) {
+											System.err.println("hmoveto " + dx);
+										}
+										cx += dx;
+									} else {
+										tout3.writeShort(dx);
+										tout3.writeShort(dy);
+										tout3.writeOperator(Type2OutputStream.RMOVETO);
+										if (DEBUG) {
+											System.err.println("rmoveto " + dx + " " + dy);
+										}
+										cx += dx;
+										cy += dy;
 									}
 									closed = false;
 								}
-								double x = cord[0];
-								double y = -cord[1];
-								short dx = (short) Math.round(x - cx);
-								short dy = (short) Math.round(y - cy);
-								if (dx == 0) {
-									tout3.writeShort(dy);
-									tout3.writeOperator(Type2OutputStream.VLINETO);
-									if (DEBUG) {
-										System.err.println("vlineto " + dy);
-									}
-									cy += dy;
-								} else if (dy == 0) {
-									tout3.writeShort(dx);
-									tout3.writeOperator(Type2OutputStream.HLINETO);
-									if (DEBUG) {
-										System.err.println("hlineto " + dx);
-									}
-									cx += dx;
-								} else {
-									tout3.writeShort(dx);
-									tout3.writeShort(dy);
-									tout3.writeOperator(Type2OutputStream.RLINETO);
-									if (DEBUG) {
-										System.err.println("rlineto " + dx + " " + dy);
-									}
-									cx += dx;
-									cy += dy;
-								}
-							}
-								break;
+									break;
 
-							case PathIterator.SEG_QUADTO: {
-								if (closed) {
-									tout3.writeShort((short) 0);
-									tout3.writeOperator(Type2OutputStream.HMOVETO);
-									if (DEBUG) {
-										System.err.println("hmoveto " + 0);
+								case PathIterator.SEG_LINETO: {
+									if (closed) {
+										tout3.writeShort((short) 0);
+										tout3.writeOperator(Type2OutputStream.HMOVETO);
+										if (DEBUG) {
+											System.err.println("hmoveto " + 0);
+										}
+										closed = false;
 									}
-									closed = false;
-								}
-								double x1 = cord[0];
-								double y1 = -cord[1];
-								double x2 = cord[2];
-								double y2 = -cord[3];
-								double xa = (cx + 2f * (x1 - cx) / 3f);
-								double ya = (cy + 2f * (y1 - cy) / 3f);
-								double xb = (xa + (x2 - cx) / 3f);
-								double yb = (ya + (y2 - cy) / 3f);
-								double xc = x2;
-								double yc = y2;
-								short dxa = (short) Math.round(xa - cx);
-								short dya = (short) Math.round(ya - cy);
-								cx += dxa;
-								cy += dya;
-								short dxb = (short) Math.round(xb - cx);
-								short dyb = (short) Math.round(yb - cy);
-								cx += dxb;
-								cy += dyb;
-								short dxc = (short) Math.round(xc - cx);
-								short dyc = (short) Math.round(yc - cy);
-								cx += dxc;
-								cy += dyc;
-								tout3.writeShort(dxa);
-								tout3.writeShort(dya);
-								tout3.writeShort(dxb);
-								tout3.writeShort(dyb);
-								tout3.writeShort(dxc);
-								tout3.writeShort(dyc);
-								tout3.writeOperator(Type2OutputStream.RRCURVETO);
-								if (DEBUG) {
-									System.err.println("rrcurveto " + dxa + " " + dya + " " + dxb + " " + dyb + " "
-											+ dxc + " " + dyc);
-								}
-							}
-								break;
-
-							case PathIterator.SEG_CUBICTO: {
-								if (closed) {
-									tout3.writeShort((short) 0);
-									tout3.writeOperator(Type2OutputStream.HMOVETO);
-									if (DEBUG) {
-										System.err.println("hmoveto " + 0);
+									double x = cord[0];
+									double y = -cord[1];
+									short dx = (short) Math.round(x - cx);
+									short dy = (short) Math.round(y - cy);
+									if (dx == 0) {
+										tout3.writeShort(dy);
+										tout3.writeOperator(Type2OutputStream.VLINETO);
+										if (DEBUG) {
+											System.err.println("vlineto " + dy);
+										}
+										cy += dy;
+									} else if (dy == 0) {
+										tout3.writeShort(dx);
+										tout3.writeOperator(Type2OutputStream.HLINETO);
+										if (DEBUG) {
+											System.err.println("hlineto " + dx);
+										}
+										cx += dx;
+									} else {
+										tout3.writeShort(dx);
+										tout3.writeShort(dy);
+										tout3.writeOperator(Type2OutputStream.RLINETO);
+										if (DEBUG) {
+											System.err.println("rlineto " + dx + " " + dy);
+										}
+										cx += dx;
+										cy += dy;
 									}
-									closed = false;
 								}
-								double xa = cord[0];
-								double ya = -cord[1];
-								double xb = cord[2];
-								double yb = -cord[3];
-								double xc = cord[4];
-								double yc = -cord[5];
-								short dxa = (short) Math.round(xa - cx);
-								short dya = (short) Math.round(ya - cy);
-								cx += dxa;
-								cy += dya;
-								short dxb = (short) Math.round(xb - cx);
-								short dyb = (short) Math.round(yb - cy);
-								cx += dxb;
-								cy += dyb;
-								short dxc = (short) Math.round(xc - cx);
-								short dyc = (short) Math.round(yc - cy);
-								cx += dxc;
-								cy += dyc;
-								tout3.writeShort(dxa);
-								tout3.writeShort(dya);
-								tout3.writeShort(dxb);
-								tout3.writeShort(dyb);
-								tout3.writeShort(dxc);
-								tout3.writeShort(dyc);
-								tout3.writeOperator(Type2OutputStream.RRCURVETO);
-								if (DEBUG) {
-									System.err.println("rrcurveto " + dxa + " " + dya + " " + dxb + " " + dyb + " "
-											+ dxc + " " + dyc);
-								}
-								cx = xc;
-								cy = yc;
-							}
-								break;
+									break;
 
-							case PathIterator.SEG_CLOSE:
-								j.next();
-								if (j.isDone()) {
-									break LOOP;
+								case PathIterator.SEG_QUADTO: {
+									if (closed) {
+										tout3.writeShort((short) 0);
+										tout3.writeOperator(Type2OutputStream.HMOVETO);
+										if (DEBUG) {
+											System.err.println("hmoveto " + 0);
+										}
+										closed = false;
+									}
+									double x1 = cord[0];
+									double y1 = -cord[1];
+									double x2 = cord[2];
+									double y2 = -cord[3];
+									double xa = (cx + 2f * (x1 - cx) / 3f);
+									double ya = (cy + 2f * (y1 - cy) / 3f);
+									double xb = (xa + (x2 - cx) / 3f);
+									double yb = (ya + (y2 - cy) / 3f);
+									double xc = x2;
+									double yc = y2;
+									short dxa = (short) Math.round(xa - cx);
+									short dya = (short) Math.round(ya - cy);
+									cx += dxa;
+									cy += dya;
+									short dxb = (short) Math.round(xb - cx);
+									short dyb = (short) Math.round(yb - cy);
+									cx += dxb;
+									cy += dyb;
+									short dxc = (short) Math.round(xc - cx);
+									short dyc = (short) Math.round(yc - cy);
+									cx += dxc;
+									cy += dyc;
+									tout3.writeShort(dxa);
+									tout3.writeShort(dya);
+									tout3.writeShort(dxb);
+									tout3.writeShort(dyb);
+									tout3.writeShort(dxc);
+									tout3.writeShort(dyc);
+									tout3.writeOperator(Type2OutputStream.RRCURVETO);
+									if (DEBUG) {
+										System.err.println("rrcurveto " + dxa + " " + dya + " " + dxb + " " + dyb + " "
+												+ dxc + " " + dyc);
+									}
 								}
-								closed = true;
-								continue;
+									break;
+
+								case PathIterator.SEG_CUBICTO: {
+									if (closed) {
+										tout3.writeShort((short) 0);
+										tout3.writeOperator(Type2OutputStream.HMOVETO);
+										if (DEBUG) {
+											System.err.println("hmoveto " + 0);
+										}
+										closed = false;
+									}
+									double xa = cord[0];
+									double ya = -cord[1];
+									double xb = cord[2];
+									double yb = -cord[3];
+									double xc = cord[4];
+									double yc = -cord[5];
+									short dxa = (short) Math.round(xa - cx);
+									short dya = (short) Math.round(ya - cy);
+									cx += dxa;
+									cy += dya;
+									short dxb = (short) Math.round(xb - cx);
+									short dyb = (short) Math.round(yb - cy);
+									cx += dxb;
+									cy += dyb;
+									short dxc = (short) Math.round(xc - cx);
+									short dyc = (short) Math.round(yc - cy);
+									cx += dxc;
+									cy += dyc;
+									tout3.writeShort(dxa);
+									tout3.writeShort(dya);
+									tout3.writeShort(dxb);
+									tout3.writeShort(dyb);
+									tout3.writeShort(dxc);
+									tout3.writeShort(dyc);
+									tout3.writeOperator(Type2OutputStream.RRCURVETO);
+									if (DEBUG) {
+										System.err.println("rrcurveto " + dxa + " " + dya + " " + dxb + " " + dyb + " "
+												+ dxc + " " + dyc);
+									}
+									cx = xc;
+									cy = yc;
+								}
+									break;
+
+								case PathIterator.SEG_CLOSE:
+									j.next();
+									if (j.isDone()) {
+										break LOOP;
+									}
+									closed = true;
+									continue;
 							}
 							j.next();
 						}

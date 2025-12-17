@@ -41,24 +41,24 @@ class CIDKeyedFont extends CIDFont {
 	transient private ByteBuffer bbuff = null;
 
 	public void drawTo(GC gc, Text text) throws IOException, GraphicsException {
-		assert text.getCLen() > 0;
+		assert text.getCharCount() > 0;
 		if (gc instanceof PDFGC) {
 			PDFGraphicsOutput out = ((PDFGC) gc).getPDFGraphicsOutput();
 			// ネイティブの文字コード
 			char[] ch = text.getChars();
-			int clen = text.getCLen();
+			int clen = text.getCharCount();
 			double[] xadvances = text.getXAdvances(false);
 			if (xadvances == null) {
 				this.writeByte8(out, ch, 0, clen);
 				out.writeOperator("Tj");
 			} else {
 				out.startArray();
-				byte[] clens = text.getCLens();
-				int glen = text.getGLen();
+				byte[] clusterLengths = text.getClusterLengths();
+				int glyphCount = text.getGlyphCount();
 				int len = 0;
 				int off = 0;
 				double size = text.getFontMetrics().getFontSize();
-				for (int i = 0; i < glen; ++i) {
+				for (int i = 0; i < glyphCount; ++i) {
 					double xadvance = xadvances[i];
 					if (xadvance != 0) {
 						// 縦書きでは負の値を使う(SPEC PDF1.3 8.7.1.1)
@@ -72,7 +72,7 @@ class CIDKeyedFont extends CIDFont {
 						}
 						out.writeReal(-xadvance * 1000.0 / size);
 					}
-					len += clens[i];
+					len += clusterLengths[i];
 				}
 				if (len > 0) {
 					this.writeByte8(out, ch, off, len);
@@ -191,10 +191,10 @@ class CIDKeyedFont extends CIDFont {
 		out.writeName("FontBBox");
 		BBox bbox = source.getBBox();
 		out.startArray();
-		out.writeInt(bbox.llx);
-		out.writeInt(bbox.lly);
-		out.writeInt(bbox.urx);
-		out.writeInt(bbox.ury);
+		out.writeInt(bbox.llx());
+		out.writeInt(bbox.lly());
+		out.writeInt(bbox.urx());
+		out.writeInt(bbox.ury());
 		out.endArray();
 		out.lineBreak();
 		out.writeName("StemV");

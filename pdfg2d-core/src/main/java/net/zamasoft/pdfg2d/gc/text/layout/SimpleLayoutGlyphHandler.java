@@ -57,7 +57,7 @@ public class SimpleLayoutGlyphHandler implements GlyphHandler {
 
 	@Override
 	public void endTextRun() {
-		assert this.text.getGLen() > 0;
+		assert this.text.getGlyphCount() > 0;
 		if (this.gc != null) {
 			switch (this.text.getFontStyle().getDirection()) {
 				case LTR:
