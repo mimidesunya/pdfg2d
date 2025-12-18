@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.pdf.font.cid.identity;
 import java.awt.Shape;
 import java.io.IOException;
 
-import net.zamasoft.font.Glyph;
+import net.zamasoft.pdfg2d.font.Glyph;
 import net.zamasoft.pdfg2d.font.otf.OpenTypeFont;
 import net.zamasoft.pdfg2d.font.otf.OpenTypeFontSource;
 import net.zamasoft.pdfg2d.gc.GC;
@@ -67,7 +67,7 @@ class OpenTypeCIDIdentityFont extends OpenTypeFont implements PDFFont {
 		if (glyph == null) {
 			return null;
 		}
-		Shape shape = glyph.getPath();
+		Shape shape = glyph.path();
 		if (shape == null) {
 			return null;
 		}
@@ -125,3 +125,4 @@ class OpenTypeCIDIdentityFont extends OpenTypeFont implements PDFFont {
 		return -1;
 	}
 }
+

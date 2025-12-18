@@ -41,10 +41,10 @@ public class EmojiFontSource extends AbstractFontSource {
 	private static final BBox BBOX = new BBox((short) 0, DEFAULT_DESCENT, (short) 1000, DEFAULT_ASCENT);
 
 	/** Map from emoji code string to font glyph ID. */
-	protected static final Map<String, Integer> codeToFgid;
+	protected static final Map<String, Integer> codeToGid;
 
 	/** Map from font glyph ID to emoji code string. */
-	protected static final Map<Integer, String> fgidToCode;
+	protected static final Map<Integer, String> gidToCode;
 
 	// Static initializer to load emoji index from bundled resource
 	static {
@@ -79,8 +79,8 @@ public class EmojiFontSource extends AbstractFontSource {
 			// Continue with empty maps
 		}
 
-		codeToFgid = Collections.unmodifiableMap(ctog);
-		fgidToCode = Collections.unmodifiableMap(gtoc);
+		codeToGid = Collections.unmodifiableMap(ctog);
+		gidToCode = Collections.unmodifiableMap(gtoc);
 	}
 
 	/** Singleton instance for left-to-right text direction. */
@@ -209,7 +209,7 @@ public class EmojiFontSource extends AbstractFontSource {
 	 */
 	@Override
 	public boolean canDisplay(final int c) {
-		return codeToFgid.containsKey(Integer.toHexString(c));
+		return codeToGid.containsKey(Integer.toHexString(c));
 	}
 
 	/**

@@ -7,10 +7,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
 
-import jp.cssj.resolver.Source;
-import jp.cssj.resolver.SourceResolver;
-import jp.cssj.resolver.composite.CompositeSourceResolver;
-import jp.cssj.resolver.helpers.URIHelper;
+import net.zamasoft.pdfg2d.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.SourceResolver;
+import net.zamasoft.pdfg2d.resolver.composite.CompositeSourceResolver;
+import net.zamasoft.pdfg2d.resolver.util.URIHelper;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 import net.zamasoft.pdfg2d.util.IntMap;
 
@@ -190,3 +190,4 @@ class CIDTableParser {
 		return PDFUtils.decodeName(s, "MS932");
 	}
 }
+

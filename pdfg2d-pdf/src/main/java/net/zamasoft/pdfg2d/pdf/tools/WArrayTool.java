@@ -2,11 +2,11 @@ package net.zamasoft.pdfg2d.pdf.tools;
 
 import java.io.File;
 
-import jp.cssj.resolver.file.FileSource;
-import net.zamasoft.font.OpenTypeFont;
-import net.zamasoft.font.table.Os2Table;
-import net.zamasoft.font.table.Table;
-import net.zamasoft.font.table.XmtxTable;
+import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
+import net.zamasoft.pdfg2d.font.OpenTypeFont;
+import net.zamasoft.pdfg2d.font.table.Os2Table;
+import net.zamasoft.pdfg2d.font.table.Table;
+import net.zamasoft.pdfg2d.font.table.XmtxTable;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
@@ -79,7 +79,7 @@ public class WArrayTool {
 	private static WArray otWArray(OpenTypeCIDIdentityFontSource fs, CMap cmap) {
 		OpenTypeFont ttfFont = fs.getOpenTypeFont();
 		Os2Table os2 = (Os2Table) ttfFont.getTable(Table.OS_2);
-		XmtxTable hmtx = (XmtxTable) ttfFont.getTable(Table.hmtx);
+		XmtxTable hmtx = (XmtxTable) ttfFont.getTable(Table.HMTX);
 		System.out.println("FamilyClass: " + Integer.toHexString(os2.getFamilyClass()));
 		System.out.println("PANOSE-1: " + os2.getPanose());
 		short upm = fs.getUnitsPerEm();

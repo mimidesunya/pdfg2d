@@ -3,7 +3,7 @@ description = 'PDF output implementation'
 dependencies {
     implementation project(':pdfg2d-core')
     implementation project(':pdfg2d-resolver')
-    implementation project(':pdfg2d-rsr')
+    implementation project(':pdfg2d-io')
     implementation project(':pdfg2d-font')
     implementation 'org.apache.xmlgraphics:batik-gvt:1.16'
     implementation 'com.twelvemonkeys.imageio:imageio-jpeg:3.12.0'

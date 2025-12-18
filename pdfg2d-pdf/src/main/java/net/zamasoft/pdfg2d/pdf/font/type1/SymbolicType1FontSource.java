@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.pdf.font.type1.AFMFontInfo.AFMGlyphInfo;
 import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
@@ -146,3 +146,4 @@ public class SymbolicType1FontSource extends AbstractType1FontSource {
 		return null;
 	}
 }
+

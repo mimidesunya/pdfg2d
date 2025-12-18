@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.pdf.font.cid;
 import java.io.IOException;
 import java.io.Serializable;
 
-import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.Source;
 
 /**
  * 一般CIDフォントのキャラクタマッピング情報です。

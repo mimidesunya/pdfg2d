@@ -20,8 +20,8 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.gvt.GraphicsNode;
 import org.w3c.dom.Document;
 
-import jp.cssj.resolver.file.FileSource;
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
@@ -49,7 +49,7 @@ public class SVGRenderingDemo {
 
 		try (OutputStream out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "svg.pdf")))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
+			OutputFragmentedStream builder = new OutputFragmentedStream(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			UserAgent userAgent = new UserAgentAdapter();
@@ -93,3 +93,5 @@ public class SVGRenderingDemo {
 		}
 	}
 }
+
+

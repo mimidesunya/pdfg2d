@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import jp.cssj.resolver.file.FileSource;
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -32,7 +32,7 @@ public class RasterImageDemo {
 
 		try (OutputStream out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "image.pdf")))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
+			OutputFragmentedStream builder = new OutputFragmentedStream(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
@@ -46,3 +46,5 @@ public class RasterImageDemo {
 		}
 	}
 }
+
+

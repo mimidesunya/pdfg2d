@@ -11,8 +11,8 @@ import java.io.OutputStream;
 
 import javax.swing.JFrame;
 
-import jp.cssj.resolver.file.FileSource;
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
@@ -78,7 +78,7 @@ public class ComplexTextDemo {
 
 			try (OutputStream out = new BufferedOutputStream(
 					new FileOutputStream(new File(DemoUtils.getOutputDir(), "text.pdf")))) {
-				StreamRandomBuilder builder = new StreamRandomBuilder(out);
+				OutputFragmentedStream builder = new OutputFragmentedStream(out);
 				final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 				try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
@@ -190,3 +190,5 @@ public class ComplexTextDemo {
 		// }
 	}
 }
+
+

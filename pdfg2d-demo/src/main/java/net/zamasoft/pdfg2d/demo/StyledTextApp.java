@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.demo;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 
-import jp.cssj.rsr.impl.FileRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.FileStream;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
@@ -28,7 +28,7 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 public class StyledTextApp {
 	public static void main(String[] args) throws Exception {
 		try (PDFWriter pdf = new PDFWriterImpl(
-				new FileRandomBuilder(new File(DemoUtils.getOutputDir(), "styled-text.pdf")));
+				new FileStream(new File(DemoUtils.getOutputDir(), "styled-text.pdf")));
 				PDFGC gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));) {
 			gc.transform(AffineTransform.getTranslateInstance(PDFUtils.mmToPt(10), PDFUtils.mmToPt(10)));

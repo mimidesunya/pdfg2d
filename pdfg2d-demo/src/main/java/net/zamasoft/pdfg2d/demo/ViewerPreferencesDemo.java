@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.pdf.PDFMetaInfo;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -49,7 +49,7 @@ public class ViewerPreferencesDemo {
 
 		try (OutputStream out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "viewer-preferences.pdf")))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
+			OutputFragmentedStream builder = new OutputFragmentedStream(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			for (int i = 0; i < 10; ++i) {

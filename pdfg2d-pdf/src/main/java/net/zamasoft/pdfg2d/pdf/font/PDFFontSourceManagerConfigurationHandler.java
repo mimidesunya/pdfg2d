@@ -23,10 +23,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import jp.cssj.resolver.Source;
-import jp.cssj.resolver.SourceResolver;
-import jp.cssj.resolver.composite.CompositeSourceResolver;
-import jp.cssj.resolver.helpers.URIHelper;
+import net.zamasoft.pdfg2d.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.SourceResolver;
+import net.zamasoft.pdfg2d.resolver.composite.CompositeSourceResolver;
+import net.zamasoft.pdfg2d.resolver.util.URIHelper;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.FontSourceWrapper;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
@@ -556,3 +556,5 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 		}
 	}
 };
+
+

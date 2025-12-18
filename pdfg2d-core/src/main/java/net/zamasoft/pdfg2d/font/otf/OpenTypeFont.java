@@ -5,12 +5,12 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.io.IOException;
 
-import net.zamasoft.font.table.FeatureTags;
-import net.zamasoft.font.table.GsubTable;
-import net.zamasoft.font.table.ScriptTags;
-import net.zamasoft.font.table.SingleSubst;
-import net.zamasoft.font.table.Table;
-import net.zamasoft.font.table.XmtxTable;
+import net.zamasoft.pdfg2d.font.table.FeatureTags;
+import net.zamasoft.pdfg2d.font.table.GsubTable;
+import net.zamasoft.pdfg2d.font.table.ScriptTags;
+import net.zamasoft.pdfg2d.font.table.SingleSubst;
+import net.zamasoft.pdfg2d.font.table.Table;
+import net.zamasoft.pdfg2d.font.table.XmtxTable;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
@@ -48,7 +48,7 @@ public abstract class OpenTypeFont implements ShapedFont {
 	protected OpenTypeFont(final OpenTypeFontSource source) {
 		this.source = source;
 		final var ttfFont = source.getOpenTypeFont();
-		this.hmtx = (XmtxTable) ttfFont.getTable(Table.hmtx);
+		this.hmtx = (XmtxTable) ttfFont.getTable(Table.HMTX);
 
 		if (this.source.getDirection() == Direction.TB) {
 			// Vertical writing mode
@@ -72,7 +72,7 @@ public abstract class OpenTypeFont implements ShapedFont {
 					final var lookupList = gsub.getLookupList();
 					final var lookup = lookupList.getLookup(feature, 0);
 					this.vSubst = (SingleSubst) lookup.getSubtable(0);
-					this.vmtx = (XmtxTable) ttfFont.getTable(Table.vmtx);
+					this.vmtx = (XmtxTable) ttfFont.getTable(Table.VMTX);
 					return;
 				}
 			}
@@ -147,7 +147,7 @@ public abstract class OpenTypeFont implements ShapedFont {
 		if (glyph == null) {
 			return null;
 		}
-		Shape shape = glyph.getPath();
+		Shape shape = glyph.path();
 		shape = this.adjustShape(shape, gid);
 		return shape;
 	}
@@ -215,3 +215,4 @@ public abstract class OpenTypeFont implements ShapedFont {
 		return -1;
 	}
 }
+

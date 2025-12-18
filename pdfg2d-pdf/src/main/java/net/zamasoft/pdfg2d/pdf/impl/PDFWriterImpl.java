@@ -26,10 +26,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.xml.sax.helpers.AttributesImpl;
 
-import jp.cssj.resolver.Source;
-import jp.cssj.rsr.RandomBuilder;
-import jp.cssj.rsr.helpers.RandomBuilderOutputStream;
-import jp.cssj.rsr.helpers.RandomBuilderPositionSupport;
+import net.zamasoft.pdfg2d.resolver.Source;
+import net.zamasoft.pdfg2d.io.FragmentedStream;
+import net.zamasoft.pdfg2d.io.util.FragmentOutputStream;
+import net.zamasoft.pdfg2d.io.util.PositionTrackingStream;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.FontStore;
@@ -90,7 +90,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		XMP_PADDING[79] = '\n';
 	}
 
-	final RandomBuilder builder;
+	final FragmentedStream builder;
 
 	final PDFParams params;
 
@@ -163,12 +163,12 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private List<ObjectRef> ocgs = null;
 
-	public PDFWriterImpl(RandomBuilder builder, PDFParams params) throws IOException {
+	public PDFWriterImpl(FragmentedStream builder, PDFParams params) throws IOException {
 		assert builder != null;
 		if (builder.supportsPositionInfo()) {
 			this.builder = builder;
 		} else {
-			this.builder = new RandomBuilderPositionSupport(builder);
+			this.builder = new PositionTrackingStream(builder);
 		}
 
 		if (params == null) {
@@ -177,50 +177,50 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.params = params;
 
 		int id = this.nextId();
-		this.builder.addBlock();
-		OutputStream out = new RandomBuilderOutputStream(this.builder, id);
+		this.builder.addFragment();
+		OutputStream out = new FragmentOutputStream(this.builder, id);
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
 		// ヘッダ
 		final PDFParams.Version pdfVersion = this.params.getVersion();
 		this.mainFlow.write(HEADER);
 		switch (pdfVersion) {
-		case V_1_2:
-			this.mainFlow.write(PDF12);
-			break;
+			case V_1_2:
+				this.mainFlow.write(PDF12);
+				break;
 
-		case V_1_3:
-			this.mainFlow.write(PDF13);
-			break;
+			case V_1_3:
+				this.mainFlow.write(PDF13);
+				break;
 
-		case V_1_4:
-		case V_PDFX1A:
-			this.mainFlow.write(PDF14);
-			break;
+			case V_1_4:
+			case V_PDFX1A:
+				this.mainFlow.write(PDF14);
+				break;
 
-		case V_PDFA1B:
-			this.mainFlow.write(PDF14);
-			this.mainFlow.lineBreak();
-			// PDF/A-1 6.1.2 バイナリと識別するためのマーカ
-			this.mainFlow.write('%');
-			for (int i = 0; i < 4; ++i) {
-				this.mainFlow.write(RND.nextInt(128) + 127);
-			}
-			break;
+			case V_PDFA1B:
+				this.mainFlow.write(PDF14);
+				this.mainFlow.lineBreak();
+				// PDF/A-1 6.1.2 バイナリと識別するためのマーカ
+				this.mainFlow.write('%');
+				for (int i = 0; i < 4; ++i) {
+					this.mainFlow.write(RND.nextInt(128) + 127);
+				}
+				break;
 
-		case V_1_5:
-			this.mainFlow.write(PDF15);
-			break;
+			case V_1_5:
+				this.mainFlow.write(PDF15);
+				break;
 
-		case V_1_6:
-			this.mainFlow.write(PDF16);
-			break;
+			case V_1_6:
+				this.mainFlow.write(PDF16);
+				break;
 
-		case V_1_7:
-			this.mainFlow.write(PDF17);
-			break;
-		default:
-			throw new IllegalStateException();
+			case V_1_7:
+				this.mainFlow.write(PDF17);
+				break;
+			default:
+				throw new IllegalStateException();
 		}
 		this.mainFlow.lineBreak();
 
@@ -237,25 +237,25 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		if (pdfVersion.v >= PDFParams.Version.V_1_4.v) {
 			this.mainFlow.writeName("Version");
 			switch (pdfVersion) {
-			case V_1_4:
-			case V_PDFA1B:
-			case V_PDFX1A:
-				this.mainFlow.writeName("1.4");
-				break;
+				case V_1_4:
+				case V_PDFA1B:
+				case V_PDFX1A:
+					this.mainFlow.writeName("1.4");
+					break;
 
-			case V_1_5:
-				this.mainFlow.writeName("1.5");
-				break;
+				case V_1_5:
+					this.mainFlow.writeName("1.5");
+					break;
 
-			case V_1_6:
-				this.mainFlow.writeName("1.6");
-				break;
+				case V_1_6:
+					this.mainFlow.writeName("1.6");
+					break;
 
-			case V_1_7:
-				this.mainFlow.writeName("1.7");
-				break;
-			default:
-				throw new IllegalStateException();
+				case V_1_7:
+					this.mainFlow.writeName("1.7");
+					break;
+				default:
+					throw new IllegalStateException();
 			}
 			this.mainFlow.lineBreak();
 		}
@@ -472,7 +472,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.images = new ImageFlow(this.nameToResourceRef, this.objectsFlow, this.xref, this.params);
 	}
 
-	public PDFWriterImpl(RandomBuilder builder) throws IOException {
+	public PDFWriterImpl(FragmentedStream builder) throws IOException {
 		this(builder, new PDFParams());
 	}
 
@@ -480,7 +480,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return this.params;
 	}
 
-	public RandomBuilder getBuilder() {
+	public FragmentedStream getBuilder() {
 		return this.builder;
 	}
 
@@ -1276,20 +1276,20 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				if (vp.getNonFullScreenPageMode() != ViewerPreferences.NonFullScreenPageMode.NONE) {
 					this.catalogFlow.writeName("NonFullScreenPageMode");
 					switch (vp.getNonFullScreenPageMode()) {
-					case OUTLINES:
-						this.catalogFlow.writeName("UseOutlines");
-						break;
-					case THUMBS:
-						this.catalogFlow.writeName("UseThumbs");
-						break;
-					case OC:
-						this.catalogFlow.writeName("UseOC");
-						break;
-					case NONE:
-						// this.catalogFlow.writeName("UseNone");
-						// break;
-					default:
-						throw new IllegalStateException();
+						case OUTLINES:
+							this.catalogFlow.writeName("UseOutlines");
+							break;
+						case THUMBS:
+							this.catalogFlow.writeName("UseThumbs");
+							break;
+						case OC:
+							this.catalogFlow.writeName("UseOC");
+							break;
+						case NONE:
+							// this.catalogFlow.writeName("UseNone");
+							// break;
+						default:
+							throw new IllegalStateException();
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1300,14 +1300,14 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					}
 					this.catalogFlow.writeName("Direction");
 					switch (vp.getDirection()) {
-					case R2L:
-						this.catalogFlow.writeName("R2L");
-						break;
-					case L2R:
-						// this.catalogFlow.writeName("L2R");
-						// break;
-					default:
-						throw new IllegalStateException();
+						case R2L:
+							this.catalogFlow.writeName("R2L");
+							break;
+						case L2R:
+							// this.catalogFlow.writeName("L2R");
+							// break;
+						default:
+							throw new IllegalStateException();
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1354,14 +1354,14 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					}
 					this.catalogFlow.writeName("PrintScaling");
 					switch (vp.getPrintScaling()) {
-					case NONE:
-						this.catalogFlow.writeName("None");
-						break;
-					case APP_DEFAULT:
-						// this.catalogFlow.writeName("AppDefault");
-						// break;
-					default:
-						throw new IllegalStateException();
+						case NONE:
+							this.catalogFlow.writeName("None");
+							break;
+						case APP_DEFAULT:
+							// this.catalogFlow.writeName("AppDefault");
+							// break;
+						default:
+							throw new IllegalStateException();
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1372,19 +1372,19 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					}
 					this.catalogFlow.writeName("Duplex");
 					switch (vp.getDuplex()) {
-					case SIMPLEX:
-						this.catalogFlow.writeName("Simplex");
-						break;
-					case FLIP_SHORT_EDGE:
-						this.catalogFlow.writeName("DuplexFlipShortEdge");
-						break;
-					case FLIP_LONG_EDGE:
-						this.catalogFlow.writeName("DuplexFlipLongEdge");
-						break;
-					case NONE:
-						// break;
-					default:
-						throw new IllegalStateException();
+						case SIMPLEX:
+							this.catalogFlow.writeName("Simplex");
+							break;
+						case FLIP_SHORT_EDGE:
+							this.catalogFlow.writeName("DuplexFlipShortEdge");
+							break;
+						case FLIP_LONG_EDGE:
+							this.catalogFlow.writeName("DuplexFlipLongEdge");
+							break;
+						case NONE:
+							// break;
+						default:
+							throw new IllegalStateException();
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1460,23 +1460,24 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private void writeArea(ViewerPreferences.AreaBox area) throws IOException {
 		switch (area) {
-		case MEDIA:
-			this.catalogFlow.writeName("MediaBox");
-			break;
-		case CROP:
-			// this.catalogFlow.writeName("CropBox");
-			break;
-		case BLEED:
-			this.catalogFlow.writeName("BleedBox");
-			break;
-		case TRIM:
-			this.catalogFlow.writeName("TrimBox");
-			break;
-		case ART:
-			this.catalogFlow.writeName("ArtBox");
-			break;
-		default:
-			throw new IllegalStateException();
+			case MEDIA:
+				this.catalogFlow.writeName("MediaBox");
+				break;
+			case CROP:
+				// this.catalogFlow.writeName("CropBox");
+				break;
+			case BLEED:
+				this.catalogFlow.writeName("BleedBox");
+				break;
+			case TRIM:
+				this.catalogFlow.writeName("TrimBox");
+				break;
+			case ART:
+				this.catalogFlow.writeName("ArtBox");
+				break;
+			default:
+				throw new IllegalStateException();
 		}
 	}
 }
+

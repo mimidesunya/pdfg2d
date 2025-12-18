@@ -3,7 +3,7 @@ description = 'Simple graphic context'
 dependencies {
     implementation project(':pdfg2d-resolver')
     implementation project(':pdfg2d-font')
-    implementation project(':pdfg2d-rsr')
+    implementation project(':pdfg2d-io')
 }
 
 publishing {

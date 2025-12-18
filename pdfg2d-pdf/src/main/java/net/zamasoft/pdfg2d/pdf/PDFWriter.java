@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
@@ -143,3 +143,4 @@ public interface PDFWriter extends Closeable {
 	 */
 	public void close() throws IOException;
 }
+

@@ -2,7 +2,7 @@ package net.zamasoft.pdfg2d.gc.font;
 
 import java.awt.Font;
 
-import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 
@@ -30,3 +30,4 @@ public class FontFace {
 				+ this.unicodeRange + "/panose=" + this.panose + "/cmap=" + this.cmap + "/vcmap=" + this.vcmap;
 	}
 }
+

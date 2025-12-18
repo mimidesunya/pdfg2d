@@ -13,7 +13,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.demo.utils.TextInspector;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
@@ -31,7 +31,7 @@ public class TextRenderingTest {
 
         // 1. Generate PDF with text
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            StreamRandomBuilder builder = new StreamRandomBuilder(out);
+            OutputFragmentedStream builder = new OutputFragmentedStream(out);
             PDFWriter pdf = new PDFWriterImpl(builder, new PDFParams());
 
             try (PDFGraphicsOutput page = pdf.nextPage(400, 400)) {

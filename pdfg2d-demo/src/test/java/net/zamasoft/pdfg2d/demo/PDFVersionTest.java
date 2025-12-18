@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
@@ -31,7 +31,7 @@ public class PDFVersionTest {
         params.setVersion(version);
 
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            StreamRandomBuilder builder = new StreamRandomBuilder(out);
+            OutputFragmentedStream builder = new OutputFragmentedStream(out);
             PDFWriter pdf = new PDFWriterImpl(builder, params);
             try (PDFGraphicsOutput page = pdf.nextPage(595, 842)) {
                 // Empty page is enough to check version header

@@ -1,6 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.impl;
 
-import jp.cssj.rsr.RandomBuilder.PositionInfo;
+import net.zamasoft.pdfg2d.io.FragmentedStream.PositionInfo;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 class ObjectRefImpl extends ObjectRef {

@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.action.JavaScriptAction;
@@ -38,7 +38,7 @@ public class OpenActionDemo {
 
 		try (OutputStream out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "open-action.pdf")))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
+			OutputFragmentedStream builder = new OutputFragmentedStream(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			try (PDFPageOutput page = pdf.nextPage(width, height)) {

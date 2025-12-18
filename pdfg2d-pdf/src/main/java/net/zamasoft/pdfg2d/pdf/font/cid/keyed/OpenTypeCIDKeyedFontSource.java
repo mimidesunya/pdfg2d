@@ -3,9 +3,9 @@ package net.zamasoft.pdfg2d.pdf.font.cid.keyed;
 import java.io.File;
 import java.io.IOException;
 
-import net.zamasoft.font.OpenTypeFont;
-import net.zamasoft.font.table.Table;
-import net.zamasoft.font.table.XmtxTable;
+import net.zamasoft.pdfg2d.font.OpenTypeFont;
+import net.zamasoft.pdfg2d.font.table.Table;
+import net.zamasoft.pdfg2d.font.table.XmtxTable;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.pdf.font.cid.CIDTable;
 import net.zamasoft.pdfg2d.pdf.font.cid.CMap;
@@ -62,7 +62,7 @@ public class OpenTypeCIDKeyedFontSource extends CIDKeyedFontSource {
 
 	private static WArray otWArray(OpenTypeCIDIdentityFontSource fs, CMap cmap) {
 		OpenTypeFont otFont = fs.getOpenTypeFont();
-		XmtxTable hmtx = (XmtxTable) otFont.getTable(Table.hmtx);
+		XmtxTable hmtx = (XmtxTable) otFont.getTable(Table.HMTX);
 		short upm = fs.getUnitsPerEm();
 
 		ShortList cidToAdvance = new ShortList(Short.MIN_VALUE);

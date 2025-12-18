@@ -9,16 +9,17 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.zamasoft.font.FontFile;
-import net.zamasoft.font.table.CmapTable;
-import net.zamasoft.font.table.GenericCmapFormat;
-import net.zamasoft.font.table.HeadTable;
-import net.zamasoft.font.table.HheaTable;
-import net.zamasoft.font.table.NameTable;
-import net.zamasoft.font.table.Os2Table;
-import net.zamasoft.font.table.Table;
-import net.zamasoft.font.table.UvsCmapFormat;
-import net.zamasoft.font.table.XmtxTable;
+import net.zamasoft.pdfg2d.font.FontFile;
+import net.zamasoft.pdfg2d.font.OpenTypeFont;
+import net.zamasoft.pdfg2d.font.table.CmapTable;
+import net.zamasoft.pdfg2d.font.table.GenericCmapFormat;
+import net.zamasoft.pdfg2d.font.table.HeadTable;
+import net.zamasoft.pdfg2d.font.table.HheaTable;
+import net.zamasoft.pdfg2d.font.table.NameTable;
+import net.zamasoft.pdfg2d.font.table.Os2Table;
+import net.zamasoft.pdfg2d.font.table.Table;
+import net.zamasoft.pdfg2d.font.table.UvsCmapFormat;
+import net.zamasoft.pdfg2d.font.table.XmtxTable;
 import net.zamasoft.pdfg2d.font.AbstractFontSource;
 import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.Font;
@@ -79,7 +80,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 
 		// Font metric information
 		{
-			final var head = (HeadTable) ttFont.getTable(Table.head);
+			final var head = (HeadTable) ttFont.getTable(Table.HEAD);
 			this.upm = head.getUnitsPerEm();
 			final short llx = (short) (head.getXMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 			final short lly = (short) (head.getYMin() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
@@ -92,7 +93,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 		final Set<String> aliases = new TreeSet<>();
 		String fontName = null;
 		{
-			final var name = (NameTable) ttFont.getTable(Table.name);
+			final var name = (NameTable) ttFont.getTable(Table.NAME);
 			for (int i = 0; i < name.size(); ++i) {
 				final var record = name.get(i);
 				final short nameId = record.getNameId();
@@ -116,50 +117,50 @@ public class OpenTypeFontSource extends AbstractFontSource {
 			this.setWeight(weight);
 			final short cFamilyClass = os2.getFamilyClass();
 			final var panose = os2.getPanose();
-			this.panose = new Panose(cFamilyClass, panose.code);
+			this.panose = new Panose(cFamilyClass, panose.code());
 		}
 
 		{
-			final var hhea = (HheaTable) ttFont.getTable(Table.hhea);
+			final var hhea = (HheaTable) ttFont.getTable(Table.HHEA);
 			this.ascent = (short) (hhea.getAscender() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 			this.descent = (short) (-hhea.getDescender() * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 		}
 
-		final var cmapt = (CmapTable) ttFont.getTable(Table.cmap);
-		var cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS4);
+		final var cmapt = (CmapTable) ttFont.getTable(Table.CMAP);
+		var cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_MICROSOFT, Table.ENCODING_UCS4);
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformMicrosoft, Table.encodingUCS2);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_MICROSOFT, Table.ENCODING_UCS2);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingBMP);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_UNICODE, Table.ENCODING_BMP);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingNonBMP);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_UNICODE, Table.ENCODING_NON_BMP);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingUndefined);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_UNICODE, Table.ENCODING_UNDEFINED);
 		}
 		if (cmap == null) {
-			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, (short) -1);
+			cmap = (GenericCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_UNICODE, (short) -1);
 		}
 		this.cmap = cmap;
 
-		this.uvsCmap = (UvsCmapFormat) cmapt.getCmapFormat(Table.platformUnicode, Table.encodingUVS);
+		this.uvsCmap = (UvsCmapFormat) cmapt.getCmapFormat(Table.PLATFORM_UNICODE, Table.ENCODING_UVS);
 
 		{
 			final int gid = this.cmap.mapCharCode(' ');
-			final var hmtx = (XmtxTable) ttFont.getTable(Table.hmtx);
+			final var hmtx = (XmtxTable) ttFont.getTable(Table.HMTX);
 			this.spaceAdvance = (short) (hmtx.getAdvanceWidth(gid) * FontSource.DEFAULT_UNITS_PER_EM / this.upm);
 		}
 
 		{
 			final var font = this.getOpenTypeFont();
 			final var gx = font.getGlyph(this.cmap.mapCharCode('x'));
-			this.xHeight = (gx == null || gx.getPath() == null) ? DEFAULT_X_HEIGHT
-					: (short) gx.getPath().getBounds().height;
+			this.xHeight = (gx == null || gx.path() == null) ? DEFAULT_X_HEIGHT
+					: (short) gx.path().getBounds().height;
 			final var gh = font.getGlyph(this.cmap.mapCharCode('H'));
-			this.capHeight = (gh == null || gh.getPath() == null) ? DEFAULT_CAP_HEIGHT
-					: (short) gh.getPath().getBounds().height;
+			this.capHeight = (gh == null || gh.path() == null) ? DEFAULT_CAP_HEIGHT
+					: (short) gh.path().getBounds().height;
 		}
 
 		this.stemH = 0;
@@ -177,7 +178,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 	 * 
 	 * @return the OpenType font
 	 */
-	public net.zamasoft.font.OpenTypeFont getOpenTypeFont() {
+	public OpenTypeFont getOpenTypeFont() {
 		return getOpenTypeFont(this.file, this.index);
 	}
 
@@ -188,7 +189,7 @@ public class OpenTypeFontSource extends AbstractFontSource {
 	 * @param index the font index
 	 * @return the OpenType font
 	 */
-	public static synchronized net.zamasoft.font.OpenTypeFont getOpenTypeFont(final File file, final int index) {
+	public static synchronized OpenTypeFont getOpenTypeFont(final File file, final int index) {
 		var fontFile = fileToFont.get(file);
 		try {
 			if (fontFile != null && fontFile.timestamp == file.lastModified()) {

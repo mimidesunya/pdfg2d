@@ -13,7 +13,7 @@ import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.svg.SVGDocument;
 
-import jp.cssj.rsr.impl.FileRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.FileStream;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
@@ -47,7 +47,7 @@ public class SVGTigerApp {
 		final SVGImage image = new SVGImage(gvtRoot, dim.getWidth(), dim.getHeight());
 
 		try (PDFWriter pdf = new PDFWriterImpl(
-				new FileRandomBuilder(new File(DemoUtils.getOutputDir(), "svg-tiger.pdf")));
+				new FileStream(new File(DemoUtils.getOutputDir(), "svg-tiger.pdf")));
 				PDFGC gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 			gc.drawImage(image);

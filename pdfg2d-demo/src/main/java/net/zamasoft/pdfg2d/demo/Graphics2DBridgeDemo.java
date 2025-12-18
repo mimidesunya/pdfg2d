@@ -17,7 +17,7 @@ import java.text.AttributedString;
 
 import javax.swing.JFrame;
 
-import jp.cssj.rsr.impl.StreamRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
@@ -47,7 +47,7 @@ public class Graphics2DBridgeDemo {
 		PDFParams params = new PDFParams();
 		try (OutputStream out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "graphics2-d.pdf")))) {
-			StreamRandomBuilder builder = new StreamRandomBuilder(out);
+			OutputFragmentedStream builder = new OutputFragmentedStream(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			{

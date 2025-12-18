@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jp.cssj.rsr.RandomBuilder.PositionInfo;
+import net.zamasoft.pdfg2d.io.FragmentedStream.PositionInfo;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;

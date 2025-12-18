@@ -27,7 +27,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
 import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReader;
-import jp.cssj.resolver.Source;
+import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.g2d.util.G2DUtils;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
@@ -775,3 +775,4 @@ class ImageFlow {
 		return retImage;
 	}
 }
+

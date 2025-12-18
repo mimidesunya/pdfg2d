@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.DeflaterOutputStream;
 
-import jp.cssj.rsr.helpers.RandomBuilderOutputStream;
+import net.zamasoft.pdfg2d.io.util.FragmentOutputStream;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCII85OutputStream;
@@ -58,19 +58,19 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		this.close();
 		int id = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
-			this.pdfWriter.builder.addBlock();
+			this.pdfWriter.builder.addFragment();
 		} else {
-			this.pdfWriter.builder.insertBlockBefore(this.anchorId);
+			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
-		OutputStream out = new RandomBuilderOutputStream(this.pdfWriter.builder, id);
+		OutputStream out = new FragmentOutputStream(this.pdfWriter.builder, id);
 		this.id = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
-			this.pdfWriter.builder.addBlock();
+			this.pdfWriter.builder.addFragment();
 		} else {
-			this.pdfWriter.builder.insertBlockBefore(this.anchorId);
+			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
 		PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, id, this.id, this.currentRef);
-		this.out = new RandomBuilderOutputStream(this.pdfWriter.builder, this.id);
+		this.out = new FragmentOutputStream(this.pdfWriter.builder, this.id);
 		this.length = 0;
 		return newFragOut;
 	}
@@ -128,61 +128,61 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		}
 
 		switch (mode) {
-		case RAW:
-			break;
+			case RAW:
+				break;
 
-		case ASCII:
-			switch (this.pdfWriter.params.getCompression()) {
-			case NONE:
-				break;
 			case ASCII:
-				this.writeName("Filter");
-				this.startArray();
-				this.writeName("ASCII85Decode");
-				this.writeName("FlateDecode");
-				this.endArray();
-				this.breakBefore();
+				switch (this.pdfWriter.params.getCompression()) {
+					case NONE:
+						break;
+					case ASCII:
+						this.writeName("Filter");
+						this.startArray();
+						this.writeName("ASCII85Decode");
+						this.writeName("FlateDecode");
+						this.endArray();
+						this.breakBefore();
+						break;
+					case BINARY:
+						this.writeName("Filter");
+						this.startArray();
+						this.writeName("FlateDecode");
+						this.endArray();
+						this.breakBefore();
+						break;
+				}
 				break;
-			case BINARY:
-				this.writeName("Filter");
-				this.startArray();
-				this.writeName("FlateDecode");
-				this.endArray();
-				this.breakBefore();
-				break;
-			}
-			break;
 
-		case BINARY:
-			switch (this.pdfWriter.params.getCompression()) {
-			case NONE:
-				this.writeName("Filter");
-				this.startArray();
-				this.writeName("ASCIIHexDecode");
-				this.endArray();
-				this.breakBefore();
-				break;
-			case ASCII:
-				this.writeName("Filter");
-				this.startArray();
-				this.writeName("ASCII85Decode");
-				this.writeName("FlateDecode");
-				this.endArray();
-				this.breakBefore();
-				break;
 			case BINARY:
-				this.writeName("Filter");
-				this.startArray();
-				this.writeName("FlateDecode");
-				this.endArray();
-				this.breakBefore();
+				switch (this.pdfWriter.params.getCompression()) {
+					case NONE:
+						this.writeName("Filter");
+						this.startArray();
+						this.writeName("ASCIIHexDecode");
+						this.endArray();
+						this.breakBefore();
+						break;
+					case ASCII:
+						this.writeName("Filter");
+						this.startArray();
+						this.writeName("ASCII85Decode");
+						this.writeName("FlateDecode");
+						this.endArray();
+						this.breakBefore();
+						break;
+					case BINARY:
+						this.writeName("Filter");
+						this.startArray();
+						this.writeName("FlateDecode");
+						this.endArray();
+						this.breakBefore();
+						break;
+					default:
+						throw new IllegalStateException();
+				}
 				break;
 			default:
 				throw new IllegalStateException();
-			}
-			break;
-		default:
-			throw new IllegalStateException();
 		}
 
 		this.writeName("Length");
@@ -207,43 +207,43 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 		// 各種符号化
 		switch (mode) {
-		case RAW:
-			break;
+			case RAW:
+				break;
 
-		case ASCII:
-			switch (this.pdfWriter.params.getCompression()) {
-			case NONE:
-				break;
 			case ASCII:
-				out = new DeflaterOutputStream(new ASCII85OutputStream(out));
+				switch (this.pdfWriter.params.getCompression()) {
+					case NONE:
+						break;
+					case ASCII:
+						out = new DeflaterOutputStream(new ASCII85OutputStream(out));
+						break;
+					case BINARY:
+						out = new DeflaterOutputStream(out);
+						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+				out = new FastBufferedOutputStream(out, this.getBuff());
 				break;
+
 			case BINARY:
-				out = new DeflaterOutputStream(out);
+				switch (this.pdfWriter.params.getCompression()) {
+					case NONE:
+						out = new ASCIIHexOutputStream(out);
+						break;
+					case ASCII:
+						out = new DeflaterOutputStream(new ASCII85OutputStream(out));
+						break;
+					case BINARY:
+						out = new DeflaterOutputStream(out);
+						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+				out = new FastBufferedOutputStream(out, this.getBuff());
 				break;
 			default:
 				throw new IllegalArgumentException();
-			}
-			out = new FastBufferedOutputStream(out, this.getBuff());
-			break;
-
-		case BINARY:
-			switch (this.pdfWriter.params.getCompression()) {
-			case NONE:
-				out = new ASCIIHexOutputStream(out);
-				break;
-			case ASCII:
-				out = new DeflaterOutputStream(new ASCII85OutputStream(out));
-				break;
-			case BINARY:
-				out = new DeflaterOutputStream(out);
-				break;
-			default:
-				throw new IllegalArgumentException();
-			}
-			out = new FastBufferedOutputStream(out, this.getBuff());
-			break;
-		default:
-			throw new IllegalArgumentException();
 		}
 
 		return out;

@@ -29,10 +29,10 @@ import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
-import net.zamasoft.pdfg2d.svg.Dimension2DImpl;
-import net.zamasoft.pdfg2d.svg.GVTBuilderImpl;
+import net.zamasoft.pdfg2d.svg.SVGDimension;
+import net.zamasoft.pdfg2d.svg.PDFGVTBuilder;
 import net.zamasoft.pdfg2d.svg.SVGBridgeGraphics2D;
-import net.zamasoft.pdfg2d.svg.SVGUserAgentImpl;
+import net.zamasoft.pdfg2d.svg.SVGUserAgent;
 
 /**
  * Font implementation for rendering emoji characters as SVG graphics.
@@ -64,7 +64,7 @@ class EmojiFont implements ImageFont {
 	protected final Map<Integer, PDFGroupImage> gidToImage = new HashMap<>();
 
 	/** Standard viewport size for emoji rendering (128x128 pixels). */
-	protected static final Dimension2D VIEWPORT = new Dimension2DImpl(128, 128);
+	protected static final Dimension2D VIEWPORT = new SVGDimension(128, 128);
 
 	/**
 	 * Creates a new emoji font with the specified source.
@@ -84,8 +84,8 @@ class EmojiFont implements ImageFont {
 	@Override
 	public int toGID(final int c) {
 		final var code = Integer.toHexString(c);
-		final var fgid = EmojiFontSource.codeToFgid.get(code);
-		return fgid != null ? fgid : 0;
+		final var gid = EmojiFontSource.codeToGid.get(code);
+		return gid != null ? gid : 0;
 	}
 
 	/**
@@ -157,9 +157,9 @@ class EmojiFont implements ImageFont {
 		if (gid == -1) {
 			return -1;
 		}
-		final var scode = EmojiFontSource.fgidToCode.get(gid);
+		final var scode = EmojiFontSource.gidToCode.get(gid);
 		final var code = scode + "_" + Integer.toHexString(cid);
-		final var fgid = EmojiFontSource.codeToFgid.get(code);
+		final var fgid = EmojiFontSource.codeToGid.get(code);
 		return fgid != null ? fgid : -1;
 	}
 
@@ -227,7 +227,7 @@ class EmojiFont implements ImageFont {
 	 * @return the parsed GVT graphics node
 	 */
 	private GraphicsNode loadEmojiGraphicsNode(final GC gc, final int gid) {
-		var code = EmojiFontSource.fgidToCode.get(gid);
+		var code = EmojiFontSource.gidToCode.get(gid);
 		// Remove trailing ZWJ suffix for file lookup
 		if (code.endsWith("_200d")) {
 			code = code.substring(0, code.length() - 5);
@@ -246,11 +246,11 @@ class EmojiFont implements ImageFont {
 				final var factory = new SAXSVGDocumentFactory(
 						XMLResourceDescriptor.getXMLParserClassName());
 				final var doc = (SVGOMDocument) factory.createDocument(null, zis);
-				final UserAgent ua = new SVGUserAgentImpl(VIEWPORT);
+				final UserAgent ua = new SVGUserAgent(VIEWPORT);
 				final var loader = new DocumentLoader(ua);
 				final var ctx = new BridgeContext(ua, loader);
 				ctx.setDynamic(false);
-				final GVTBuilder gvt = new GVTBuilderImpl();
+				final GVTBuilder gvt = new PDFGVTBuilder();
 				final var gvtRoot = gvt.build(ctx, doc);
 
 				// Cache strategy depends on output type and PDF version

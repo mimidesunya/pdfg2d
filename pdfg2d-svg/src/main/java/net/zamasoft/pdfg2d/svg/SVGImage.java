@@ -12,36 +12,17 @@ import net.zamasoft.pdfg2d.gc.image.Image;
  * Image implementation that wraps an SVG graphics node.
  * 
  * <p>
- * This class represents an SVG image as a Batik {@link GraphicsNode} with
+ * This record represents an SVG image as a Batik {@link GraphicsNode} with
  * specified dimensions. When drawn, it renders the SVG content using
  * {@link SVGBridgeGraphics2D}.
  * 
+ * @param node   the GVT graphics node containing the SVG content
+ * @param width  the width in user units
+ * @param height the height in user units
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class SVGImage implements Image {
-
-	/** The root GVT graphics node representing the SVG content. */
-	protected final GraphicsNode gvtRoot;
-
-	/** The width of this image in user units. */
-	protected final double width;
-
-	/** The height of this image in user units. */
-	protected final double height;
-
-	/**
-	 * Creates a new SVG image.
-	 *
-	 * @param gvtRoot the GVT graphics node containing the SVG content
-	 * @param width   the width in user units
-	 * @param height  the height in user units
-	 */
-	public SVGImage(final GraphicsNode gvtRoot, final double width, final double height) {
-		this.gvtRoot = gvtRoot;
-		this.width = width;
-		this.height = height;
-	}
+public record SVGImage(GraphicsNode node, double width, double height) implements Image {
 
 	/**
 	 * Returns the GVT graphics node.
@@ -49,7 +30,7 @@ public class SVGImage implements Image {
 	 * @return the root graphics node
 	 */
 	public GraphicsNode getNode() {
-		return this.gvtRoot;
+		return this.node;
 	}
 
 	/**
@@ -86,7 +67,7 @@ public class SVGImage implements Image {
 	public void drawTo(final GC gc) throws GraphicsException {
 		gc.begin();
 		final Graphics2D g2d = new SVGBridgeGraphics2D(gc);
-		this.gvtRoot.paint(g2d);
+		this.node.paint(g2d);
 		g2d.dispose();
 		gc.end();
 	}

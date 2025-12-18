@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
-import jp.cssj.rsr.impl.FileRandomBuilder;
+import net.zamasoft.pdfg2d.io.impl.FileStream;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -17,7 +17,7 @@ public class PDFGraphics2D extends BridgeGraphics2D implements Closeable {
 
 	@SuppressWarnings("resource")
 	public PDFGraphics2D(File file, double width, double height, PDFParams params) throws IOException {
-		super(new PDFGC(new PDFWriterImpl(new FileRandomBuilder(file), params).nextPage(width, height)));
+		super(new PDFGC(new PDFWriterImpl(new FileStream(file), params).nextPage(width, height)));
 		this.fileOut = true;
 	}
 
