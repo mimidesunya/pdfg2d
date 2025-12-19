@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.DeflaterOutputStream;
 
-import net.zamasoft.pdfg2d.io.util.FragmentOutputStream;
+import net.zamasoft.pdfg2d.io.util.FragmentOutputAdapter;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCII85OutputStream;
@@ -56,21 +56,22 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 	protected PDFFragmentOutputImpl forkFragment() throws IOException {
 		this.close();
-		int id = this.pdfWriter.nextId();
+		int nextId = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
 			this.pdfWriter.builder.addFragment();
 		} else {
 			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
-		OutputStream out = new FragmentOutputStream(this.pdfWriter.builder, id);
+		OutputStream out = new FragmentOutputAdapter(this.pdfWriter.builder, nextId);
 		this.id = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
 			this.pdfWriter.builder.addFragment();
 		} else {
 			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
-		PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, id, this.id, this.currentRef);
-		this.out = new FragmentOutputStream(this.pdfWriter.builder, this.id);
+		PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, nextId, this.id,
+				this.currentRef);
+		this.out = new FragmentOutputAdapter(this.pdfWriter.builder, this.id);
 		this.length = 0;
 		return newFragOut;
 	}

@@ -3,12 +3,9 @@ package net.zamasoft.pdfg2d.demo;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
-import net.zamasoft.pdfg2d.gc.image.Image;
-import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
@@ -24,20 +21,20 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class RasterImageDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 
-		final double width = 300;
-		final double height = 300;
+		final var width = 300.0;
+		final var height = 300.0;
 
-		try (OutputStream out = new BufferedOutputStream(
+		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "image.pdf")))) {
-			OutputFragmentedStream builder = new OutputFragmentedStream(out);
+			final var builder = new StreamSequentialOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
-			try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
-				PDFGC gc = new PDFGC(page);
-				Image image = pdf.loadImage(new FileSource(DemoUtils.getResourceFile("xxx.jpg")));
+			try (final var page = pdf.nextPage(width, height);
+					final var gc = new PDFGC(page)) {
+				final var image = pdf.loadImage(new FileSource(DemoUtils.getResourceFile("xxx.jpg")));
 				gc.drawImage(image);
 			}
 
@@ -46,5 +43,3 @@ public class RasterImageDemo {
 		}
 	}
 }
-
-

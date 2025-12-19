@@ -27,9 +27,9 @@ import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.helpers.AttributesImpl;
 
 import net.zamasoft.pdfg2d.resolver.Source;
-import net.zamasoft.pdfg2d.io.FragmentedStream;
-import net.zamasoft.pdfg2d.io.util.FragmentOutputStream;
-import net.zamasoft.pdfg2d.io.util.PositionTrackingStream;
+import net.zamasoft.pdfg2d.io.FragmentedOutput;
+import net.zamasoft.pdfg2d.io.util.FragmentOutputAdapter;
+import net.zamasoft.pdfg2d.io.util.PositionTrackingOutput;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.FontStore;
@@ -90,7 +90,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		XMP_PADDING[79] = '\n';
 	}
 
-	final FragmentedStream builder;
+	final FragmentedOutput builder;
 
 	final PDFParams params;
 
@@ -163,12 +163,12 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private List<ObjectRef> ocgs = null;
 
-	public PDFWriterImpl(FragmentedStream builder, PDFParams params) throws IOException {
+	public PDFWriterImpl(final FragmentedOutput builder, PDFParams params) throws IOException {
 		assert builder != null;
 		if (builder.supportsPositionInfo()) {
 			this.builder = builder;
 		} else {
-			this.builder = new PositionTrackingStream(builder);
+			this.builder = new PositionTrackingOutput(builder);
 		}
 
 		if (params == null) {
@@ -176,9 +176,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 		this.params = params;
 
-		int id = this.nextId();
+		final int id = this.nextId();
 		this.builder.addFragment();
-		OutputStream out = new FragmentOutputStream(this.builder, id);
+		final var out = new FragmentOutputAdapter(this.builder, id);
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
 		// ヘッダ
@@ -472,7 +472,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.images = new ImageFlow(this.nameToResourceRef, this.objectsFlow, this.xref, this.params);
 	}
 
-	public PDFWriterImpl(FragmentedStream builder) throws IOException {
+	public PDFWriterImpl(final FragmentedOutput builder) throws IOException {
 		this(builder, new PDFParams());
 	}
 
@@ -480,7 +480,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return this.params;
 	}
 
-	public FragmentedStream getBuilder() {
+	public FragmentedOutput getBuilder() {
 		return this.builder;
 	}
 
@@ -1480,4 +1480,3 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 	}
 }
-

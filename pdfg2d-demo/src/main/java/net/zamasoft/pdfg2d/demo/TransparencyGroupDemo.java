@@ -8,17 +8,15 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 import javax.swing.JFrame;
 
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
-import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
@@ -36,31 +34,31 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class TransparencyGroupDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 		params.setCompression(PDFParams.Compression.NONE);
 
-		final double width = 300;
-		final double height = 300;
+		final var width = 300.0;
+		final var height = 300.0;
 
-		try (OutputStream out = new BufferedOutputStream(
+		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "group-image.pdf")))) {
-			OutputFragmentedStream builder = new OutputFragmentedStream(out);
+			final var builder = new StreamSequentialOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
-			try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
-				PDFGC gc = new PDFGC(page);
+			try (final var page = pdf.nextPage(width, height);
+					final var gc = new PDFGC(page)) {
 				draw(gc);
 			}
 
-			JFrame frame = new JFrame("Graphics") {
+			final var frame = new JFrame("Graphics") {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public void paint(Graphics g) {
+				public void paint(final Graphics g) {
 					super.paint(g);
-					Graphics2D g2d = (Graphics2D) g;
-					G2DGC gc = new G2DGC(g2d, pdf.getFontManager());
+					final var g2d = (Graphics2D) g;
+					final var gc = new G2DGC(g2d, pdf.getFontManager());
 					TransparencyGroupDemo.draw(gc);
 				}
 

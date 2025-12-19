@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.zamasoft.pdfg2d.io.FragmentedStream.PositionInfo;
+import net.zamasoft.pdfg2d.io.FragmentedOutput.PositionInfo;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.XRef;
@@ -19,7 +19,7 @@ import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
  */
 class XRefImpl implements XRef {
 	/** クロスリファレンステーブル。 */
-	private final List<ObjectRef> xref = new ArrayList<ObjectRef>();
+	private final List<ObjectRef> xref = new ArrayList<>();
 
 	private final ObjectRef rootRef;
 
@@ -29,7 +29,7 @@ class XRefImpl implements XRef {
 
 	private static final byte[] EOF = { '%', '%', 'E', 'O', 'F' };
 
-	XRefImpl(PDFFragmentOutputImpl mainFlow) throws IOException {
+	XRefImpl(final PDFFragmentOutputImpl mainFlow) throws IOException {
 		this.mainFlow = mainFlow;
 		this.rootRef = this.nextObjectRef();
 		this.mainFlow.startObject(rootRef);
@@ -41,12 +41,13 @@ class XRefImpl implements XRef {
 	 * @return
 	 */
 	public ObjectRef nextObjectRef() {
-		ObjectRef ref = new ObjectRefImpl(this.xref.size() + 1);
+		final var ref = new ObjectRefImpl(this.xref.size() + 1);
 		this.xref.add(ref);
 		return ref;
 	}
 
-	void close(PositionInfo posInfo, ObjectRef infoRef, byte[][] fileid, Encryption encrypter) throws IOException {
+	void close(final PositionInfo posInfo, final ObjectRef infoRef, final byte[][] fileid, final Encryption encrypter)
+			throws IOException {
 		// startxref
 		int xrefPosition = (int) posInfo.getPosition(this.mainFlow.getId()) + this.mainFlow.getLength();
 

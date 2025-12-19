@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.demo;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 
-import net.zamasoft.pdfg2d.io.impl.FileStream;
+import net.zamasoft.pdfg2d.io.impl.FileSequentialOutput;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
@@ -11,7 +11,6 @@ import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
 import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.layout.PageLayoutGlyphHandler.Alignment;
-import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
@@ -26,17 +25,17 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
  * @author MIYABE Tatsuhiko
  */
 public class StyledTextApp {
-	public static void main(String[] args) throws Exception {
-		try (PDFWriter pdf = new PDFWriterImpl(
-				new FileStream(new File(DemoUtils.getOutputDir(), "styled-text.pdf")));
-				PDFGC gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
-						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));) {
+	public static void main(final String[] args) throws Exception {
+		try (final var pdf = new PDFWriterImpl(
+				new FileSequentialOutput(new File(DemoUtils.getOutputDir(), "styled-text.pdf")));
+				final var gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
+						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 			gc.transform(AffineTransform.getTranslateInstance(PDFUtils.mmToPt(10), PDFUtils.mmToPt(10)));
-			try (PageLayoutGlyphHandler lgh = new PageLayoutGlyphHandler(gc)) {
+			try (final var lgh = new PageLayoutGlyphHandler(gc)) {
 				lgh.setLineAdvance(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM - 20));
 				lgh.setAlign(Alignment.JUSTIFY);
 				lgh.setLineHeight(1.616);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
+				try (final var tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(Direction.LTR);
 					tlf.setFontFamilies(FontFamilyList.SERIF);
 					tlf.setFontSize(24);
@@ -45,7 +44,7 @@ public class StyledTextApp {
 					tlf.characters(
 							"故に能なるも之に不能を示し、用なるも之に不用を示し、近くとも之に遠きを示し、遠くとも之に近きを示し、利にして之を誘い、乱にして之を取り、実にして之に備え、強にして之を避け、怒にして之を撓し、卑にして之を驕らせ、佚にして之を労し、親にして之を離す。\n");
 				}
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("en"), lgh)) {
+				try (final var tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("en"), lgh)) {
 					tlf.setFontFamilies(FontFamilyList.SANS_SERIF);
 					tlf.setFontStyle(Style.ITALIC);
 					tlf.setFontSize(12);

@@ -6,11 +6,9 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.net.URI;
 
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
-import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.annot.LinkAnnot;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -27,30 +25,29 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class LinkAnnotationDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 		params.setCompression(PDFParams.Compression.NONE);
 		params.setVersion(PDFParams.Version.V_1_7);
 
-		final double width = 300;
-		final double height = 300;
+		final var width = 300.0;
+		final var height = 300.0;
 
-		try (OutputStream out = new BufferedOutputStream(
+		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "annotation.pdf")))) {
-			OutputFragmentedStream builder = new OutputFragmentedStream(out);
+			final var builder = new StreamSequentialOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
-			try (PDFPageOutput page = pdf.nextPage(width, height)) {
-
-				PDFGC gc = new PDFGC(page);
+			try (final var page = pdf.nextPage(width, height);
+					final var gc = new PDFGC(page)) {
 
 				{
-					Shape s = new Rectangle2D.Double(10, 10, 280, 30);
+					var s = (Shape) new Rectangle2D.Double(10, 10, 280, 30);
 					s = AffineTransform.getRotateInstance(.2).createTransformedShape(s);
 
 					gc.draw(s);
 
-					LinkAnnot link = new LinkAnnot();
+					final var link = new LinkAnnot();
 					link.setShape(s);
 					link.setURI(URI.create("http://www.yahoo.co.jp/"));
 					page.addAnnotation(link);

@@ -9,7 +9,7 @@ import java.io.Reader;
 /**
  * A source of data, such as a file or web document.
  */
-public interface Source extends MetaSource, Closeable {
+public interface Source extends SourceMetadata, Closeable {
 	/**
 	 * Returns true if the data exists.
 	 * 
@@ -74,4 +74,3 @@ public interface Source extends MetaSource, Closeable {
 	 */
 	SourceValidity getValidity() throws IOException;
 }
-

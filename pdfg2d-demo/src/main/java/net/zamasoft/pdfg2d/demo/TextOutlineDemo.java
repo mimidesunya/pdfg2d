@@ -7,12 +7,11 @@ import java.awt.geom.AffineTransform;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 import javax.swing.JFrame;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
@@ -22,8 +21,6 @@ import net.zamasoft.pdfg2d.gc.paint.RGBColor;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
 import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
-import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
-import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSourceManager;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
@@ -40,13 +37,13 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class TextOutlineDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 		params.setCompression(PDFParams.Compression.NONE);
 
-		try (PDFFontSourceManager fsm = new PDFFontSourceManager()) {
+		try (final var fsm = new PDFFontSourceManager()) {
 			{
-				FontFace face = new FontFace();
+				final var face = new FontFace();
 				face.src = new FileSource(DemoUtils.getResourceFile("ipaexm.ttf"));
 				face.fontFamily = FontFamilyList.create("IPAex明朝");
 				fsm.addFontFace(face);
@@ -54,29 +51,28 @@ public class TextOutlineDemo {
 
 			params.setFontSourceManager(fsm);
 
-			final double width = 300;
-			final double height = 300;
+			final var width = 300.0;
+			final var height = 300.0;
 
-			try (OutputStream out = new BufferedOutputStream(
+			try (final var out = new BufferedOutputStream(
 					new FileOutputStream(new File(DemoUtils.getOutputDir(), "text-stroke.pdf")))) {
-				OutputFragmentedStream builder = new OutputFragmentedStream(out);
-				final PDFWriter pdf = new PDFWriterImpl(builder, params);
+				final var builder = new StreamSequentialOutput(out);
+				final var pdf = new PDFWriterImpl(builder, params);
 
-				try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
-					PDFGC gc = new PDFGC(page);
+				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
 					draw(gc);
 				}
 
-				JFrame frame = new JFrame("Graphics") {
+				final var frame = new JFrame("Graphics") {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void paint(Graphics g) {
+					public void paint(final Graphics g) {
 						super.paint(g);
-						Graphics2D g2d = (Graphics2D) g;
+						final var g2d = (Graphics2D) g;
 						g2d.translate(0, 24);
 						g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-						G2DGC gc = new G2DGC(g2d, pdf.getFontManager());
+						final var gc = new G2DGC(g2d, pdf.getFontManager());
 						TextOutlineDemo.draw(gc);
 					}
 				};
@@ -97,9 +93,9 @@ public class TextOutlineDemo {
 				gc.setStrokePaint(RGBColor.BLACK);
 				gc.setFillPaint(RGBColor.WHITE);
 				gc.setTextMode(GC.TextMode.FILL_STROKE);
-				SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
+				final var lgh = new SimpleLayoutGlyphHandler();
 				lgh.setGC(gc);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
+				try (final var tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(FontStyle.Direction.TB);
 					tlf.setFontFamilies(FontFamilyList.create("IPAex明朝"));
 					tlf.setFontSize(32);
@@ -112,9 +108,9 @@ public class TextOutlineDemo {
 				gc.setStrokePaint(RGBColor.BLACK);
 				gc.setFillPaint(RGBColor.create(255, 0, 0));
 				gc.setTextMode(GC.TextMode.FILL);
-				SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
+				final var lgh = new SimpleLayoutGlyphHandler();
 				lgh.setGC(gc);
-				try (TextLayoutHandler tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
+				try (final var tlf = new TextLayoutHandler(gc, TextBreakingRulesBundle.getRules("ja"), lgh)) {
 					tlf.setDirection(FontStyle.Direction.TB);
 					tlf.setFontFamilies(FontFamilyList.create("IPAex明朝"));
 					tlf.setFontWeight(FontStyle.Weight.W_800);
@@ -127,5 +123,3 @@ public class TextOutlineDemo {
 		}
 	}
 }
-
-

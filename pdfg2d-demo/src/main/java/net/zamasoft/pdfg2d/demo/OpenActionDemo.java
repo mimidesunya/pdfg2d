@@ -4,10 +4,8 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
-import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.action.JavaScriptAction;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -26,25 +24,23 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class OpenActionDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 		params.setCompression(PDFParams.Compression.NONE);
 		params.setVersion(PDFParams.Version.V_1_7);
-		JavaScriptAction js = new JavaScriptAction("this.print();");
+		final var js = new JavaScriptAction("this.print();");
 		params.setOpenAction(js);
 
-		final double width = 300;
-		final double height = 300;
+		final var width = 300.0;
+		final var height = 300.0;
 
-		try (OutputStream out = new BufferedOutputStream(
+		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "open-action.pdf")))) {
-			OutputFragmentedStream builder = new OutputFragmentedStream(out);
+			final var builder = new StreamSequentialOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
-			try (PDFPageOutput page = pdf.nextPage(width, height)) {
-
-				PDFGC gc = new PDFGC(page);
-				Rectangle2D rect = new Rectangle2D.Double(10, 10, 280, 10);
+			try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
+				final var rect = new Rectangle2D.Double(10, 10, 280, 10);
 				gc.draw(rect);
 			}
 

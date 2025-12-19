@@ -1,21 +1,22 @@
-package net.zamasoft.pdfg2d.io.impl;
+package net.zamasoft.pdfg2d.io.util;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
- * 任意の位置に値をセット可能なint値の配列です。
+ * An array of int values that can be set at any position.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-class IntList implements Serializable {
+public class IntList implements Serializable {
 	private static final long serialVersionUID = 0;
 
 	private static final int[] ZERO = new int[0];
 
 	private int[] array = ZERO;
 
-	private int defaultValue;
+	private final int defaultValue;
 
 	private int length = 0;
 
@@ -23,24 +24,24 @@ class IntList implements Serializable {
 		this(0);
 	}
 
-	public IntList(int defaultValue) {
+	public IntList(final int defaultValue) {
 		this.defaultValue = defaultValue;
 	}
 
-	public void add(int value) {
+	public void add(final int value) {
 		this.set(this.length, value);
 	}
 
-	public void set(int pos, int value) {
+	public void set(final int pos, final int value) {
 		if (this.length <= pos) {
 			this.length = pos + 1;
 			if (this.array.length <= pos) {
-				int[] array = new int[Math.max(this.length + 10, this.array.length * 3 / 2)];
+				int[] newArray = new int[Math.max(this.length + 10, this.array.length * 3 / 2)];
 				if (this.defaultValue != 0) {
-					java.util.Arrays.fill(array, this.array.length, array.length, this.defaultValue);
+					Arrays.fill(newArray, this.array.length, newArray.length, this.defaultValue);
 				}
-				System.arraycopy(this.array, 0, array, 0, this.array.length);
-				this.array = array;
+				System.arraycopy(this.array, 0, newArray, 0, this.array.length);
+				this.array = newArray;
 			}
 		}
 		this.array[pos] = value;
@@ -51,7 +52,7 @@ class IntList implements Serializable {
 		return this.array;
 	}
 
-	public int get(int i) {
+	public int get(final int i) {
 		if (i >= this.array.length) {
 			return this.defaultValue;
 		}
@@ -64,9 +65,9 @@ class IntList implements Serializable {
 
 	public void pack() {
 		if (this.length != this.array.length) {
-			int[] array = new int[this.length];
-			System.arraycopy(this.array, 0, array, 0, this.length);
-			this.array = array;
+			final int[] newArray = new int[this.length];
+			System.arraycopy(this.array, 0, newArray, 0, this.length);
+			this.array = newArray;
 		}
 	}
 

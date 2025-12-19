@@ -4,15 +4,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
-import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
-import net.zamasoft.pdfg2d.pdf.PDFWriter;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
@@ -20,10 +16,10 @@ public class PDFBookmarkTest {
 
     @Test
     public void testBookmarks() throws Exception {
-        File tempFile = File.createTempFile("test-bookmarks", ".pdf");
+        final var tempFile = File.createTempFile("test-bookmarks", ".pdf");
         tempFile.deleteOnExit();
 
-        PDFParams params = new PDFParams();
+        final var params = new PDFParams();
         params.setBookmarks(true); // Enable bookmarks generation support (if applicable directly via API)
 
         // Note: PDFG2D creates bookmarks usually via 'PDFFragmentOutput' or specific
@@ -39,14 +35,13 @@ public class PDFBookmarkTest {
         // be created
         // by structure or separate calls.
 
-        try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            OutputFragmentedStream builder = new OutputFragmentedStream(out);
-            PDFWriter pdf = new PDFWriterImpl(builder, params);
+        try (final var out = new FileOutputStream(tempFile)) {
+            final var builder = new StreamSequentialOutput(out);
+            final var pdf = new PDFWriterImpl(builder, params);
 
-            try (PDFGraphicsOutput gfx = pdf.nextPage(595, 842)) {
+            try (final var gfx = pdf.nextPage(595, 842)) {
                 // Add bookmark
-                if (gfx instanceof net.zamasoft.pdfg2d.pdf.PDFPageOutput) {
-                    net.zamasoft.pdfg2d.pdf.PDFPageOutput page = (net.zamasoft.pdfg2d.pdf.PDFPageOutput) gfx;
+                if (gfx instanceof final PDFPageOutput page) {
                     // Add bookmark pointing to (0, 842) - top of page
                     page.startBookmark("Chapter 1", new java.awt.geom.Point2D.Double(0, 842));
                     page.endBookmark();
@@ -56,10 +51,10 @@ public class PDFBookmarkTest {
             builder.close();
         }
 
-        try (PDDocument doc = Loader.loadPDF(tempFile)) {
-            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+        try (final var doc = Loader.loadPDF(tempFile)) {
+            final var outline = doc.getDocumentCatalog().getDocumentOutline();
             Assertions.assertNotNull(outline, "Document outline should exist");
-            PDOutlineItem item = outline.getFirstChild();
+            final var item = outline.getFirstChild();
             Assertions.assertNotNull(item, "Should have at least one bookmark");
             Assertions.assertEquals("Chapter 1", item.getTitle());
         }

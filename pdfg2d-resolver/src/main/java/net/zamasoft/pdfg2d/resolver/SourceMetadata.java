@@ -6,7 +6,7 @@ import java.net.URI;
 /**
  * Metadata for a data source.
  */
-public interface MetaSource {
+public interface SourceMetadata {
 	/**
 	 * Returns the URI of the data.
 	 * 
@@ -38,4 +38,3 @@ public interface MetaSource {
 	 */
 	long getLength() throws IOException;
 }
-

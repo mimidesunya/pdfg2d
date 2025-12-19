@@ -7,22 +7,19 @@ import java.awt.geom.AffineTransform;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 import javax.swing.JFrame;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.OutputFragmentedStream;
+import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
-import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
 import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRulesBundle;
 import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
-import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.font.FontManagerImpl;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSourceManager;
@@ -41,31 +38,31 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  * @since 1.0
  */
 public class ComplexTextDemo {
-	public static void main(String[] args) throws Exception {
-		PDFParams params = new PDFParams();
+	public static void main(final String[] args) throws Exception {
+		final var params = new PDFParams();
 		params.setCompression(PDFParams.Compression.NONE);
 
-		try (PDFFontSourceManager fsm = new PDFFontSourceManager()) {
+		try (final var fsm = new PDFFontSourceManager()) {
 			{
-				FontFace face = new FontFace();
+				final var face = new FontFace();
 				face.src = new FileSource(DemoUtils.getResourceFile("ipaexm.ttf"));
 				face.fontFamily = FontFamilyList.create("IPAex明朝");
 				fsm.addFontFace(face);
 			}
 			{
-				FontFace face = new FontFace();
+				final var face = new FontFace();
 				face.src = new FileSource(DemoUtils.getResourceFile("KentenGeneric.otf"));
 				face.fontFamily = FontFamilyList.create("Kenten Generic");
 				fsm.addFontFace(face);
 			}
 			{
-				FontFace face = new FontFace();
+				final var face = new FontFace();
 				face.src = new FileSource(DemoUtils.getResourceFile("UnDotum.ttf"));
 				face.fontFamily = FontFamilyList.create("Hangul");
 				fsm.addFontFace(face);
 			}
 			{
-				FontFace face = new FontFace();
+				final var face = new FontFace();
 				face.src = new FileSource(DemoUtils.getResourceFile("FT Meuang BL-Regular.ttf"));
 				face.fontFamily = FontFamilyList.create("FT Meuang");
 				fsm.addFontFace(face);
@@ -73,16 +70,15 @@ public class ComplexTextDemo {
 
 			params.setFontSourceManager(fsm);
 
-			final double width = 300;
-			final double height = 300;
+			final var width = 300.0;
+			final var height = 300.0;
 
-			try (OutputStream out = new BufferedOutputStream(
+			try (final var out = new BufferedOutputStream(
 					new FileOutputStream(new File(DemoUtils.getOutputDir(), "text.pdf")))) {
-				OutputFragmentedStream builder = new OutputFragmentedStream(out);
+				final var builder = new StreamSequentialOutput(out);
 				final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
-				try (PDFGraphicsOutput page = pdf.nextPage(width, height)) {
-					PDFGC gc = new PDFGC(page);
+				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
 					draw(gc);
 				}
 
@@ -90,18 +86,18 @@ public class ComplexTextDemo {
 				builder.close();
 			}
 
-			final FontManager fm = new FontManagerImpl(fsm);
+			final var fm = new FontManagerImpl(fsm);
 			try {
-				JFrame frame = new JFrame("Graphics") {
+				final var frame = new JFrame("Graphics") {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void paint(Graphics g) {
+					public void paint(final Graphics g) {
 						super.paint(g);
-						Graphics2D g2d = (Graphics2D) g;
+						final var g2d = (Graphics2D) g;
 						g2d.translate(0, 24);
 						g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-						G2DGC gc = new G2DGC(g2d, fm);
+						final var gc = new G2DGC(g2d, fm);
 						ComplexTextDemo.draw(gc);
 					}
 				};
@@ -111,8 +107,8 @@ public class ComplexTextDemo {
 				// fm does not need close? Check implementation.
 				// The original code tried to close it.
 				// If FontManagerImpl is closeable but FontManager is not, cast and close?
-				if (fm instanceof AutoCloseable) {
-					((AutoCloseable) fm).close();
+				if (fm instanceof AutoCloseable autoCloseable) {
+					autoCloseable.close();
 				}
 			}
 		}
@@ -158,37 +154,5 @@ public class ComplexTextDemo {
 			}
 			gc.end();
 		}
-
-		// {
-		// gc.begin();
-		// gc.transform(AffineTransform.getTranslateInstance(10, 20));
-		// SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
-		// lgh.setGC(gc);
-		// TextLayoutHandler tlf = new TextLayoutHandler(gc,
-		// TextBreakingRulesBundle.getRules("ja"), lgh);
-		// tlf.setDirection(FontStyle.DIRECTION_LTR);
-		// tlf.setFontFamilies(FontFamilyList.create("Hangul"));
-		// tlf.setFontSize(16);
-		// tlf.characters("은 돋움");
-		// tlf.flush();
-		// gc.end();
-		// }
-		//
-		// {
-		// gc.begin();
-		// gc.transform(AffineTransform.getTranslateInstance(10, 30));
-		// SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
-		// lgh.setGC(gc);
-		// TextLayoutHandler tlf = new TextLayoutHandler(gc,
-		// TextBreakingRulesBundle.getRules("ja"), lgh);
-		// tlf.setDirection(FontStyle.DIRECTION_LTR);
-		// tlf.setFontFamilies(FontFamilyList.create("FT Meuang"));
-		// tlf.setFontSize(16);
-		// tlf.characters("ศิลปะการต่อสู้ป้องกันตัว");
-		// tlf.flush();
-		// gc.end();
-		// }
 	}
 }
-
-

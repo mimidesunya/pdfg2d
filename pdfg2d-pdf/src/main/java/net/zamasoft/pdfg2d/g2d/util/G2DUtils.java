@@ -299,7 +299,7 @@ public final class G2DUtils {
 			String type = reader.getFormatName();
 			BufferedImage buffer = null;
 			if (type.equalsIgnoreCase("png")) {
-				// 独自のPNGデコーダを使う
+				// Use custom PNG decoder
 				try {
 					RenderedImage rimage = new PNGImage(new ImageInputStreamWrapper(imageIn), new PNGDecodeParam());
 					buffer = new BufferedImage(rimage.getWidth(), rimage.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -310,16 +310,16 @@ public final class G2DUtils {
 			}
 			if (buffer == null) {
 				try {
-					// ImageIOを使う
+					// Use ImageIO
 
-					// HACK JFIFが色化けするJavaのバグへの対策
+					// HACK: Fix for Java bug where JFIF colors are inverted
 					if ("JPEG".equalsIgnoreCase(reader.getFormatName())) {
 						for (int i = 0; i < 100; ++i) {
 							if (imageIn.read() == 0xFF) {
 								if (imageIn.read() == 0xD8) {
 									if (imageIn.read() == 0xFF) {
 										if (imageIn.read() == 0xDB) {
-											throw new Exception("読み込めないJPEGです");
+											throw new Exception("Unreadable JPEG");
 										}
 									}
 									break;
@@ -334,7 +334,7 @@ public final class G2DUtils {
 				} catch (Throwable e1) {
 					LOGGER.log(Level.FINE, "loadImage", e1);
 
-					// Toolkitを使う
+					// Use Toolkit
 					try {
 						imageIn.seek(0);
 						ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -1,6 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.impl;
 
-import net.zamasoft.pdfg2d.io.FragmentedStream.PositionInfo;
+import net.zamasoft.pdfg2d.io.FragmentedOutput.PositionInfo;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 class ObjectRefImpl extends ObjectRef {
@@ -8,12 +8,12 @@ class ObjectRefImpl extends ObjectRef {
 
 	// private StringWriter t = new StringWriter();
 
-	public ObjectRefImpl(int objectNum) {
+	public ObjectRefImpl(final int objectNum) {
 		super(objectNum, 0);
 		// new Exception().printStackTrace(new PrintWriter(t));
 	}
 
-	public void setPosition(int id, int position) {
+	public void setPosition(final int id, final int position) {
 		if (this.position != -1) {
 			throw new IllegalStateException("同じリファレンスで2度オブジェクトを作成しようとしました。");
 		}
@@ -21,7 +21,7 @@ class ObjectRefImpl extends ObjectRef {
 		this.position = position;
 	}
 
-	public long getPosition(PositionInfo info) {
+	public long getPosition(final PositionInfo info) {
 		return info.getPosition(this.id) + this.position;
 	}
 
