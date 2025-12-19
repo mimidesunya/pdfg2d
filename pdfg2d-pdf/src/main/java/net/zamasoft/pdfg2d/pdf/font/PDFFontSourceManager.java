@@ -110,7 +110,7 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 				final FontFamily family = face.fontFamily.get(i);
 				String name = family.getName();
 				if (family.isGenericFamily()) {
-					// 基本フォント名を上書きする
+					// Override generic font name
 					final FontFamilyList generics = this.genericToFamily.get(name);
 					if (generics == null) {
 						this.genericToFamily.put(name, new FontFamilyList(new FontFamily(name)));
@@ -143,8 +143,8 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 				m.add(name);
 			}
 		}
-		// FontSourceから得られるフォント名を入れる
-		// CSSの@font-faceでは不要なのでコメントアウトしている
+		// Insert font names obtained from FontSource
+		// Commented out since not needed for CSS @font-face
 		// for (int j = 0; j < list.size(); ++j) {
 		// FontSource source = (FontSource) list.get(j);
 		// String[] aliases = source.getAliases();
@@ -197,10 +197,10 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 			FontFamily entry = family.get(i);
 			String name = entry.getName();
 
-			// ファミリ名が一致するフォントを取得
+			// Get fonts matching the family name
 			if (entry.isGenericFamily()) {
 				if (recurse) {
-					throw new IllegalStateException("一般フォントが一般フォントで定義されています");
+					throw new IllegalStateException("Generic font defined by another generic font");
 				}
 				FontFamilyList gfamily = this.genericToFamily.get(name);
 				if (gfamily != null) {
@@ -215,54 +215,54 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 				}
 			}
 
-			// 各条件のマッチング
+			// Match against each condition
 			FontPolicyList policy = fontStyle.getPolicy();
 			Object[][] orders = new Object[fonts.length][2];
 			for (int j = 0; j < fonts.length; ++j) {
 				FontSource font = fonts[j];
 				int order = 0;
 
-				// フォントのタイプが最優先条件
+				// Font type is the highest priority condition
 				if (font instanceof PDFFontSource) {
 					PDFFontSource pdfFont = (PDFFontSource) font;
 					Type type = pdfFont.getType();
 					for (int k = 0; k < policy.getLength(); ++k) {
 						FontPolicy policyCode = policy.get(k);
 						switch (policyCode) {
-						case CORE:
-							// CORE
-							if (type != Type.CORE) {
+							case CORE:
+								// CORE
+								if (type != Type.CORE) {
+									continue;
+								}
+								break;
+
+							case CID_KEYED:
+								// CID-Keyed
+								if (type != Type.CID_KEYED) {
+									continue;
+								}
+								break;
+
+							case CID_IDENTITY:
+								// CID Identity
+								if (type != Type.CID_IDENTITY) {
+									continue;
+								}
+								break;
+
+							case EMBEDDED:
+								// Embedded
+								if (type != Type.EMBEDDED) {
+									continue;
+								}
+								break;
+
+							case OUTLINES:
+								// Outlines
 								continue;
-							}
-							break;
 
-						case CID_KEYED:
-							// CID-Keyed
-							if (type != Type.CID_KEYED) {
-								continue;
-							}
-							break;
-
-						case CID_IDENTITY:
-							// CID外部
-							if (type != Type.CID_IDENTITY) {
-								continue;
-							}
-							break;
-
-						case EMBEDDED:
-							// 埋め込み
-							if (type != Type.EMBEDDED) {
-								continue;
-							}
-							break;
-
-						case OUTLINES:
-							// アウトライン化
-							continue;
-
-						default:
-							throw new IllegalStateException();
+							default:
+								throw new IllegalStateException();
 						}
 						order = policy.getLength() - k + 1;
 						break;
@@ -274,14 +274,14 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 					order = 1;
 				}
 
-				// 横書きモードでは縦書きフォントを排除する
+				// Exclude vertical fonts in horizontal writing mode
 				Direction direction = fontStyle.getDirection();
 				Direction fsDirection = font.getDirection();
 				if (direction != Direction.TB && fsDirection == Direction.TB) {
 					continue;
 				}
 
-				// ファミリ名が完全に一致するものを優先する
+				// Prioritize exact family name matches
 				order <<= 4;
 				String fontName = FontUtils.normalizeName(font.getFontName());
 				if (fontName.equals(name)) {
@@ -290,7 +290,7 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 					continue;
 				}
 
-				// italicの判定はウエイトより優先する
+				// Italic check has higher priority than weight
 				order <<= 4;
 				Style style = fontStyle.getStyle();
 				if (style == Style.ITALIC) {
@@ -303,13 +303,13 @@ public class PDFFontSourceManager implements FontSourceManager, Closeable {
 					}
 				}
 
-				// ウエイトの判定
+				// Weight check
 				order <<= 4;
 				Weight weight = fontStyle.getWeight();
 				int delta = Math.abs(font.getWeight().w - weight.w);
 				order |= (0xF & ((1000 - delta) / 100));
 
-				// obliqueは変換を使えばよいので優先順位は低い
+				// Oblique has lower priority since it can use transformation
 				order <<= 4;
 				if (style == Style.OBLIQUE) {
 					if (font.isItalic()) {

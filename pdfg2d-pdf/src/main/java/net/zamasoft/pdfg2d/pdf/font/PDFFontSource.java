@@ -5,36 +5,36 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 public interface PDFFontSource extends FontSource {
 	public static enum Type {
-	/**
-	 * 不明なフォントです。
-	 */
-	MISSING,
+		/**
+		 * Unknown/missing font.
+		 */
+		MISSING,
 
-	/**
-	 * コアフォントです。
-	 */
-	CORE,
+		/**
+		 * Core PDF font.
+		 */
+		CORE,
 
-	/**
-	 * 埋め込みフォントです。
-	 */
-	EMBEDDED,
+		/**
+		 * Embedded font.
+		 */
+		EMBEDDED,
 
-	/**
-	 * 外部フォントです。
-	 */
-	CID_IDENTITY,
+		/**
+		 * CID-Identity external font.
+		 */
+		CID_IDENTITY,
 
-	/**
-	 * CID-Keyedフォントです。
-	 */
-	CID_KEYED;
+		/**
+		 * CID-Keyed font.
+		 */
+		CID_KEYED;
 	}
 
 	/**
-	 * フォントの種類を返します。
+	 * Returns the font type.
 	 * 
-	 * @return
+	 * @return the font type
 	 */
 	public Type getType();
 

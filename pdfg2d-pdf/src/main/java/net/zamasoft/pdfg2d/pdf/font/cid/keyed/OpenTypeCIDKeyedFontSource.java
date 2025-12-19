@@ -16,7 +16,8 @@ import net.zamasoft.pdfg2d.util.IntMapIterator;
 import net.zamasoft.pdfg2d.util.ShortList;
 
 /**
- * 等幅の一般フォントです。 このフォントはプラットフォームによって書体が変わります。
+ * A general CID-keyed font with OpenType backing. The appearance may vary by
+ * platform.
  * 
  * @author MIYABE Tatsuhiko
  * @version $Id: GenericType0FontFace.java,v 1.2 2005/06/06 04:42:24 harumanx
@@ -72,7 +73,7 @@ public class OpenTypeCIDKeyedFontSource extends CIDKeyedFontSource {
 			int cid = i.value();
 			int gid = fs.getCmapFormat().mapCharCode(i.key());
 			short advance = (short) (hmtx.getAdvanceWidth(gid) * FontSource.DEFAULT_UNITS_PER_EM / upm);
-			// CIDは重複することがあるので、広い方の幅を採用する
+			// CIDs may overlap, so use the wider width
 			if (advance > cidToAdvance.get(cid)) {
 				cidToAdvance.set(cid, advance);
 			}

@@ -9,16 +9,16 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
 /**
  * SourceResolver that retrieves data from a ZIP file.
  */
-public class ZipFileSourceResolver implements SourceResolver {
+public class ZIPFileSourceResolver implements SourceResolver {
 	protected final ZipFile zip;
 
-	public ZipFileSourceResolver(ZipFile zip) {
+	public ZIPFileSourceResolver(ZipFile zip) {
 		this.zip = zip;
 	}
 
 	@Override
 	public Source resolve(URI uri) throws IOException {
-		return new ZipFileSource(this.zip, uri);
+		return new ZIPFileSource(this.zip, uri);
 	}
 
 	@Override

@@ -15,7 +15,7 @@ import net.zamasoft.pdfg2d.pdf.params.V4EncryptionParams;
 
 public class Encryption {
 
-	// パスワードを32バイトに調整するための埋め合わせ
+	// Padding to adjust password to 32 bytes
 	private static final byte[] PADDING = { (byte) 0x28, (byte) 0xBF, (byte) 0x4E, (byte) 0x5E, (byte) 0x4E,
 			(byte) 0x75, (byte) 0x8A, (byte) 0x41, (byte) 0x64, (byte) 0x00, (byte) 0x4E, (byte) 0x56, (byte) 0xFF,
 			(byte) 0xFA, (byte) 0x01, (byte) 0x08, (byte) 0x2E, (byte) 0x2E, (byte) 0x00, (byte) 0xB6, (byte) 0xD0,
@@ -23,10 +23,10 @@ public class Encryption {
 			(byte) 0x53, (byte) 0x69, (byte) 0x7A };
 
 	/**
-	 * パスワードを32バイトに切り詰めます。
+	 * Truncates password to 32 bytes.
 	 * 
-	 * @param password
-	 * @return
+	 * @param password the password
+	 * @return 32-byte padded password
 	 */
 	private static byte[] truncate32(byte[] password) {
 		byte[] result = new byte[32];
@@ -61,7 +61,7 @@ public class Encryption {
 			throw new RuntimeException(e);
 		}
 
-		// 暗号化辞書
+		// Encryption dictionary
 		this.ref = xref.nextObjectRef();
 		mainFlow.startObject(this.ref);
 		mainFlow.startHash();
@@ -78,78 +78,78 @@ public class Encryption {
 		Permissions permissions;
 		int length;
 		switch (v) {
-		case V1: {
-			// v1暗号のパーミッション
-			this.cfm = V4EncryptionParams.CFM.V2;
-			V1EncryptionParams v1Params = (V1EncryptionParams) params;
-			permissions = v1Params.getPermissions();
-			length = 40;
-		}
-			break;
+			case V1: {
+				// V1 encryption permissions
+				this.cfm = V4EncryptionParams.CFM.V2;
+				V1EncryptionParams v1Params = (V1EncryptionParams) params;
+				permissions = v1Params.getPermissions();
+				length = 40;
+			}
+				break;
 
-		case V2: {
-			// v2暗号のパーミッション
-			this.cfm = V4EncryptionParams.CFM.V2;
-			V2EncryptionParams v2Params = (V2EncryptionParams) params;
-			permissions = v2Params.getPermissions();
+			case V2: {
+				// V2 encryption permissions
+				this.cfm = V4EncryptionParams.CFM.V2;
+				V2EncryptionParams v2Params = (V2EncryptionParams) params;
+				permissions = v2Params.getPermissions();
 
-			length = v2Params.getLength();
-			if (length != 40) {
-				mainFlow.writeName("Length");
-				mainFlow.writeInt(length);
+				length = v2Params.getLength();
+				if (length != 40) {
+					mainFlow.writeName("Length");
+					mainFlow.writeInt(length);
+					mainFlow.lineBreak();
+				}
+			}
+				break;
+
+			case V4: {
+				// V4 encryption permissions
+				V4EncryptionParams v4Params = (V4EncryptionParams) params;
+				permissions = v4Params.getPermissions();
+
+				if (!v4Params.getEncryptMetadata()) {
+					mainFlow.writeName("EncryptMetadata");
+					mainFlow.writeBoolean(false);
+					mainFlow.lineBreak();
+				}
+
+				String filterName = "StdCF";
+				mainFlow.writeName("CF");
+				mainFlow.startHash();
+				mainFlow.writeName(filterName);
+				mainFlow.startHash();
+
+				mainFlow.writeName("Type");
+				mainFlow.writeName("CryptFilter");
+				mainFlow.lineBreak();
+
+				this.cfm = v4Params.getCFM();
+				mainFlow.writeName("CFM");
+				mainFlow.writeName(this.cfm.name);
+				mainFlow.lineBreak();
+
+				length = v4Params.getLength();
+				if (length != 40) {
+					mainFlow.writeName("Length");
+					mainFlow.writeInt(length);
+					mainFlow.lineBreak();
+				}
+
+				mainFlow.endHash();
+				mainFlow.endHash();
+
+				mainFlow.writeName("StmF");
+				mainFlow.writeName(filterName);
+				mainFlow.lineBreak();
+
+				mainFlow.writeName("StrF");
+				mainFlow.writeName(filterName);
 				mainFlow.lineBreak();
 			}
-		}
-			break;
+				break;
 
-		case V4: {
-			// v4暗号のパーミッション
-			V4EncryptionParams v4Params = (V4EncryptionParams) params;
-			permissions = v4Params.getPermissions();
-
-			if (!v4Params.getEncryptMetadata()) {
-				mainFlow.writeName("EncryptMetadata");
-				mainFlow.writeBoolean(false);
-				mainFlow.lineBreak();
-			}
-
-			String filterName = "StdCF";
-			mainFlow.writeName("CF");
-			mainFlow.startHash();
-			mainFlow.writeName(filterName);
-			mainFlow.startHash();
-
-			mainFlow.writeName("Type");
-			mainFlow.writeName("CryptFilter");
-			mainFlow.lineBreak();
-
-			this.cfm = v4Params.getCFM();
-			mainFlow.writeName("CFM");
-			mainFlow.writeName(this.cfm.name);
-			mainFlow.lineBreak();
-
-			length = v4Params.getLength();
-			if (length != 40) {
-				mainFlow.writeName("Length");
-				mainFlow.writeInt(length);
-				mainFlow.lineBreak();
-			}
-
-			mainFlow.endHash();
-			mainFlow.endHash();
-
-			mainFlow.writeName("StmF");
-			mainFlow.writeName(filterName);
-			mainFlow.lineBreak();
-
-			mainFlow.writeName("StrF");
-			mainFlow.writeName(filterName);
-			mainFlow.lineBreak();
-		}
-			break;
-
-		default:
-			throw new IllegalArgumentException();
+			default:
+				throw new IllegalArgumentException();
 		}
 		this.length = length / 8;
 
@@ -163,7 +163,7 @@ public class Encryption {
 		mainFlow.writeInt(pflags);
 		mainFlow.lineBreak();
 
-		// オーナーキーの生成
+		// Generate owner key
 		byte[] ownerPass = params.getOwnerPassword().getBytes("ISO-8859-1");
 		byte[] userPass = params.getUserPassword().getBytes("ISO-8859-1");
 		if (ownerPass.length == 0) {
@@ -175,7 +175,7 @@ public class Encryption {
 		this.md5.update(truncate32(ownerPass));
 		{
 			if (r.r >= Permissions.Type.R3.r) {
-				// Revision 3以上ではMD5ハッシュを50回更新する
+				// Revision 3+ requires 50 MD5 hash iterations
 				for (int i = 0; i < 50; ++i) {
 					byte[] key = this.md5.digest();
 					this.md5.update(key);
@@ -186,7 +186,7 @@ public class Encryption {
 			ArcfourEncryptor arcfour = new ArcfourEncryptor(key, this.length);
 			ownerKey = arcfour.encrypt(ownerKey);
 			if (r.r >= Permissions.Type.R3.r) {
-				// Revision 3以上ではキーを19回Arcfour暗号化する
+				// Revision 3+ requires 19 Arcfour encryption iterations
 				byte[] key2 = new byte[this.length];
 				for (int i = 1; i <= 19; ++i) {
 					for (int j = 0; j < this.length; ++j) {
@@ -198,7 +198,7 @@ public class Encryption {
 			}
 		}
 
-		// 暗号化キーの生成
+		// Generate encryption key
 		this.md5.reset();
 		this.md5.update(truncate32(userPass));
 		this.md5.update(ownerKey);
@@ -212,7 +212,7 @@ public class Encryption {
 		}
 		this.md5.update(fileid[0]);
 		if (r.r >= Permissions.Type.R3.r) {
-			// Revision 3以上ではMD5ハッシュを50回更新する
+			// Revision 3+ requires 50 MD5 hash iterations
 			for (int i = 0; i < 50; ++i) {
 				byte[] key = this.md5.digest();
 				this.md5.update(key);
@@ -220,42 +220,42 @@ public class Encryption {
 		}
 		this.key = this.md5.digest();
 
-		// ユーザーキーの生成
+		// Generate user key
 		byte[] userKey;
 		switch (r) {
-		case R2: {
-			// Revision 2ではキーをArcfour暗号化する
-			userKey = new byte[PADDING.length];
-			System.arraycopy(PADDING, 0, userKey, 0, PADDING.length);
-			ArcfourEncryptor arcfour = new ArcfourEncryptor(this.key, this.length);
-			userKey = arcfour.encrypt(userKey);
-		}
-			break;
-
-		case R3:
-		case R4: {
-			// Revision 3以上ではキーのMD5ハッシュを得る
-			this.md5.reset();
-			this.md5.update(PADDING);
-			this.md5.update(fileid[0]);
-			byte[] digest = this.md5.digest();
-			ArcfourEncryptor arcfour = new ArcfourEncryptor(this.key, this.length);
-			digest = arcfour.encrypt(digest);
-			byte[] key2 = new byte[this.length];
-			for (int i = 1; i <= 19; ++i) {
-				for (int j = 0; j < this.length; ++j) {
-					key2[j] = (byte) (key[j] ^ i);
-				}
-				ArcfourEncryptor arcfour2 = new ArcfourEncryptor(key2, this.length);
-				digest = arcfour2.encrypt(digest);
+			case R2: {
+				// Revision 2 uses Arcfour encryption
+				userKey = new byte[PADDING.length];
+				System.arraycopy(PADDING, 0, userKey, 0, PADDING.length);
+				ArcfourEncryptor arcfour = new ArcfourEncryptor(this.key, this.length);
+				userKey = arcfour.encrypt(userKey);
 			}
-			userKey = new byte[32];
-			System.arraycopy(digest, 0, userKey, 0, digest.length);
-		}
-			break;
+				break;
 
-		default:
-			throw new IllegalArgumentException();
+			case R3:
+			case R4: {
+				// Revision 3+ gets MD5 hash of key
+				this.md5.reset();
+				this.md5.update(PADDING);
+				this.md5.update(fileid[0]);
+				byte[] digest = this.md5.digest();
+				ArcfourEncryptor arcfour = new ArcfourEncryptor(this.key, this.length);
+				digest = arcfour.encrypt(digest);
+				byte[] key2 = new byte[this.length];
+				for (int i = 1; i <= 19; ++i) {
+					for (int j = 0; j < this.length; ++j) {
+						key2[j] = (byte) (key[j] ^ i);
+					}
+					ArcfourEncryptor arcfour2 = new ArcfourEncryptor(key2, this.length);
+					digest = arcfour2.encrypt(digest);
+				}
+				userKey = new byte[32];
+				System.arraycopy(digest, 0, userKey, 0, digest.length);
+			}
+				break;
+
+			default:
+				throw new IllegalArgumentException();
 		}
 
 		mainFlow.writeName("O");
@@ -274,46 +274,46 @@ public class Encryption {
 		if (this.keyRef != keyRef) {
 			int keyLen = Math.min(this.length + 5, 16);
 			switch (this.cfm) {
-			case V2: {
-				byte[] work = new byte[this.length + 5];
-				System.arraycopy(this.key, 0, work, 0, this.length);
-				work[this.length] = (byte) (keyRef.objectNumber & 0xFF);
-				work[this.length + 1] = (byte) ((keyRef.objectNumber >>> 8) & 0xFF);
-				work[this.length + 2] = (byte) ((keyRef.objectNumber >>> 16) & 0xFF);
-				work[this.length + 3] = (byte) (keyRef.generationNumber & 0xFF);
-				work[this.length + 4] = (byte) ((keyRef.generationNumber >>> 8) & 0xFF);
-				this.md5.reset();
-				this.md5.update(work);
-				byte[] arckey = this.md5.digest();
-				this.keyRef = keyRef;
-				this.encryptor = new ArcfourEncryptor(arckey, keyLen);
-				break;
-			}
+				case V2: {
+					byte[] work = new byte[this.length + 5];
+					System.arraycopy(this.key, 0, work, 0, this.length);
+					work[this.length] = (byte) (keyRef.objectNumber() & 0xFF);
+					work[this.length + 1] = (byte) ((keyRef.objectNumber() >>> 8) & 0xFF);
+					work[this.length + 2] = (byte) ((keyRef.objectNumber() >>> 16) & 0xFF);
+					work[this.length + 3] = (byte) (keyRef.generationNumber() & 0xFF);
+					work[this.length + 4] = (byte) ((keyRef.generationNumber() >>> 8) & 0xFF);
+					this.md5.reset();
+					this.md5.update(work);
+					byte[] arckey = this.md5.digest();
+					this.keyRef = keyRef;
+					this.encryptor = new ArcfourEncryptor(arckey, keyLen);
+					break;
+				}
 
-			case AESV2: {
-				byte[] work = new byte[this.length + 5 + 4];
-				System.arraycopy(this.key, 0, work, 0, this.length);
-				work[this.length] = (byte) (keyRef.objectNumber & 0xFF);
-				work[this.length + 1] = (byte) ((keyRef.objectNumber >>> 8) & 0xFF);
-				work[this.length + 2] = (byte) ((keyRef.objectNumber >>> 16) & 0xFF);
-				work[this.length + 3] = (byte) (keyRef.generationNumber & 0xFF);
-				work[this.length + 4] = (byte) ((keyRef.generationNumber >>> 8) & 0xFF);
-				// AESでは'sAlT'を追加する
-				// Adobe PDF Specの1.6では記述漏れがあり、1.7で追記されている。
-				work[this.length + 5] = 0x73;
-				work[this.length + 6] = 0x41;
-				work[this.length + 7] = 0x6C;
-				work[this.length + 8] = 0x54;
-				this.md5.reset();
-				this.md5.update(work);
-				byte[] arckey = this.md5.digest();
-				this.keyRef = keyRef;
-				this.encryptor = new ArcfourEncryptor(arckey, keyLen);
-				this.encryptor = new AESEncryptor(arckey, keyLen);
-				break;
-			}
-			default:
-				throw new IllegalStateException();
+				case AESV2: {
+					byte[] work = new byte[this.length + 5 + 4];
+					System.arraycopy(this.key, 0, work, 0, this.length);
+					work[this.length] = (byte) (keyRef.objectNumber() & 0xFF);
+					work[this.length + 1] = (byte) ((keyRef.objectNumber() >>> 8) & 0xFF);
+					work[this.length + 2] = (byte) ((keyRef.objectNumber() >>> 16) & 0xFF);
+					work[this.length + 3] = (byte) (keyRef.generationNumber() & 0xFF);
+					work[this.length + 4] = (byte) ((keyRef.generationNumber() >>> 8) & 0xFF);
+					// AES adds 'sAlT'
+					// Adobe PDF Spec 1.6 had an omission, corrected in 1.7
+					work[this.length + 5] = 0x73;
+					work[this.length + 6] = 0x41;
+					work[this.length + 7] = 0x6C;
+					work[this.length + 8] = 0x54;
+					this.md5.reset();
+					this.md5.update(work);
+					byte[] arckey = this.md5.digest();
+					this.keyRef = keyRef;
+					this.encryptor = new ArcfourEncryptor(arckey, keyLen);
+					this.encryptor = new AESEncryptor(arckey, keyLen);
+					break;
+				}
+				default:
+					throw new IllegalStateException();
 			}
 		}
 		return this.encryptor;

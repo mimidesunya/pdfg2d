@@ -24,18 +24,18 @@ public class ToUnicode implements Serializable {
 	public static class Unicode implements Serializable {
 		private static final long serialVersionUID = 0;
 
-		/** 最初のコードと最後のコードです。 */
+		/** First and last CID codes. */
 		int firstCode, lastCode;
 
-		/** 文字のリストです。 */
+		/** List of Unicode characters. */
 		int[] unicodes;
 
 		/**
-		 * ある範囲の文字に対するエントリを構築します。
+		 * Constructs an entry for a range of characters.
 		 * 
-		 * @param firstCode 最初の文字のコード。
-		 * @param lastCode  最後の文字のコード。
-		 * @param unicodes  文字の幅のリスト。
+		 * @param firstCode the first character code
+		 * @param lastCode  the last character code
+		 * @param unicodes  the list of Unicode characters
 		 */
 		public Unicode(int firstCode, int lastCode, int[] unicodes) {
 			this.firstCode = firstCode;
@@ -76,10 +76,10 @@ public class ToUnicode implements Serializable {
 	}
 
 	/**
-	 * 文字配列から最適なToUnicodeを構築します。
+	 * Builds an optimal ToUnicode from a character array.
 	 * 
-	 * @param unicodes
-	 * @return
+	 * @param unicodes the Unicode character array
+	 * @return the ToUnicode instance
 	 */
 	public static ToUnicode buildFromChars(int[] unicodes) {
 		List<ToUnicode.Unicode> list = new ArrayList<ToUnicode.Unicode>();
@@ -96,15 +96,15 @@ public class ToUnicode implements Serializable {
 			}
 
 			if (startCid == -1) {
-				// 最初
+				// First character
 				startCid = cid;
 				runUnicodes[position++] = unicode;
 				continue;
-			} else if (cid % 256 != 0) {// SPEC PDF 7.10.1 (ランはバイトをまたがることができない)
+			} else if (cid % 256 != 0) {// SPEC PDF 7.10.1 (runs cannot span byte boundaries)
 				runUnicodes[position++] = unicode;
 				continue;
 			}
-			// ランの終了
+			// End of run
 			int[] temp = new int[position];
 			System.arraycopy(runUnicodes, 0, temp, 0, position);
 			list.add(new ToUnicode.Unicode(startCid, cid - 1, temp));

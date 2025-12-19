@@ -6,12 +6,6 @@ import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 
 /**
- * TTFやシステムフォント等PDFフォントの元となるフォントです。
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
- */
-/**
  * Represents a source of a font, such as a TTF file or a system font.
  * 
  * @author MIYABE Tatsuhiko

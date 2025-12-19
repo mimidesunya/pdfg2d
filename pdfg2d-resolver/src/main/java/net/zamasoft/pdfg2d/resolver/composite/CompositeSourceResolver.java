@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.resolver.SourceResolver;
 import net.zamasoft.pdfg2d.resolver.protocol.data.DataSourceResolver;
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSourceResolver;
-import net.zamasoft.pdfg2d.resolver.protocol.http.HttpSourceResolver;
+import net.zamasoft.pdfg2d.resolver.protocol.http.HTTPSourceResolver;
 import net.zamasoft.pdfg2d.resolver.protocol.url.URLSourceResolver;
 
 /**
@@ -31,7 +31,7 @@ public class CompositeSourceResolver implements SourceResolver {
 		CompositeSourceResolver resolver = new CompositeSourceResolver();
 		resolver.addSourceResolver("file", new FileSourceResolver());
 		try {
-			HttpSourceResolver httpSourceResolver = new HttpSourceResolver();
+			HTTPSourceResolver httpSourceResolver = new HTTPSourceResolver();
 			resolver.addSourceResolver("http", httpSourceResolver);
 			resolver.addSourceResolver("https", httpSourceResolver);
 		} catch (Throwable e) {

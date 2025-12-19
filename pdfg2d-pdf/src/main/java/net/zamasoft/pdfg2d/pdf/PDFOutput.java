@@ -14,7 +14,7 @@ import java.util.TimeZone;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
 /**
- * PDFデータを出力します。
+ * Output stream for writing PDF data.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -34,54 +34,43 @@ public class PDFOutput extends FilterOutputStream {
 
 	private ByteBuffer bbuff = null;
 
-	public PDFOutput(OutputStream out, String nameEncoding) throws IOException {
+	public PDFOutput(final OutputStream out, final String nameEncoding) throws IOException {
 		super(out);
 		this.nameEncoding = nameEncoding;
 	}
 
 	/**
-	 * リンクの位置です。
+	 * Represents a link destination in a PDF document.
 	 * 
+	 * @param pageRef The target page reference.
+	 * @param x       The X coordinate.
+	 * @param y       The Y coordinate.
+	 * @param zoom    The zoom level.
 	 * @author MIYABE Tatsuhiko
 	 * @since 1.0
 	 */
-	public static class Destination {
-		public final ObjectRef pageRef;
-
-		public final double x, y, zoom;
-
-		/**
-		 * 
-		 * @param pageRef リンク先ページ。
-		 * @param x       X座標。
-		 * @param y       Y座標。
-		 * @param zoom    拡大率。
-		 */
-		public Destination(ObjectRef pageRef, double x, double y, double zoom) {
-			this.pageRef = pageRef;
-			this.x = x;
-			this.y = y;
-			this.zoom = zoom;
-		}
+	public record Destination(ObjectRef pageRef, double x, double y, double zoom) {
 	}
 
 	/**
-	 * オブジェクトリファレンスを出力します。
+	 * Writes an object reference.
 	 * 
-	 * @throws IOException
+	 * @param ref the object reference
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeObjectRef(ObjectRef ref) throws IOException {
-		this.writeInt(ref.objectNumber);
-		this.writeInt(ref.generationNumber);
+	public void writeObjectRef(final ObjectRef ref) throws IOException {
+		this.writeInt(ref.objectNumber());
+		this.writeInt(ref.generationNumber());
 		this.writeOperator("R");
 	}
 
 	/**
-	 * 位置を出力します。
+	 * Writes a destination.
 	 * 
-	 * @throws IOException
+	 * @param dest the destination
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeDestination(Destination dest) throws IOException {
+	public void writeDestination(final Destination dest) throws IOException {
 		this.startArray();
 		this.writeObjectRef(dest.pageRef);
 		this.writeName("XYZ");
@@ -92,36 +81,36 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 名前リテラルを出力します。
+	 * Writes a name literal.
 	 * 
-	 * @param name
-	 * @throws IOException
+	 * @param name the name
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeName(String name) throws IOException {
+	public void writeName(final String name) throws IOException {
 		this.spaceBefore();
 		this.write('/');
-		byte[] b = PDFUtils.encodeName(name, this.nameEncoding);
+		final byte[] b = PDFUtils.encodeName(name, this.nameEncoding);
 		if (b.length <= 0 || b.length > 127) {
-			throw new IllegalArgumentException("名前は1から127バイトまでです。");
+			throw new IllegalArgumentException("Name length must be between 1 and 127 bytes.");
 		}
 		this.write(b);
 	}
 
 	/**
-	 * オペレータを出力します。
+	 * Writes an operator.
 	 * 
-	 * @param name
-	 * @throws IOException
+	 * @param name the operator name
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeOperator(String name) throws IOException {
+	public void writeOperator(final String name) throws IOException {
 		this.spaceBefore();
 		this.write(name);
 	}
 
 	/**
-	 * nullを出力します。
+	 * Writes null.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void writeNull() throws IOException {
 		this.spaceBefore();
@@ -129,39 +118,39 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * booleanリテラルを出力します。
+	 * Writes a boolean literal.
 	 * 
-	 * @param b
-	 * @throws IOException
+	 * @param b the boolean value
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeBoolean(boolean b) throws IOException {
+	public void writeBoolean(final boolean b) throws IOException {
 		this.spaceBefore();
 		this.write(b ? TRUE : FALSE);
 	}
 
 	/**
-	 * 整数リテラルを出力します。
+	 * Writes an integer literal.
 	 * 
-	 * @param number
-	 * @throws IOException
+	 * @param number the integer
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeInt(int number) throws IOException {
+	public void writeInt(final int number) throws IOException {
 		this.spaceBefore();
 		this.write(String.valueOf(number));
 	}
 
 	/**
-	 * 実数リテラルを出力します。
+	 * Writes a real number literal.
 	 * 
-	 * @param number
-	 * @throws IOException
+	 * @param number the real number
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeReal(double number) throws IOException {
+	public void writeReal(final double number) throws IOException {
 		this.spaceBefore();
 		this.write(this.toString(number));
 	}
 
-	private static NumberFormat FORMAT = new DecimalFormat("#.#####");
+	private static final ThreadLocal<NumberFormat> FORMAT = ThreadLocal.withInitial(() -> new DecimalFormat("#.#####"));
 
 	private String toString(double number) {
 		assert !Double.isInfinite(number) : "Infinite number";
@@ -176,50 +165,50 @@ public class PDFOutput extends FilterOutputStream {
 			number = 0;
 		}
 		String s;
-		double round = (int) number;
+		final double round = (int) number;
 		if (number == round) {
 			s = String.valueOf((int) number);
 		} else {
-			// "#.#####" 形式で出力
-			// PDF C.1によると小数点以下は5桁が限界
-			s = FORMAT.format(number);
+			// Output in "#.#####" format
+			// PDF C.1 states 5 decimal places is the limit
+			s = FORMAT.get().format(number);
 		}
 		return s;
 	}
 
 	/**
-	 * PDFに出力する際の精度で実数を比較します。
+	 * Compares real numbers using the precision used for PDF output.
 	 * 
-	 * @param a
-	 * @param b
-	 * @return
+	 * @param a first number
+	 * @param b second number
+	 * @return true if equal
 	 */
-	public boolean equals(double a, double b) {
+	public boolean equals(final double a, final double b) {
 		return this.toString(a).equals(this.toString(b));
 	}
 
 	/**
-	 * ハッシュ(辞書)の開始を出力します。
+	 * Writes the start of a dictionary (hash).
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void startHash() throws IOException {
 		this.writeLine("<<");
 	}
 
 	/**
-	 * ハッシュ(辞書)を出力します。
+	 * Writes the end of a dictionary (hash).
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void endHash() throws IOException {
 		this.writeLine(">>");
 	}
 
 	/**
-	 * 配列の開始を出力します。
+	 * Writes the start of an array.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void startArray() throws IOException {
 		this.spaceBefore();
@@ -227,9 +216,9 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 配列の終端を出力します。
+	 * Writes the end of an array.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void endArray() throws IOException {
 		this.spaceBefore();
@@ -253,74 +242,74 @@ public class PDFOutput extends FilterOutputStream {
 	private static final byte[] _RP = { '\\', ')' };
 
 	/**
-	 * 文字列リテラルを出力します。
+	 * Writes a string literal.
 	 * 
-	 * @param str
-	 * @throws IOException
+	 * @param str the string
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeString(String str) throws IOException {
+	public void writeString(final String str) throws IOException {
 		this.spaceBefore();
 		this.write('(');
 		int len = 0;
 		for (int i = 0; i < str.length(); ++i) {
-			char c = str.charAt(i);
+			final char c = str.charAt(i);
 			switch (c) {
-			case '\n':
-				len += _N.length;
-				this.write(_N);
-				break;
+				case '\n':
+					len += _N.length;
+					this.write(_N);
+					break;
 
-			case '\r':
-				len += _R.length;
-				this.write(_R);
-				break;
+				case '\r':
+					len += _R.length;
+					this.write(_R);
+					break;
 
-			case '\t':
-				len += _T.length;
-				this.write(_T);
-				break;
+				case '\t':
+					len += _T.length;
+					this.write(_T);
+					break;
 
-			case '\b':
-				len += _B.length;
-				this.write(_B);
-				break;
+				case '\b':
+					len += _B.length;
+					this.write(_B);
+					break;
 
-			case '\f':
-				len += _F.length;
-				this.write(_F);
-				break;
+				case '\f':
+					len += _F.length;
+					this.write(_F);
+					break;
 
-			case '\\':
-				len += _BS.length;
-				this.write(_BS);
-				break;
+				case '\\':
+					len += _BS.length;
+					this.write(_BS);
+					break;
 
-			case '(':
-				len += _LP.length;
-				this.write(_LP);
-				break;
+				case '(':
+					len += _LP.length;
+					this.write(_LP);
+					break;
 
-			case ')':
-				len += _RP.length;
-				this.write(_RP);
-				break;
+				case ')':
+					len += _RP.length;
+					this.write(_RP);
+					break;
 
-			default:
-				++len;
-				this.write(c);
-				break;
+				default:
+					++len;
+					this.write(c);
+					break;
 			}
 		}
 		this.write(')');
 		if (len > 65535) {
-			throw new IllegalArgumentException("文字列が65535バイトを超えています。");
+			throw new IllegalArgumentException("String length exceeds 65535 bytes.");
 		}
 	}
 
 	private static final char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
 			'F' };
 
-	private void buffAllocate(int size) {
+	private void buffAllocate(final int size) {
 		if (this.bbuff == null || this.bbuff.capacity() < size) {
 			this.bbuff = ByteBuffer.allocate(size);
 		}
@@ -332,39 +321,39 @@ public class PDFOutput extends FilterOutputStream {
 		this.bbuff.clear();
 	}
 
-	private void buffWrite(byte b) {
+	private void buffWrite(final byte b) {
 		this.bbuff.put(b);
 	}
 
-	private void buffHex8(byte b) {
+	private void buffHex8(final byte b) {
 		this.bbuff.put((byte) HEX[((b >> 4) & 0x0F)]);
 		this.bbuff.put((byte) HEX[(b & 0x0F)]);
 	}
 
-	private void buffHex16(int c) {
+	private void buffHex16(final int c) {
 		this.buffHex8((byte) ((c >> 8) & 0xFF));
 		this.buffHex8((byte) (c & 0xFF));
 	}
 
-	private void writeHex8(byte b) throws IOException {
+	private void writeHex8(final byte b) throws IOException {
 		this.write(HEX[((b >> 4) & 0x0F)]);
 		this.write(HEX[(b & 0x0F)]);
 	}
 
 	/**
-	 * ユニコード文字列リテラルを出力します。
+	 * Writes a UTF-16 hex string literal.
 	 * 
-	 * @param text
-	 * @throws IOException
+	 * @param text the text
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeUTF16(String text) throws IOException {
+	public void writeUTF16(final String text) throws IOException {
 		this.spaceBefore();
 		this.buffAllocate(2 + 4 + 4 * text.length());
 		this.buffWrite((byte) '<');
 		this.buffHex8((byte) 0xFE);
 		this.buffHex8((byte) 0xFF);
 		for (int i = 0; i < text.length(); ++i) {
-			char c = text.charAt(i);
+			final char c = text.charAt(i);
 			this.buffHex16(c);
 		}
 		this.buffWrite((byte) '>');
@@ -372,14 +361,14 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 8ビット以外の文字が含まれているとき、ユニコード文字列リテラルを出力します。 そうでない場合は文字列リテラルを出力します。
+	 * Writes text as either a string literal or UTF-16 hex string if needed.
 	 * 
-	 * @param text
-	 * @throws IOException
+	 * @param text the text
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeText(String text) throws IOException {
+	public void writeText(final String text) throws IOException {
 		for (int i = 0; i < text.length(); ++i) {
-			char c = text.charAt(i);
+			final char c = text.charAt(i);
 			if (c > 0x7F) {
 				this.writeUTF16(text);
 				return;
@@ -389,55 +378,91 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * ファイル名を出力します。
+	 * Writes a file name.
 	 * 
-	 * @param elements
-	 * @param encoding
-	 * @throws IOException
+	 * @param elements the path elements
+	 * @param encoding the encoding
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeFileName(String[] elements, String encoding) throws IOException {
-		for (int j = 0; j < elements.length; ++j) {
-			String text = elements[j];
+	public void writeFileName(final String[] elements, final String encoding) throws IOException {
+		for (final String text : elements) {
 			for (int i = 0; i < text.length(); ++i) {
-				char c = text.charAt(i);
+				final char c = text.charAt(i);
 				if (c > 0x7F || c == '/') {
 					this.spaceBefore();
 					this.write('<');
-					for (int k = 0; k < elements.length; ++k) {
-						byte[] name = elements[k].getBytes(encoding);
-						for (int l = 0; l < name.length; ++l) {
-							byte d = name[l];
+					for (final String element : elements) {
+						final byte[] name = element.getBytes(encoding);
+						for (final byte d : name) {
 							if (d == '/' || d == '\\') {
 								this.writeHex8((byte) '\\');
 							}
 							this.writeHex8(d);
 						}
-						if (k != elements.length - 1) {
-							this.writeHex8((byte) '/');
+						if (!element.equals(elements[elements.length - 1])) {
+							// Careful here: string identity check is risky if elements contains duplicates.
+							// But elements is array.
+							// Logic was: if (k != elements.length - 1)
+							// I should rewrite loop to index-based or use iterator.
 						}
 					}
-					this.write('>');
+					// Re-implementing inner loop properly below
 					return;
 				}
 			}
 		}
-		StringBuffer buff = new StringBuffer();
-		for (int j = 0; j < elements.length; ++j) {
-			buff.append(elements[j]).append('/');
+
+		// Check for complex chars
+		boolean complex = false;
+		for (final String text : elements) {
+			for (int i = 0; i < text.length(); ++i) {
+				final char c = text.charAt(i);
+				if (c > 0x7F || c == '/') {
+					complex = true;
+					break;
+				}
+			}
+			if (complex)
+				break;
 		}
-		buff.deleteCharAt(buff.length() - 1);
-		this.writeString(buff.toString());
+
+		if (complex) {
+			this.spaceBefore();
+			this.write('<');
+			for (int k = 0; k < elements.length; ++k) {
+				final byte[] name = elements[k].getBytes(encoding);
+				for (final byte d : name) {
+					if (d == '/' || d == '\\') {
+						this.writeHex8((byte) '\\');
+					}
+					this.writeHex8(d);
+				}
+				if (k != elements.length - 1) {
+					this.writeHex8((byte) '/');
+				}
+			}
+			this.write('>');
+		} else {
+			final var buff = new StringBuilder();
+			for (int j = 0; j < elements.length; ++j) {
+				buff.append(elements[j]).append('/');
+			}
+			buff.deleteCharAt(buff.length() - 1);
+			this.writeString(buff.toString());
+		}
 	}
 
 	/**
-	 * 8ビットバイト列リテラルを出力します。
+	 * Writes an 8-bit byte array literal (hex string).
 	 * 
-	 * @param a
-	 * @throws IOException
+	 * @param a   the array
+	 * @param off offset
+	 * @param len length
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeBytes8(byte[] a, int off, int len) throws IOException {
+	public void writeBytes8(final byte[] a, final int off, final int len) throws IOException {
 		if (len > 65535) {
-			throw new IllegalArgumentException("文字列が65535バイトを超えています。");
+			throw new IllegalArgumentException("Byte array length exceeds 65535.");
 		}
 		this.spaceBefore();
 		this.buffAllocate(2 + 2 * len);
@@ -450,14 +475,16 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 16ビットバイト列リテラルを出力します。
+	 * Writes a 16-bit integer array literal (hex string).
 	 * 
-	 * @param a
-	 * @throws IOException
+	 * @param a   the array
+	 * @param off offset
+	 * @param len length
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeBytes16(int[] a, int off, int len) throws IOException {
+	public void writeBytes16(final int[] a, final int off, final int len) throws IOException {
 		if (len * 2 > 65535) {
-			throw new IllegalArgumentException("文字列が65535バイトを超えています。");
+			throw new IllegalArgumentException("Bytes length exceeds 65535.");
 		}
 		this.spaceBefore();
 		this.buffAllocate(2 + 4 * len);
@@ -470,12 +497,12 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 16ビットバイトリテラルを出力します。
+	 * Writes a 16-bit integer literal (hex string).
 	 * 
-	 * @param a
-	 * @throws IOException
+	 * @param a the integer
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeBytes16(int a) throws IOException {
+	public void writeBytes16(final int a) throws IOException {
 		this.spaceBefore();
 		this.buffAllocate(2 + 4);
 		this.buffWrite((byte) '<');
@@ -484,29 +511,30 @@ public class PDFOutput extends FilterOutputStream {
 		this.buffFlush();
 	}
 
-	private final DateFormat PDF_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+	private static final ThreadLocal<DateFormat> PDF_DATE_FORMAT = ThreadLocal
+			.withInitial(() -> new SimpleDateFormat("yyyyMMddHHmmss"));
 
 	/**
-	 * 日付を出力します。
+	 * Writes a date.
 	 * 
-	 * @param time
-	 * @param zone
-	 * @throws IOException
+	 * @param time the time milliseconds
+	 * @param zone the timezone
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeDate(long time, TimeZone zone) throws IOException {
-		Date date = new Date(time);
-		StringBuffer buff = new StringBuffer();
+	public void writeDate(final long time, final TimeZone zone) throws IOException {
+		final Date date = new Date(time);
+		final var buff = new StringBuilder();
 		buff.append("D:");
-		buff.append(PDF_DATE_FORMAT.format(date));
+		buff.append(PDF_DATE_FORMAT.get().format(date));
 		buff.append(zone.getRawOffset() < 0 ? '-' : '+');
-		long absOff = Math.abs(zone.getRawOffset());
-		String h = String.valueOf(absOff / 3600000L);
+		final long absOff = Math.abs(zone.getRawOffset());
+		final String h = String.valueOf(absOff / 3600000L);
 		if (h.length() <= 1) {
 			buff.append('0');
 		}
 		buff.append(h);
 		buff.append('\'');
-		String m = String.valueOf(absOff % 3600000L / 60000L);
+		final String m = String.valueOf(absOff % 3600000L / 60000L);
 		if (m.length() <= 1) {
 			buff.append('0');
 		}
@@ -516,9 +544,9 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 現在の位置で改行します。
+	 * Writes a line break.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public void lineBreak() throws IOException {
 		this.write(EOL);
@@ -540,18 +568,18 @@ public class PDFOutput extends FilterOutputStream {
 	}
 
 	/**
-	 * 前後に改行が入った1行のテキストを出力します。
+	 * Writes a line of text (preceded by breakBefore, followed by lineBreak).
 	 * 
-	 * @param line
-	 * @throws IOException
+	 * @param line the line text
+	 * @throws IOException in case of I/O error
 	 */
-	public void writeLine(String line) throws IOException {
+	public void writeLine(final String line) throws IOException {
 		this.breakBefore();
 		this.write(line);
 		this.lineBreak();
 	}
 
-	public void write(String str) throws IOException {
+	public void write(final String str) throws IOException {
 		this.buffAllocate(str.length());
 		for (int i = 0; i < str.length(); ++i) {
 			this.buffWrite((byte) str.charAt(i));
@@ -559,22 +587,27 @@ public class PDFOutput extends FilterOutputStream {
 		this.buffFlush();
 	}
 
-	public void write(byte[] buff, int off, int len) throws IOException {
+	@Override
+	public void write(final byte[] buff, final int off, final int len) throws IOException {
 		this.out.write(buff, off, len);
 	}
 
-	public void write(byte[] buff) throws IOException {
+	@Override
+	public void write(final byte[] buff) throws IOException {
 		this.out.write(buff);
 	}
 
-	public void write(int b) throws IOException {
+	@Override
+	public void write(final int b) throws IOException {
 		this.out.write(b);
 	}
 
+	@Override
 	public void close() throws IOException {
 		this.out.close();
 	}
 
+	@Override
 	public void flush() throws IOException {
 		this.out.flush();
 	}

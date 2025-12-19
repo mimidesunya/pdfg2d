@@ -26,34 +26,34 @@ public class SpaceCIDFontSource extends MissingCIDFontSource {
 
 	public boolean canDisplay(int c) {
 		switch (c) {
-		// 制御コード
-		case 0x0000:
-		case 0x000B:
-		case 0x001C:
-		case 0x001D:
-		case 0x001E:
-		case 0x001F:
-			// ゼロ幅空白
-		case 0x200B:
-		case 0x200C:
-		case 0x200D:
-		case 0x200E:
-		case 0x200F:
-		case 0x202A:
-		case 0x202B:
-		case 0x202C:
-		case 0x202D:
-		case 0x202E:
-		case 0x2060:
-		case 0xFEFF:
-			// スペース文字
-		case 0x007F:
-		case 0x0020:
-		case 0x00A0:
-		case 0x2028:
-		case 0x2029:
-		case 0x202F:
-			return true;
+			// Control codes
+			case 0x0000:
+			case 0x000B:
+			case 0x001C:
+			case 0x001D:
+			case 0x001E:
+			case 0x001F:
+				// Zero-width spaces
+			case 0x200B:
+			case 0x200C:
+			case 0x200D:
+			case 0x200E:
+			case 0x200F:
+			case 0x202A:
+			case 0x202B:
+			case 0x202C:
+			case 0x202D:
+			case 0x202E:
+			case 0x2060:
+			case 0xFEFF:
+				// Space characters
+			case 0x007F:
+			case 0x0020:
+			case 0x00A0:
+			case 0x2028:
+			case 0x2029:
+			case 0x202F:
+				return true;
 		}
 		return false;
 	}

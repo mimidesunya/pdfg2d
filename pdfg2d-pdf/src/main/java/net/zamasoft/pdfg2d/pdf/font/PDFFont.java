@@ -13,18 +13,18 @@ import net.zamasoft.pdfg2d.pdf.XRef;
  */
 public interface PDFFont extends Font, Serializable {
 	/**
-	 * PDF文書内での識別に使われるフォント名を返します。
+	 * Returns the font name used for identification within the PDF document.
 	 * 
-	 * @return
+	 * @return the font name
 	 */
 	public String getName();
 
 	/**
-	 * フォント情報をPDFオブジェクトとして出力します。
+	 * Writes font information as a PDF object.
 	 * 
-	 * @param out
-	 * @param xref
-	 * @throws IOException
+	 * @param out  the PDF fragment output stream
+	 * @param xref the cross-reference table
+	 * @throws IOException if an I/O error occurs
 	 */
 	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException;
 }

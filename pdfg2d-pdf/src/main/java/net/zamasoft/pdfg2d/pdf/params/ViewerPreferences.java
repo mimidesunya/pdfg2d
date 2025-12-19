@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
 /**
- * 表示設定です。
+ * Viewer preferences for the PDF document.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -22,21 +22,21 @@ public class ViewerPreferences {
 
 	private NonFullScreenPageMode nonFullScreenPageMode = NonFullScreenPageMode.NONE;
 
-	public static enum NonFullScreenPageMode {
+	public enum NonFullScreenPageMode {
 		/**
-		 * しおりかサムネイルパネルを表示します。
+		 * Neither document outline nor thumbnail images visible.
 		 */
 		NONE,
 		/**
-		 * しおりパネルを表示します。
+		 * Document outline visible.
 		 */
 		OUTLINES,
 		/**
-		 * サムネイルパネルを表示します。
+		 * Thumbnail images visible.
 		 */
 		THUMBS,
 		/**
-		 * レイヤーパネルを表示します。
+		 * Optional content group panel visible.
 		 */
 		OC;
 
@@ -45,13 +45,13 @@ public class ViewerPreferences {
 	// PDF 1.3
 	private Direction direction = Direction.L2R;
 
-	public static enum Direction {
+	public enum Direction {
 		/**
-		 * 左綴じ（日本語横書き、欧文など）の定数です。
+		 * Left to Right (e.g. English, Japanese horizontal).
 		 */
 		L2R,
 		/**
-		 * 右綴じ（日本語縦書き、アラビア語など）定数です。
+		 * Right to Left (e.g. Arabic, Japanese vertical).
 		 */
 		R2L;
 
@@ -63,20 +63,20 @@ public class ViewerPreferences {
 	private AreaBox printArea = AreaBox.CROP;
 	private AreaBox printClip = AreaBox.CROP;
 
-	public static enum AreaBox {
+	public enum AreaBox {
 		MEDIA, CROP, BLEED, TRIM, ART
 	}
 
 	// PDF 1.6
 	private PrintScaling printScaling = PrintScaling.APP_DEFAULT;
 
-	public static enum PrintScaling {
+	public enum PrintScaling {
 		/**
-		 * 拡大縮小をしない定数です。
+		 * No scaling.
 		 */
 		NONE,
 		/**
-		 * 拡大縮小をビューワに任せる定数です。
+		 * Use viewer's default scaling.
 		 */
 		APP_DEFAULT;
 	}
@@ -84,21 +84,21 @@ public class ViewerPreferences {
 	// PDF 1.7
 	private Duplex duplex = Duplex.NONE;
 
-	public static enum Duplex {
+	public enum Duplex {
 		/**
-		 * ビューワのデフォルトの定数です。
+		 * Viewer's default.
 		 */
 		NONE,
 		/**
-		 * 片面印刷の定数です。
+		 * Simplex printing.
 		 */
 		SIMPLEX,
 		/**
-		 * 短辺綴じで両面印刷をする定数です。
+		 * Duplex printing, flip on short edge.
 		 */
 		FLIP_SHORT_EDGE,
 		/**
-		 * 長辺綴じで両面印刷をする定数です。
+		 * Duplex printing, flip on long edge.
 		 */
 		FLIP_LONG_EDGE;
 	}
@@ -113,20 +113,20 @@ public class ViewerPreferences {
 	private int numCopies = 0;
 
 	/**
-	 * ページ進行方向を返します。
+	 * Returns the page reading direction.
 	 * 
-	 * @return
+	 * @return the direction
 	 */
 	public Direction getDirection() {
 		return this.direction;
 	}
 
 	/**
-	 * ページ進行方向を設定します。
+	 * Sets the page reading direction.
 	 * 
-	 * @param direction
+	 * @param direction the direction to set
 	 */
-	public void setDirection(Direction direction) {
+	public void setDirection(final Direction direction) {
 		this.direction = direction;
 	}
 
@@ -135,14 +135,12 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * <p>
-	 * ビューワアプリケーションのツールバーの非表示、表示を設定します。
-	 * </p>
-	 * ※Adobe Readerでは動作はあまりあてにならないようです。
+	 * Sets whether to hide the viewer application's toolbars.
+	 * Note: Behavior in Adobe Reader may vary.
 	 * 
-	 * @param hideToolbar
+	 * @param hideToolbar true to hide toolbar
 	 */
-	public void setHideToolbar(boolean hideToolbar) {
+	public void setHideToolbar(final boolean hideToolbar) {
 		this.hideToolbar = hideToolbar;
 	}
 
@@ -151,11 +149,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * ビューワアプリケーションのメニューバーの非表示、表示を設定します。
+	 * Sets whether to hide the viewer application's menu bar.
 	 * 
-	 * @param hideMenubar
+	 * @param hideMenubar true to hide menu bar
 	 */
-	public void setHideMenubar(boolean hideMenubar) {
+	public void setHideMenubar(final boolean hideMenubar) {
 		this.hideMenubar = hideMenubar;
 	}
 
@@ -164,11 +162,13 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * ビューワアプリケーションのウィンドウ内UI(サムネール、添付など)の非表示、表示を設定します。
+	 * Sets whether to hide user interface elements in the document's window (such
+	 * as scroll bars and navigation controls), leaving only the document's contents
+	 * displayed.
 	 * 
-	 * @param hideWindowUI
+	 * @param hideWindowUI true to hide window UI
 	 */
-	public void setHideWindowUI(boolean hideWindowUI) {
+	public void setHideWindowUI(final boolean hideWindowUI) {
 		this.hideWindowUI = hideWindowUI;
 	}
 
@@ -177,11 +177,12 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 内容に合わせてビューワアプリケーションのウィンドウサイズをフィットさせるかどうかを設定します。
+	 * Sets whether to resize the document's window to fit the size of the first
+	 * displayed page.
 	 * 
-	 * @param fitWindow
+	 * @param fitWindow true to fit window
 	 */
-	public void setFitWindow(boolean fitWindow) {
+	public void setFitWindow(final boolean fitWindow) {
 		this.fitWindow = fitWindow;
 	}
 
@@ -190,11 +191,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 内容に合わせてビューワアプリケーションのウィンドウサイズをスクリーンに対して中央表示させるかどうかを設定します。
+	 * Sets whether to position the document's window in the center of the screen.
 	 * 
-	 * @param centerWindow
+	 * @param centerWindow true to center window
 	 */
-	public void setCenterWindow(boolean centerWindow) {
+	public void setCenterWindow(final boolean centerWindow) {
 		this.centerWindow = centerWindow;
 	}
 
@@ -203,11 +204,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * ビューワアプリケーションのタイトルバーに文書のタイトルを表示させるかどうかを設定します。
+	 * Sets whether to display the document's title in the window title bar.
 	 * 
-	 * @param displayDocTitle
+	 * @param displayDocTitle true to display document title
 	 */
-	public void setDisplayDocTitle(boolean displayDocTitle) {
+	public void setDisplayDocTitle(final boolean displayDocTitle) {
 		this.displayDocTitle = displayDocTitle;
 	}
 
@@ -216,14 +217,12 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * <p>
-	 * サイドパネルの表示内容を設定します。
-	 * </p>
-	 * ※Adobe Readerでは動作はあまりあてにならないようです。
+	 * Sets the page mode when exiting full-screen mode.
+	 * Note: Behavior in Adobe Reader may vary.
 	 * 
-	 * @param nonFullScreenPageMode
+	 * @param nonFullScreenPageMode the mode
 	 */
-	public void setNonFullScreenPageMode(NonFullScreenPageMode nonFullScreenPageMode) {
+	public void setNonFullScreenPageMode(final NonFullScreenPageMode nonFullScreenPageMode) {
 		this.nonFullScreenPageMode = nonFullScreenPageMode;
 	}
 
@@ -231,7 +230,7 @@ public class ViewerPreferences {
 		return this.viewArea;
 	}
 
-	public void setViewArea(AreaBox viewArea) {
+	public void setViewArea(final AreaBox viewArea) {
 		this.viewArea = viewArea;
 	}
 
@@ -239,7 +238,7 @@ public class ViewerPreferences {
 		return this.viewClip;
 	}
 
-	public void setViewClip(AreaBox viewClip) {
+	public void setViewClip(final AreaBox viewClip) {
 		this.viewClip = viewClip;
 	}
 
@@ -247,7 +246,7 @@ public class ViewerPreferences {
 		return this.printArea;
 	}
 
-	public void setPrintArea(AreaBox printArea) {
+	public void setPrintArea(final AreaBox printArea) {
 		this.printArea = printArea;
 	}
 
@@ -255,7 +254,7 @@ public class ViewerPreferences {
 		return this.printClip;
 	}
 
-	public void setPrintClip(AreaBox printClip) {
+	public void setPrintClip(final AreaBox printClip) {
 		this.printClip = printClip;
 	}
 
@@ -264,11 +263,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 印刷時の拡大縮小を設定します。
+	 * Sets the page scaling option for printing.
 	 * 
-	 * @param printScaling
+	 * @param printScaling the scaling option
 	 */
-	public void setPrintScaling(PrintScaling printScaling) {
+	public void setPrintScaling(final PrintScaling printScaling) {
 		this.printScaling = printScaling;
 	}
 
@@ -277,11 +276,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 文書の片面・両面印刷の方法を設定します。
+	 * Sets the handling of paper handling for duplex printing.
 	 * 
-	 * @param duplex
+	 * @param duplex the duplex option
 	 */
-	public void setDuplex(Duplex duplex) {
+	public void setDuplex(final Duplex duplex) {
 		this.duplex = duplex;
 	}
 
@@ -290,9 +289,11 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 「PDFのページサイズに合わせて用紙を選択」のチェック状態を設定します。
+	 * Sets whether the PDF page size is used to select the input paper tray.
+	 * 
+	 * @param pickTrayByPDFSize true to pick tray by PDF size
 	 */
-	public void setPickTrayByPDFSize(boolean pickTrayByPDFSize) {
+	public void setPickTrayByPDFSize(final boolean pickTrayByPDFSize) {
 		this.pickTrayByPDFSize = pickTrayByPDFSize;
 	}
 
@@ -301,11 +302,14 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 初期の印刷対象ページを設定します。 配列は必ず2の倍数で、開始ページと終了ページのペアを列挙したものです。
+	 * Sets the page numbers to initialize the print dialog box when the file is
+	 * printed.
+	 * The array must contain an even number of integers, treating them as pairs of
+	 * (start, end).
 	 * 
-	 * @param printPageRange
+	 * @param printPageRange array of page ranges
 	 */
-	public void setPrintPageRange(int[] printPageRange) {
+	public void setPrintPageRange(final int[] printPageRange) {
 		this.printPageRange = printPageRange;
 	}
 
@@ -314,11 +318,13 @@ public class ViewerPreferences {
 	}
 
 	/**
-	 * 初期の印刷枚数を設定します。0ではビューワのデフォルトで、その他は2から5が有効な値です。
+	 * Sets the number of copies to print.
+	 * 0 for viewer default, otherwise 2-5 are valid.
 	 * 
-	 * @param numCopies
+	 * @param numCopies number of copies
+	 * @throws IllegalArgumentException if numCopies is invalid
 	 */
-	public void setNumCopies(int numCopies) {
+	public void setNumCopies(final int numCopies) {
 		if (!(numCopies == 0 || (numCopies >= 2 && numCopies <= 5))) {
 			throw new IllegalArgumentException();
 		}

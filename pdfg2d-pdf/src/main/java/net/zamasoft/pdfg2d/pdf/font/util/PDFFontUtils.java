@@ -24,7 +24,7 @@ import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
 
 /**
- * フォント関連のユーティリティです。
+ * Font-related utilities.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -44,10 +44,10 @@ public class PDFFontUtils {
 	}
 
 	/**
-	 * 代替のAWTフォントを返します。
+	 * Returns a fallback AWT font.
 	 * 
-	 * @param source
-	 * @return
+	 * @param source the font source
+	 * @return the AWT font
 	 */
 	public static Font toAwtFont(FontSource source) {
 		Map<TextAttribute, String> atts = new HashMap<TextAttribute, String>();
@@ -73,11 +73,12 @@ public class PDFFontUtils {
 	}
 
 	/**
-	 * PDFグラフィックコンテキストにCIDテキストを描画します。
+	 * Draws CID text to a PDF graphics context.
 	 * 
-	 * @param out
-	 * @param text
-	 * @throws IOException
+	 * @param out          the PDF graphics output
+	 * @param text         the text to draw
+	 * @param verticalFont true if using a vertical font
+	 * @throws IOException if an I/O error occurs
 	 */
 	public static void drawCIDTo(PDFGraphicsOutput out, Text text, boolean verticalFont) throws IOException {
 		int[] gids = text.getGlyphIds();
@@ -115,12 +116,13 @@ public class PDFFontUtils {
 	}
 
 	/**
-	 * AWTフォントを描画します。
+	 * Draws text using an AWT font.
 	 * 
-	 * @param gc
-	 * @param fontSource
-	 * @param awtFont
-	 * @param text
+	 * @param gc         the graphics context
+	 * @param fontSource the font source
+	 * @param awtFont    the AWT font
+	 * @param text       the text to draw
+	 * @throws GraphicsException if a graphics error occurs
 	 */
 	public static void drawAwtFont(GC gc, FontSource fontSource, Font awtFont, Text text) throws GraphicsException {
 		Direction direction = text.getFontStyle().getDirection();
@@ -138,13 +140,13 @@ public class PDFFontUtils {
 		TextMode textMode = gc.getTextMode();
 
 		if (direction == Direction.TB) {
-			// 横倒し
+			// Sideways rotation
 			gc.transform(AffineTransform.getRotateInstance(Math.PI / 2.0));
 			BBox bbox = fontSource.getBBox();
 			gc.transform(AffineTransform.getTranslateInstance(0,
 					((bbox.lly() + bbox.ury()) * fontSize / FontSource.DEFAULT_UNITS_PER_EM) / 2f));
 		}
-		// 横書き
+		// Horizontal writing
 		int pgid = 0;
 		for (int i = 0, k = 0; i < glyphCount; ++i) {
 			int gid = glyphIds[i];
@@ -152,7 +154,7 @@ public class PDFFontUtils {
 			try {
 				GlyphVector gv;
 				if (JDK1_5) {
-					// JDK1.5のバグへの対応 #6266084
+					// Workaround for JDK 1.5 bug #6266084
 					gv = awtFont.layoutGlyphVector(FRC, chars, k, gclen, Font.LAYOUT_LEFT_TO_RIGHT);
 				} else {
 					gv = awtFont.layoutGlyphVector(FRC, chars, k, k + gclen, Font.LAYOUT_LEFT_TO_RIGHT);

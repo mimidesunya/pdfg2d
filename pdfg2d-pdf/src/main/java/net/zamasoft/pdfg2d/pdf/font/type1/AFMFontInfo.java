@@ -49,6 +49,6 @@ public class AFMFontInfo implements Serializable {
 
 	public BBox bbox;
 
-	/** グリフ名からグリフ情報(AFMGlyphInfo)へのマッピングです。 */
+	/** Mapping from glyph name to glyph info (AFMGlyphInfo). */
 	public Map<String, AFMGlyphInfo> nameToGi;
 }

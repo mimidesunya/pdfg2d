@@ -18,7 +18,7 @@ import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
  * @since 1.0
  */
 class XRefImpl implements XRef {
-	/** クロスリファレンステーブル。 */
+	/** Cross-reference table. */
 	private final List<ObjectRef> xref = new ArrayList<>();
 
 	private final ObjectRef rootRef;
@@ -36,9 +36,9 @@ class XRefImpl implements XRef {
 	}
 
 	/**
-	 * 次のオブジェクトIDを返します。
+	 * Returns the next object ID.
 	 * 
-	 * @return
+	 * @return the next object reference
 	 */
 	public ObjectRef nextObjectRef() {
 		final var ref = new ObjectRefImpl(this.xref.size() + 1);
@@ -99,18 +99,17 @@ class XRefImpl implements XRef {
 		String trailer = new String(buff.toByteArray(), "ISO-8859-1");
 
 		// Cross-reference
-		// クロスリファレンス
+		// Cross-reference
 		this.mainFlow.writeOperator("xref");
 		this.mainFlow.lineBreak();
 		this.mainFlow.writeInt(0);
 		this.mainFlow.writeInt(this.xref.size() + 1);
 		writeXrefEntry(this.mainFlow, 0, 65535, false);
-		// インデックスのずれは、trailerの長さ+xrefの長さ
-		// int offset = trailer.length() + this.xrefFlow.getPosition() +
-		// (this.xref.size() * 20);//xrefの要素は20バイト
+		// Offset is trailer length + xref length
+		// Each xref entry is 20 bytes
 		for (int i = 0; i < this.xref.size(); ++i) {
 			ObjectRefImpl ref = (ObjectRefImpl) this.xref.get(i);
-			writeXrefEntry(this.mainFlow, ref.getPosition(posInfo), ref.generationNumber, true);
+			writeXrefEntry(this.mainFlow, ref.getPosition(posInfo), ref.generationNumber(), true);
 		}
 
 		this.mainFlow.write(trailer);

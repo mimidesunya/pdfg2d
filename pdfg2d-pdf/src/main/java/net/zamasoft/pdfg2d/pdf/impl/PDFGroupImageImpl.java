@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * オフスクリーン画像です。
+ * Offscreen image.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -19,9 +19,9 @@ public class PDFGroupImageImpl extends PDFGroupImage {
 	private final PDFFragmentOutput groupFlow, formFlow;
 	private final ResourceFlow resourceFlow;
 
-	public PDFGroupImageImpl(PDFWriterImpl pdfWriter, OutputStream out, PDFFragmentOutput groupFlow,
-			ResourceFlow resourceFlow, double width, double height, String name, ObjectRef objectRef,
-			PDFFragmentOutput formFlow) throws IOException {
+	public PDFGroupImageImpl(final PDFWriterImpl pdfWriter, final OutputStream out, final PDFFragmentOutput groupFlow,
+			final ResourceFlow resourceFlow, final double width, final double height, final String name,
+			final ObjectRef objectRef, final PDFFragmentOutput formFlow) throws IOException {
 		super(pdfWriter, out, width, height, name, objectRef);
 		this.groupFlow = groupFlow;
 		this.formFlow = formFlow;
@@ -32,33 +32,33 @@ public class PDFGroupImageImpl extends PDFGroupImage {
 		return (PDFWriterImpl) this.pdfWriter;
 	}
 
-	public void useResource(String type, String name) throws IOException {
-		ResourceFlow resourceFlow = this.resourceFlow;
+	public void useResource(final String type, final String name) throws IOException {
+		final ResourceFlow resourceFlow = this.resourceFlow;
 		if (resourceFlow.contains(name)) {
 			return;
 		}
 		@SuppressWarnings("resource")
-		Map<String, ObjectRef> nameToResourceRef = this.getPDFWriterImpl().nameToResourceRef;
+		final Map<String, ObjectRef> nameToResourceRef = this.getPDFWriterImpl().nameToResourceRef;
 
-		ObjectRef objectRef = (ObjectRef) nameToResourceRef.get(name);
+		final ObjectRef objectRef = nameToResourceRef.get(name);
 		resourceFlow.put(type, name, objectRef);
 	}
 
 	public void close() throws IOException {
 		if (this.ocgFlags != 0) {
-			PDFWriterImpl pdfWriter = this.getPDFWriterImpl();
+			final PDFWriterImpl pdfWriter = this.getPDFWriterImpl();
 			if (pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_5.v) {
-				throw new UnsupportedOperationException("OCG feature requres PDF >= 1.5.");
+				throw new UnsupportedOperationException("OCG feature requires PDF >= 1.5.");
 			}
 
 			// intent
 			this.formFlow.writeName("OC");
-			ObjectRef ocgRef = pdfWriter.nextOCG();
+			final ObjectRef ocgRef = pdfWriter.nextOCG();
 			this.formFlow.writeObjectRef(ocgRef);
 			this.formFlow.lineBreak();
 			this.formFlow.close();
 
-			PDFFragmentOutputImpl objectsFlow = pdfWriter.objectsFlow;
+			final PDFFragmentOutputImpl objectsFlow = pdfWriter.objectsFlow;
 			objectsFlow.startObject(ocgRef);
 			objectsFlow.startHash();
 			objectsFlow.writeName("Type");

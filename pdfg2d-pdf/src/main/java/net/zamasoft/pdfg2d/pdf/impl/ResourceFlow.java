@@ -12,11 +12,11 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 class ResourceFlow {
 	private final PDFFragmentOutputImpl out;
 
-	private final Map<String, PDFFragmentOutputImpl> typeToFlow = new TreeMap<String, PDFFragmentOutputImpl>();
-	private final List<PDFFragmentOutputImpl> flowList = new ArrayList<PDFFragmentOutputImpl>();
-	private final Map<String, ObjectRef> idToObjectRef = new HashMap<String, ObjectRef>();
+	private final Map<String, PDFFragmentOutputImpl> typeToFlow = new TreeMap<>();
+	private final List<PDFFragmentOutputImpl> flowList = new ArrayList<>();
+	private final Map<String, ObjectRef> idToObjectRef = new HashMap<>();
 
-	public ResourceFlow(PDFFragmentOutputImpl flow) throws IOException {
+	public ResourceFlow(final PDFFragmentOutputImpl flow) throws IOException {
 		flow.startHash();
 		flow.writeName("ProcSet");
 		flow.startArray();
@@ -31,8 +31,8 @@ class ResourceFlow {
 		flow.endHash();
 	}
 
-	private PDFFragmentOutputImpl getFlow(String type) throws IOException {
-		PDFFragmentOutputImpl flow = (PDFFragmentOutputImpl) this.typeToFlow.get(type);
+	private PDFFragmentOutputImpl getFlow(final String type) throws IOException {
+		PDFFragmentOutputImpl flow = this.typeToFlow.get(type);
 		if (flow == null) {
 			flow = this.out.forkFragment();
 			this.typeToFlow.put(type, flow);
@@ -43,29 +43,29 @@ class ResourceFlow {
 		return flow;
 	}
 
-	public boolean contains(String name) {
+	public boolean contains(final String name) {
 		return this.idToObjectRef.containsKey(name);
 	}
 
 	/**
-	 * オブジェクトを追加します。 既に同じ名前のIDがあれば何もしません。
+	 * Adds an object.
 	 * 
-	 * @param type      タイプ("Font","XObject"など)
-	 * @param name      参照に使う名前
-	 * @param objectRef
-	 * @throws IOException
+	 * @param type      type ("Font", "XObject", etc.)
+	 * @param name      name used for reference
+	 * @param objectRef object reference
+	 * @throws IOException in case of I/O error
 	 */
-	public void put(String type, String name, ObjectRef objectRef) throws IOException {
+	public void put(final String type, final String name, final ObjectRef objectRef) throws IOException {
 		assert !this.contains(name);
-		PDFFragmentOutputImpl flow = this.getFlow(type);
+		final PDFFragmentOutputImpl flow = this.getFlow(type);
 		flow.writeName(name);
 		flow.writeObjectRef(objectRef);
 		this.idToObjectRef.put(name, objectRef);
 	}
 
 	public void close() throws IOException {
-		for (int i = 0; i < this.flowList.size(); ++i) {
-			try (PDFFragmentOutputImpl flow = (PDFFragmentOutputImpl) this.flowList.get(i)) {
+		for (final PDFFragmentOutputImpl flow : this.flowList) {
+			try (flow) {
 				flow.endHash();
 			}
 		}

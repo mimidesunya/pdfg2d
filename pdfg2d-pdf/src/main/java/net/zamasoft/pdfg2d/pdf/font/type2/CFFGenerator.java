@@ -36,13 +36,13 @@ public class CFFGenerator {
 		cout.writeHeader((byte) 1, (byte) 0, (byte) 4, (byte) 2);
 
 		// Name INDEX
-		// 名前順にソートしなければならんことに注意
+		// Note: Must be sorted by name
 		byte[][] nameIndex = { CFFOutputStream.toBytes(this.subsetName) };
 		cout.writeIndex(nameIndex, (byte) 1);
 
 		int offset = cout.getOffset();
 
-		// Top DICTの直後の内容
+		// Content immediately after Top DICT
 		byte[] afterTopDict;
 		try (ByteArrayOutputStream bout1 = new ByteArrayOutputStream();
 				CFFOutputStream cout1 = new CFFOutputStream(bout1)) {
@@ -358,7 +358,7 @@ public class CFFGenerator {
 
 					cout1.writeIndex(new byte[][] { bout3.toByteArray() }, (byte) 1);
 
-					// 参照を合わすための埋め立て
+					// Padding to align references
 					for (int i = 0; i < padding2; ++i) {
 						cout1.write(0);
 					}
@@ -371,7 +371,7 @@ public class CFFGenerator {
 
 			cout.write(afterTopDict);
 
-			// 参照を合わすための埋め立て
+			// Padding to align references
 			for (int i = 0; i < padding1; ++i) {
 				cout.write(0);
 			}

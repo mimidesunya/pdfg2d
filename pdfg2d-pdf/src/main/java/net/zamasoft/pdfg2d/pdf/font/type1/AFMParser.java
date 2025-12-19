@@ -18,10 +18,10 @@ public class AFMParser {
 
 	private Reader in;
 
-	/** 現在の文字です。 */
+	/** Current character. */
 	private int ch;
 
-	/** 処理中の行です。 */
+	/** Current line being processed. */
 	private int line = 1;
 
 	public AFMFontInfo parse(InputStream in) throws ParseException, IOException {
@@ -32,10 +32,10 @@ public class AFMParser {
 
 			String s;
 
-			// StartFontMetricsブロック
+			// StartFontMetrics block
 			s = this.parseTitle();
 			if (!s.equals("StartFontMetrics")) {
-				throw new ParseException("AFMファイルではありません", this.line);
+				throw new ParseException("Not an AFM file", this.line);
 			}
 			s = this.parseString();
 
@@ -44,91 +44,91 @@ public class AFMParser {
 				this.skipLine();
 				s = this.parseTitle();
 				switch (s.charAt(0)) {
-				case 'A':
-					if (s.equals("Ascender")) {
-						this.fontInfo.ascent = this.parseShort();
-					}
-					break;
-
-				case 'C':
-					if (s.equals("CapHeight")) {
-						this.fontInfo.capHeight = this.parseShort();
-					}
-					break;
-
-				case 'D':
-					if (s.equals("Descender")) {
-						this.fontInfo.descent = (short) -this.parseShort();
-					}
-					break;
-
-				case 'E':
-					if (s.equals("EndFontMetrics")) {
-						break FOR;
-					}
-					break;
-
-				case 'F':
-					if (s.equals("FontBBox")) {
-						this.fontInfo.bbox = new BBox(this.parseShort(), this.parseShort(), this.parseShort(),
-								this.parseShort());
-					} else if (s.equals("FontName")) {
-						this.fontInfo.fontName = this.parseString();
-					} else if (s.equals("FullName")) {
-						this.fontInfo.fullName = this.parseString();
-					} else if (s.equals("FamilyName")) {
-						this.fontInfo.familyName = this.parseString();
-					}
-					break;
-
-				case 'I':
-					if (s.equals("ItalicAngle")) {
-						double italicAngle = this.parseReal();
-						if (italicAngle != 0f) {
-							this.fontInfo.italic = true;
+					case 'A':
+						if (s.equals("Ascender")) {
+							this.fontInfo.ascent = this.parseShort();
 						}
-					}
-					break;
+						break;
 
-				case 'S':
-					if (s.equals("StdHW")) {
-						this.fontInfo.stemh = this.parseShort();
-					} else if (s.equals("StdVW")) {
-						this.fontInfo.stemv = this.parseShort();
-					} else if (s.equals("StartCharMetrics")) {
-						this.parseIndividualCharacterMetrics();
-
-					} else if (s.equals("StartKernPairs")) {
-						this.parseKerningPairs();
-					}
-					break;
-
-				case 'W':
-					if (s.equals("Weight")) {
-						String weight = this.readLine().trim().toUpperCase();
-						if (weight.equals("ULTRALIGHT")) {
-							this.fontInfo.weight = Weight.W_100;
-						} else if (weight.equals("THIN")) {
-							this.fontInfo.weight = Weight.W_200;
-						} else if (weight.equals("LIGHT") || weight.equals("EXTRALIGHT") || weight.equals("BOOK")) {
-							this.fontInfo.weight = Weight.W_300;
-						} else if (weight.equals("REGULAR") || weight.equals("PLAIN") || weight.equals("ROMAN")
-								|| weight.equals("MEDIUM")) {
-							this.fontInfo.weight = Weight.W_400;
-						} else if (weight.equals("DEMI") || weight.equals("DEMIBOLD")) {
-							this.fontInfo.weight = Weight.W_500;
-						} else if (weight.equals("SEMIBOLD")) {
-							this.fontInfo.weight = Weight.W_600;
-						} else if (weight.equals("BOLD") || weight.equals("EXTRABOLD") || weight.equals("HERAVY")
-								|| weight.equals("HEAVYFACE") || weight.equals("BLACK")) {
-							this.fontInfo.weight = Weight.W_700;
-						} else if (weight.equals("ULTRA") || weight.equals("ULTRABLACK") || weight.equals("FAT")) {
-							this.fontInfo.weight = Weight.W_800;
-						} else if (weight.equals("EXTRABLACK") || weight.equals("OBESE")) {
-							this.fontInfo.weight = Weight.W_900;
+					case 'C':
+						if (s.equals("CapHeight")) {
+							this.fontInfo.capHeight = this.parseShort();
 						}
-					}
-					break;
+						break;
+
+					case 'D':
+						if (s.equals("Descender")) {
+							this.fontInfo.descent = (short) -this.parseShort();
+						}
+						break;
+
+					case 'E':
+						if (s.equals("EndFontMetrics")) {
+							break FOR;
+						}
+						break;
+
+					case 'F':
+						if (s.equals("FontBBox")) {
+							this.fontInfo.bbox = new BBox(this.parseShort(), this.parseShort(), this.parseShort(),
+									this.parseShort());
+						} else if (s.equals("FontName")) {
+							this.fontInfo.fontName = this.parseString();
+						} else if (s.equals("FullName")) {
+							this.fontInfo.fullName = this.parseString();
+						} else if (s.equals("FamilyName")) {
+							this.fontInfo.familyName = this.parseString();
+						}
+						break;
+
+					case 'I':
+						if (s.equals("ItalicAngle")) {
+							double italicAngle = this.parseReal();
+							if (italicAngle != 0f) {
+								this.fontInfo.italic = true;
+							}
+						}
+						break;
+
+					case 'S':
+						if (s.equals("StdHW")) {
+							this.fontInfo.stemh = this.parseShort();
+						} else if (s.equals("StdVW")) {
+							this.fontInfo.stemv = this.parseShort();
+						} else if (s.equals("StartCharMetrics")) {
+							this.parseIndividualCharacterMetrics();
+
+						} else if (s.equals("StartKernPairs")) {
+							this.parseKerningPairs();
+						}
+						break;
+
+					case 'W':
+						if (s.equals("Weight")) {
+							String weight = this.readLine().trim().toUpperCase();
+							if (weight.equals("ULTRALIGHT")) {
+								this.fontInfo.weight = Weight.W_100;
+							} else if (weight.equals("THIN")) {
+								this.fontInfo.weight = Weight.W_200;
+							} else if (weight.equals("LIGHT") || weight.equals("EXTRALIGHT") || weight.equals("BOOK")) {
+								this.fontInfo.weight = Weight.W_300;
+							} else if (weight.equals("REGULAR") || weight.equals("PLAIN") || weight.equals("ROMAN")
+									|| weight.equals("MEDIUM")) {
+								this.fontInfo.weight = Weight.W_400;
+							} else if (weight.equals("DEMI") || weight.equals("DEMIBOLD")) {
+								this.fontInfo.weight = Weight.W_500;
+							} else if (weight.equals("SEMIBOLD")) {
+								this.fontInfo.weight = Weight.W_600;
+							} else if (weight.equals("BOLD") || weight.equals("EXTRABOLD") || weight.equals("HERAVY")
+									|| weight.equals("HEAVYFACE") || weight.equals("BLACK")) {
+								this.fontInfo.weight = Weight.W_700;
+							} else if (weight.equals("ULTRA") || weight.equals("ULTRABLACK") || weight.equals("FAT")) {
+								this.fontInfo.weight = Weight.W_800;
+							} else if (weight.equals("EXTRABLACK") || weight.equals("OBESE")) {
+								this.fontInfo.weight = Weight.W_900;
+							}
+						}
+						break;
 				}
 			}
 		} finally {
@@ -155,49 +155,49 @@ public class AFMParser {
 		AFMGlyphInfo gi = new AFMGlyphInfo();
 		FOR: while (s != null) {
 			switch (s.charAt(0)) {
-			case 'C':
-				if (s.equals("C")) {
-					gi.gid = this.parseInt();
-				} else if (s.equals("CH")) {
-					gi.gid = this.parseHexInt();
-				}
-				break;
-
-			case 'L':
-				if (s.equals("L")) {
-					String sname = this.parseString();
-					String lname = this.parseString();
-					gi.addLigature(sname, lname);
-				}
-				break;
-
-			case 'N':
-				if (s.equals("N")) {
-					gi.name = this.parseString();
-				}
-				break;
-
-			case 'W':
-				if (s.equals("WX") || s.equals("W0X")) {
-					gi.advance = this.parseShort();
-				}
-				break;
-
-			default:
-				for (;;) {
-					s = this.parseString();
-					if (s.equals(";")) {
-						s = this.parseString();
-						continue FOR;
+				case 'C':
+					if (s.equals("C")) {
+						gi.gid = this.parseInt();
+					} else if (s.equals("CH")) {
+						gi.gid = this.parseHexInt();
 					}
-				}
+					break;
+
+				case 'L':
+					if (s.equals("L")) {
+						String sname = this.parseString();
+						String lname = this.parseString();
+						gi.addLigature(sname, lname);
+					}
+					break;
+
+				case 'N':
+					if (s.equals("N")) {
+						gi.name = this.parseString();
+					}
+					break;
+
+				case 'W':
+					if (s.equals("WX") || s.equals("W0X")) {
+						gi.advance = this.parseShort();
+					}
+					break;
+
+				default:
+					for (;;) {
+						s = this.parseString();
+						if (s.equals(";")) {
+							s = this.parseString();
+							continue FOR;
+						}
+					}
 			}
 			s = this.parseString();
 			if (s.equals(";")) {
 				s = this.parseString();
 				continue;
 			}
-			throw new ParseException("';'が見つかるはずでしたが'" + s + "'が見つかりました", this.line);
+			throw new ParseException("Expected ';' but found '" + s + "'", this.line);
 		}
 		return gi;
 	}
@@ -211,18 +211,18 @@ public class AFMParser {
 			}
 
 			switch (s.charAt(0)) {
-			case 'K':
-				if (s.equals("KPX")) {
-					String pname = this.parseString();
-					String sname = this.parseString();
-					short kerning = this.parseShort();
-					AFMGlyphInfo sci = (AFMGlyphInfo) this.fontInfo.nameToGi.get(sname);
-					AFMGlyphInfo pci = (AFMGlyphInfo) this.fontInfo.nameToGi.get(pname);
-					if (sci != null && pci != null) {
-						pci.addKerning(sci.name, kerning);
+				case 'K':
+					if (s.equals("KPX")) {
+						String pname = this.parseString();
+						String sname = this.parseString();
+						short kerning = this.parseShort();
+						AFMGlyphInfo sci = (AFMGlyphInfo) this.fontInfo.nameToGi.get(sname);
+						AFMGlyphInfo pci = (AFMGlyphInfo) this.fontInfo.nameToGi.get(pname);
+						if (sci != null && pci != null) {
+							pci.addKerning(sci.name, kerning);
+						}
 					}
-				}
-				break;
+					break;
 			}
 		}
 	}
@@ -252,15 +252,15 @@ public class AFMParser {
 		boolean cr = false;
 		FOR: for (; this.ch != -1; this.ch = this.in.read()) {
 			switch (this.ch) {
-			case '\n':
-			case '\r':
-				cr = true;
-				break;
+				case '\n':
+				case '\r':
+					cr = true;
+					break;
 
-			default:
-				if (cr) {
-					break FOR;
-				}
+				default:
+					if (cr) {
+						break FOR;
+					}
 			}
 		}
 		if (this.ch == -1) {
@@ -274,18 +274,18 @@ public class AFMParser {
 		boolean cr = false;
 		FOR: for (; this.ch != -1; this.ch = this.in.read()) {
 			switch (this.ch) {
-			case '\n':
-				break FOR;
-
-			case '\r':
-				cr = true;
-				break;
-
-			default:
-				if (cr) {
+				case '\n':
 					break FOR;
-				}
-				buff.append((char) this.ch);
+
+				case '\r':
+					cr = true;
+					break;
+
+				default:
+					if (cr) {
+						break FOR;
+					}
+					buff.append((char) this.ch);
 			}
 		}
 		if (this.ch == -1) {
@@ -327,7 +327,7 @@ public class AFMParser {
 		try {
 			return Short.parseShort(s);
 		} catch (NumberFormatException e) {
-			throw new ParseException("整数が予想された場所です:" + s, this.line);
+			throw new ParseException("Expected integer: " + s, this.line);
 		}
 	}
 
@@ -336,7 +336,7 @@ public class AFMParser {
 		try {
 			return Integer.parseInt(s);
 		} catch (NumberFormatException e) {
-			throw new ParseException("整数が予想された場所です:" + s, this.line);
+			throw new ParseException("Expected integer: " + s, this.line);
 		}
 	}
 
@@ -345,7 +345,7 @@ public class AFMParser {
 		try {
 			return Integer.parseInt(s.substring(1, s.length() - 1), 16);
 		} catch (NumberFormatException e) {
-			throw new ParseException("数値が予想された場所に文字列がありました:" + s, this.line);
+			throw new ParseException("Expected number but found string: " + s, this.line);
 		}
 	}
 
@@ -354,7 +354,7 @@ public class AFMParser {
 		try {
 			return Float.parseFloat(s);
 		} catch (NumberFormatException e) {
-			throw new ParseException("実数が予想された場所です:" + s, this.line);
+			throw new ParseException("Expected real number: " + s, this.line);
 		}
 	}
 }

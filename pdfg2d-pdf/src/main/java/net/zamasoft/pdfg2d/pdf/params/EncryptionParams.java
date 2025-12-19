@@ -1,17 +1,21 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
+/**
+ * Base class for encryption parameters.
+ */
 public abstract class EncryptionParams {
-	public static enum Type {
+	public enum Type {
 		V1(1), V2(2), V4(4);
 
 		public final int v;
 
-		private Type(int v) {
+		Type(final int v) {
 			this.v = v;
 		}
 	}
 
-	private String userPassword = "", ownerPassword = "";
+	private String userPassword = "";
+	private String ownerPassword = "";
 
 	public abstract Type getType();
 

@@ -9,7 +9,7 @@ import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * Linkアノテーションです。
+ * Link Annotation.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -21,14 +21,14 @@ public class LinkAnnot extends Annot {
 		return this.uri;
 	}
 
-	public void setURI(URI uri) {
+	public void setURI(final URI uri) {
 		this.uri = uri;
 	}
 
-	public void writeTo(PDFOutput out, PDFPageOutput pageOut) throws IOException {
+	public void writeTo(final PDFOutput out, final PDFPageOutput pageOut) throws IOException {
 		super.writeTo(out, pageOut);
 
-		// 境界線が表示されないようにする
+		// Hide border lines
 		out.writeName("Border");
 		out.startArray();
 		out.writeInt(0);
@@ -41,47 +41,47 @@ public class LinkAnnot extends Annot {
 		out.writeName("Link");
 		out.lineBreak();
 
-		PDFParams.Version pdfVersion = pageOut.getPdfWriter().getParams().getVersion();
+		final PDFParams.Version pdfVersion = pageOut.getPdfWriter().getParams().getVersion();
 		if (pdfVersion.v >= PDFParams.Version.V_1_6.v && !this.shape.equals(this.shape.getBounds2D())) {
-			// 矩形以外のリンク領域
-			double[] cord = new double[6];
+			// Non-rectangular link area
+			final double[] cord = new double[6];
 
-			// 平行四辺形かチェック
+			// Check if parallelogram
 			int corners = 0;
 			boolean bad = false, rect = true;
 			double x = 0, y = 0;
-			LOOP: for (PathIterator i = this.shape.getPathIterator(null); !i.isDone(); i.next()) {
-				int type = i.currentSegment(cord);
+			LOOP: for (final PathIterator i = this.shape.getPathIterator(null); !i.isDone(); i.next()) {
+				final int type = i.currentSegment(cord);
 				switch (type) {
-				case PathIterator.SEG_LINETO:
-					if (x != cord[0] && y != cord[1]) {
-						rect = false;
-					}
-					x = cord[0];
-					y = cord[1];
-					++corners;
-					break;
-				case PathIterator.SEG_MOVETO:
-					x = cord[0];
-					y = cord[1];
-					++corners;
-					break;
-				case PathIterator.SEG_QUADTO:
-				case PathIterator.SEG_CUBICTO:
-					bad = true;
-					break LOOP;
-				case PathIterator.SEG_CLOSE:
-					break;
+					case PathIterator.SEG_LINETO:
+						if (x != cord[0] && y != cord[1]) {
+							rect = false;
+						}
+						x = cord[0];
+						y = cord[1];
+						++corners;
+						break;
+					case PathIterator.SEG_MOVETO:
+						x = cord[0];
+						y = cord[1];
+						++corners;
+						break;
+					case PathIterator.SEG_QUADTO:
+					case PathIterator.SEG_CUBICTO:
+						bad = true;
+						break LOOP;
+					case PathIterator.SEG_CLOSE:
+						break;
 				}
 			}
 
-			// 平行四辺形を配置
+			// Place parallelogram
 			if (!rect && !bad && corners == 4) {
 				out.writeName("QuadPoints");
 				out.startArray();
-				double pageHeight = pageOut.getHeight();
-				for (PathIterator i = this.shape.getPathIterator(null); !i.isDone(); i.next()) {
-					int type = i.currentSegment(cord);
+				final double pageHeight = pageOut.getHeight();
+				for (final PathIterator i = this.shape.getPathIterator(null); !i.isDone(); i.next()) {
+					final int type = i.currentSegment(cord);
 					if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO) {
 						x = cord[0];
 						y = cord[1];
@@ -96,7 +96,7 @@ public class LinkAnnot extends Annot {
 
 		if (this.uri.toString().startsWith("#")) {
 			out.writeName("Dest");
-			out.writeText(uri.getFragment());
+			out.writeText(this.uri.getFragment());
 			out.lineBreak();
 		} else {
 			out.writeName("A");

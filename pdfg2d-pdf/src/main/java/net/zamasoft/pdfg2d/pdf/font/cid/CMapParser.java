@@ -10,7 +10,7 @@ import java.io.Reader;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
 /**
- * CMapファイルのCID文字セット情報を解析します。
+ * Parses CID character set information from CMap files.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -18,7 +18,7 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 public class CMapParser {
 	private Reader in;
 
-	/** 現在の文字です。 */
+	/** Current character being parsed. */
 	private int ch;
 
 	private CMap cmap;

@@ -121,7 +121,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 
 		private int fontBound = 0;
 
-		private boolean zw = false; // ZWS(u200B), ZWJ(u200D)およびそれに続く文字はフォントを変えない
+		private boolean zw = false; // ZWS(u200B), ZWJ(u200D) and subsequent chars keep the same font
 
 		private FontStyle fontStyle;
 
@@ -163,10 +163,10 @@ public class FontManagerImpl implements FontManager, Closeable {
 				this.charOffset = charOffset + k;
 				char c = ch[k + off];
 
-				// \A0は空白に変換
+				// Convert NBSP (\u00A0) to space
 				int cc = c == '\u00A0' ? '\u0020' : c;
 
-				// サロゲートペアの処理
+				// Handle surrogate pairs
 				char ls = 0;
 				if (Character.isHighSurrogate((char) cc)) {
 					if (k + 1 < len && Character.isLowSurrogate(ch[k + off + 1])) {
@@ -175,7 +175,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 					}
 				}
 
-				// ランの範囲を作成
+				// Create text run range
 				if (this.fontMetrics.canDisplay(cc)) {
 					if (cc >= 0x200B && cc <= 0x200D) {
 						this.zw = true;
@@ -185,7 +185,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 					this.initFont();
 				}
 				if (!this.zw) {
-					// 優先順位の高いフォントに切り替える
+					// Switch to a higher-priority font if available
 					for (int j = 0; j < this.fontBound; ++j) {
 						FontMetricsImpl metrics = (FontMetricsImpl) this.fontListMetrics.getFontMetrics(j);
 						if (metrics.canDisplay(cc)) {
@@ -197,7 +197,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 					}
 				}
 
-				// 通常の文字として処理
+				// Process as normal character
 				Font font = this.fontMetrics.getFont();
 				int gid = font.toGID(cc);
 
@@ -209,10 +209,10 @@ public class FontManagerImpl implements FontManager, Closeable {
 					this.glyphHandler.startTextRun(charOffset, this.fontStyle, this.fontMetrics);
 				}
 
-				// 連字のチェック
+				// Check for ligature
 				int lgid = this.len >= this.ch.length ? -1 : this.fontMetrics.getLigature(this.gid, cc);
 				if (lgid != -1) {
-					// 連字にできる
+					// Can form ligature
 					this.gid = this.pgid;
 					gid = lgid;
 					this.ch[this.len] = c;
@@ -222,7 +222,7 @@ public class FontManagerImpl implements FontManager, Closeable {
 						++this.len;
 					}
 				} else {
-					// 連字にできない
+					// Cannot form ligature
 					if (this.gid != -1) {
 						this.glyph();
 					}

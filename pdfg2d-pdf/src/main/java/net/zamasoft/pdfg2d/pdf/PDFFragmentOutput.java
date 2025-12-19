@@ -4,51 +4,56 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * Output stream for PDF fragments.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public abstract class PDFFragmentOutput extends PDFOutput {
-	public static enum Mode {
-		/** ストリームへ出力したデータをそのままPDFに書き込みます。 */
+	public enum Mode {
+		/** Writes data output to the stream directly to PDF. */
 		RAW,
-		/** バイナリデータに適した圧縮を行います。 */
+		/** Performs compression suitable for binary data. */
 		BINARY,
-		/** テキストデータに適した圧縮を行います。 */
+		/** Performs compression suitable for text data. */
 		ASCII;
 	}
 
-	protected PDFFragmentOutput(OutputStream out, String nameEncoding) throws IOException {
+	protected PDFFragmentOutput(final OutputStream out, final String nameEncoding) throws IOException {
 		super(out, nameEncoding);
 	}
 
 	/**
-	 * オブジェクトの開始を出力します。
+	 * Writes the start of an object.
 	 * 
-	 * @param ref
-	 * @throws IOException
+	 * @param ref the object reference
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void startObject(ObjectRef ref) throws IOException;
 
 	/**
-	 * オブジェクトの終端を出力します。
+	 * Writes the end of an object.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void endObject() throws IOException;
 
 	/**
-	 * ストリームの開始を出力します。
+	 * Writes the start of a stream.
 	 * 
-	 * @param mode
-	 * @throws IOException
+	 * @param mode the compression mode
+	 * @return the output stream for the stream content
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract OutputStream startStream(Mode mode) throws IOException;
 
 	/**
-	 * ハッシュ内からストリームの開始を出力します。 このメソッドはハッシュを閉じます。
+	 * Writes the start of a stream from within a dictionary (hash). This method
+	 * closes the dictionary.
 	 * 
-	 * @param mode
-	 * @throws IOException
+	 * @param mode the compression mode
+	 * @return the output stream for the stream content
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract OutputStream startStreamFromHash(Mode mode) throws IOException;
 }

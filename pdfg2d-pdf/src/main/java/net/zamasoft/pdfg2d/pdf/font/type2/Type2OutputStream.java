@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Type2フォントのデータを出力します。
+ * Outputs Type 2 font data.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

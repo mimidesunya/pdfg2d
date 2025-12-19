@@ -6,7 +6,7 @@ import java.io.Serializable;
 import net.zamasoft.pdfg2d.resolver.Source;
 
 /**
- * 一般CIDフォントのキャラクタマッピング情報です。
+ * Character mapping information for general CID fonts.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -29,45 +29,45 @@ public class CMap implements Serializable {
 	}
 
 	/**
-	 * CIDテーブルを返します。
+	 * Returns the CID table.
 	 * 
-	 * @return
+	 * @return the CID table
 	 */
 	public CIDTable getCIDTable() {
 		return this.cidTable;
 	}
 
 	/**
-	 * PDFエンコーディング名を返します。
+	 * Returns the PDF encoding name.
 	 * 
-	 * @return
+	 * @return the encoding name
 	 */
 	public String getEncoding() {
 		return this.encoding;
 	}
 
 	/**
-	 * PDFレジストリ名を返します。
+	 * Returns the PDF registry name.
 	 * 
-	 * @return
+	 * @return the registry name
 	 */
 	public String getRegistry() {
 		return this.registry;
 	}
 
 	/**
-	 * PDFオーダリングを返します。
+	 * Returns the PDF ordering.
 	 * 
-	 * @return
+	 * @return the ordering
 	 */
 	public String getOrdering() {
 		return this.ordering;
 	}
 
 	/**
-	 * PDFサプリメント番号を返します。
+	 * Returns the PDF supplement number.
 	 * 
-	 * @return
+	 * @return the supplement number
 	 */
 	public int getSupplement() {
 		return this.supplement;

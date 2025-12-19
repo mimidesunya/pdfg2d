@@ -15,7 +15,7 @@ import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
 
 /**
- * Type1シンボリックフォントです。
+ * Type1 symbolic font source.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -146,4 +146,3 @@ public class SymbolicType1FontSource extends AbstractType1FontSource {
 		return null;
 	}
 }
-

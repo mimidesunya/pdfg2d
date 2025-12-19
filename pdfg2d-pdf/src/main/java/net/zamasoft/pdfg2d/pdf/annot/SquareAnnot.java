@@ -6,13 +6,13 @@ import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 
 /**
- * Squareアノテーションです。
+ * Square Annotation.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public class SquareAnnot extends Annot {
-	public void writeTo(PDFOutput out, PDFPageOutput pageOut) throws IOException {
+	public void writeTo(final PDFOutput out, final PDFPageOutput pageOut) throws IOException {
 		super.writeTo(out, pageOut);
 
 		out.writeName("Subtype");

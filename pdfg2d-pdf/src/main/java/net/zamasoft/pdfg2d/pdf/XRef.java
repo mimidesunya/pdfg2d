@@ -1,30 +1,32 @@
 package net.zamasoft.pdfg2d.pdf;
 
 /**
+ * Interface for PDF cross-reference table operations.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface XRef {
 	/**
-	 * 次のオブジェクトIDを返します。
+	 * Returns the next object reference.
 	 * 
-	 * @return
+	 * @return the object reference
 	 */
-	public ObjectRef nextObjectRef();
+	ObjectRef nextObjectRef();
 
 	/**
-	 * 属性を追加します。
+	 * Sets an attribute.
 	 * 
-	 * @param key
-	 * @param value
+	 * @param key   the attribute key
+	 * @param value the attribute value
 	 */
-	public void setAttribute(String key, Object value);
+	void setAttribute(String key, Object value);
 
 	/**
-	 * 属性を返します。
+	 * Returns an attribute.
 	 * 
-	 * @param key
-	 * @return
+	 * @param key the attribute key
+	 * @return the attribute value
 	 */
-	public Object getAttribute(String key);
+	Object getAttribute(String key);
 }

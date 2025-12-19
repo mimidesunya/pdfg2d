@@ -145,17 +145,17 @@ public class CFFTable implements Table {
 	private final CFFStack stack = new CFFStack();
 
 	/**
-	 * 文字ごとのCharStringの位置。
+	 * CharString offsets for each character.
 	 */
 	private final int[] charStringOffsets;
 
 	/**
-	 * グローバルサブルーチンの位置。
+	 * Global subroutine offsets.
 	 */
 	private final int[] globalSubrOffsets;
 
 	/**
-	 * 文字ごとのローカルサブルーチンの位置。
+	 * Local subroutine offsets for each character.
 	 */
 	private final int[][] localSubrOffsets;
 
@@ -171,7 +171,7 @@ public class CFFTable implements Table {
 		int[] cso = null;
 		int[][] lso = null;
 		synchronized (this.raf) {
-			// ヘッダをスキップ
+			// Skip header
 			{
 				this.raf.seek(de.offset());
 				byte[] header = this.readHeader();
@@ -183,14 +183,14 @@ public class CFFTable implements Table {
 				this.raf.skipBytes(skip - 4);
 			}
 
-			// Name INDEX をスキップ
+			// Skip Name INDEX
 			{
 				int count = this.readCard16();
 				if (DEBUG) {
 					System.err.println("Name INDEX count: " + count);
 				}
 				if (count != 1) {
-					throw new IOException("Name INDEXが1つではありません。:" + count);
+					throw new IOException("Name INDEX is not 1: " + count);
 				}
 				int offSize = this.readOffSize();
 				this.raf.skipBytes(offSize);
@@ -198,7 +198,7 @@ public class CFFTable implements Table {
 				this.raf.skipBytes(offset - 1);
 			}
 
-			// Top DICT INDEX に入る
+			// Parse Top DICT INDEX
 			int dictEnd;
 			{
 				int count = this.readCard16();
@@ -206,7 +206,7 @@ public class CFFTable implements Table {
 					System.err.println("Top DICT INDEX count: " + count);
 				}
 				if (count != 1) {
-					throw new IOException("Top DICT INDEXが1つではありません。:" + count);
+					throw new IOException("Top DICT INDEX is not 1: " + count);
 				}
 				int offSize = this.readOffSize();
 				this.raf.skipBytes(offSize);
@@ -218,7 +218,7 @@ public class CFFTable implements Table {
 			}
 			dictEnd += this.raf.getFilePointer();
 
-			// 最初のDICT Data
+			// Parse first DICT Data
 			int charStringsOffset = -1;
 			int privateOffset = -1, privateEnd = 0;
 			int fontDictIndexOffset = -1;
@@ -246,10 +246,10 @@ public class CFFTable implements Table {
 				this.stack.clear();
 			}
 			if (charStringsOffset == -1) {
-				throw new IOException("DICTにCharStringsがありません。");
+				throw new IOException("CharStrings not found in DICT.");
 			}
 
-			// String INDEX をスキップ
+			// Skip String INDEX
 			{
 				int count = this.readCard16();
 				if (DEBUG) {
@@ -264,7 +264,7 @@ public class CFFTable implements Table {
 				}
 			}
 
-			// Global Subrs INDEX を解析
+			// Parse Global Subrs INDEX
 			{
 				int count = this.readCard16();
 				if (DEBUG) {
@@ -282,7 +282,7 @@ public class CFFTable implements Table {
 				}
 			}
 
-			// CharStrings を解析
+			// Parse CharStrings
 			this.raf.seek(de.offset() + charStringsOffset);
 			int charCount = this.readCard16();
 			{
@@ -300,7 +300,7 @@ public class CFFTable implements Table {
 				}
 			}
 
-			// Private DICT を解析
+			// Parse Private DICT
 			if (DEBUG) {
 				System.err.println("Private DICT offset:" + privateOffset);
 				System.err.println("Private DICT size:" + privateEnd);
@@ -324,7 +324,7 @@ public class CFFTable implements Table {
 				}
 
 				if (localSubrsOffset != -1) {
-					// Local Subrs INDEX を解析
+					// Parse Local Subrs INDEX
 					this.raf.seek(de.offset() + localSubrsOffset);
 					int count = this.readCard16();
 					if (DEBUG) {
@@ -348,7 +348,7 @@ public class CFFTable implements Table {
 			}
 
 			if (fontDictIndexOffset != -1) {
-				// Font DICT INDEX を解析
+				// Parse Font DICT INDEX
 				this.raf.seek(de.offset() + fontDictIndexOffset);
 				int count = this.readCard16();
 				if (DEBUG) {
@@ -384,7 +384,7 @@ public class CFFTable implements Table {
 					}
 				}
 
-				// Private DICT を解析
+				// Parse Private DICT
 				int[] subrsOffsets = new int[count - 1];
 				for (int i = 0; i < count - 1; ++i) {
 					int end = privateLengths[i];
@@ -413,7 +413,7 @@ public class CFFTable implements Table {
 					}
 				}
 
-				// Subrs を解析
+				// Parse Subrs
 				int[][] fdLocalSubrOffsets = new int[count - 1][];
 				for (int i = 0; i < count - 1; ++i) {
 					if (subrsOffsets[i] == 0) {
@@ -439,7 +439,7 @@ public class CFFTable implements Table {
 					fdLocalSubrOffsets[i] = subrOffsets;
 				}
 
-				// FD Select を解析
+				// Parse FD Select
 				{
 					lso = new int[charCount][];
 					this.raf.seek(de.offset() + fdSelectOffset);
@@ -507,7 +507,7 @@ public class CFFTable implements Table {
 		byte offSize = this.raf.readByte();
 		if (offSize < 1 || offSize > 4) {
 			// return 0;
-			throw new IOException("OffSizeは1から4までです。:" + offSize);
+			throw new IOException("OffSize must be 1-4: " + offSize);
 		}
 		return offSize;
 	}
@@ -560,13 +560,13 @@ public class CFFTable implements Table {
 		if (this.b0 >= 28 && this.b0 != 31 && this.b0 != 255) {
 			return TYPE_INTEGER;
 		}
-		throw new IOException("未知のオペランドです。");
+		throw new IOException("Unknown operand.");
 	}
 
 	private int readOperator() throws IOException {
 		if (this.b0 == -1) {
 			if (this.nextType() != TYPE_OPERATOR) {
-				throw new IOException("Operatorではありません。");
+				throw new IOException("Not an Operator.");
 			}
 		}
 		int b = this.b0;
@@ -581,7 +581,7 @@ public class CFFTable implements Table {
 	private int readInteger() throws IOException {
 		if (this.b0 == -1) {
 			if (this.nextType() != TYPE_INTEGER) {
-				throw new IOException("Integerではありません。");
+				throw new IOException("Not an Integer.");
 			}
 		}
 		int b0 = this.b0;
@@ -609,13 +609,13 @@ public class CFFTable implements Table {
 			int b4 = this.raf.read();
 			return b1 << 24 | b2 << 16 | b3 << 8 | b4;
 		}
-		throw new IOException("不正なIntegerです。:" + b0);
+		throw new IOException("Invalid Integer: " + b0);
 	}
 
 	private String readReal() throws IOException {
 		if (this.b0 == -1) {
 			if (this.nextType() != TYPE_REAL) {
-				throw new IOException("Realではありません。");
+				throw new IOException("Not a Real.");
 			}
 		}
 		this.buff.setLength(0);

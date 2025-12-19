@@ -6,6 +6,8 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
 
 /**
+ * Manages PDF outlines (bookmarks).
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -18,15 +20,16 @@ class OutlineFlow {
 
 	private int rootOutlineCount = 0;
 
-	public OutlineFlow(PDFWriterImpl pdfWriter) throws IOException {
+	public OutlineFlow(final PDFWriterImpl pdfWriter) throws IOException {
 		this.xref = pdfWriter.xref;
 		this.out = pdfWriter.mainFlow.forkFragment();
 		this.catalogFlow = pdfWriter.catalogFlow;
 	}
 
-	public void startBookmark(ObjectRef pageRef, String title, double t, double x, double y) {
-		Destination dest = new Destination(pageRef, x, t - y, 0);
-		OutlineEntry outline = new OutlineEntry(title, dest);
+	public void startBookmark(final ObjectRef pageRef, final String title, final double t, final double x,
+			final double y) {
+		final var dest = new Destination(pageRef, x, t - y, 0);
+		final var outline = new OutlineEntry(title, dest);
 
 		if (this.currentOutline == null) {
 			if (this.firstOutline == null) {
@@ -62,10 +65,10 @@ class OutlineFlow {
 			return;
 		}
 
-		// titleが空で、子ノードがないエントリは出力しない
-		// オブジェクトリファレンスを生成
+		// Entries with empty title and no child nodes are not output.
+		// Generate object references.
 		{
-			OutlineEntry outline = this.firstOutline;
+			var outline = this.firstOutline;
 			FOR: for (;;) {
 				if (outline.isEmpty()) {
 					if (outline.prev != null) {
@@ -112,9 +115,9 @@ class OutlineFlow {
 			return;
 		}
 
-		// カタログを更新
+		// Update catalog
 		this.catalogFlow.writeName("Outlines");
-		ObjectRef outlineRef = this.xref.nextObjectRef();
+		final var outlineRef = this.xref.nextObjectRef();
 		this.catalogFlow.writeObjectRef(outlineRef);
 		this.catalogFlow.lineBreak();
 
@@ -122,7 +125,7 @@ class OutlineFlow {
 		this.catalogFlow.writeName("UseOutlines");
 		this.catalogFlow.lineBreak();
 
-		// ルート情報を出力
+		// Output root information
 		this.out.startObject(outlineRef);
 		this.out.startHash();
 		this.out.writeName("Count");
@@ -140,9 +143,9 @@ class OutlineFlow {
 		this.out.endHash();
 		this.out.endObject();
 
-		// エントリを出力
+		// Output entries
 		{
-			OutlineEntry outline = this.firstOutline;
+			var outline = this.firstOutline;
 			FOR: for (;;) {
 				this.out.startObject(outline.ref);
 				this.out.startHash();
@@ -224,7 +227,7 @@ class OutlineEntry {
 
 	public int count = 0;
 
-	public OutlineEntry(String title, Destination dest) {
+	public OutlineEntry(final String title, final Destination dest) {
 		this.title = title;
 		this.dest = dest;
 	}

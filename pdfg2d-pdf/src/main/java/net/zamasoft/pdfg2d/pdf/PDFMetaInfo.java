@@ -1,25 +1,32 @@
 package net.zamasoft.pdfg2d.pdf;
 
 /**
+ * Metadata information for a PDF document.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public final class PDFMetaInfo {
-	private String author = null, producer = null, creator = null, title = null, subject = null, keywords = null;
-
-	private long creationDate = -1L, modDate = -1L;
+	private String author;
+	private String producer;
+	private String creator;
+	private String title;
+	private String subject;
+	private String keywords;
+	private long creationDate = -1L;
+	private long modDate = -1L;
 
 	/**
 	 * @return Returns the author.
 	 */
 	public String getAuthor() {
-		return author;
+		return this.author;
 	}
 
 	/**
 	 * @param author The author to set.
 	 */
-	public void setAuthor(String author) {
+	public void setAuthor(final String author) {
 		this.author = author;
 	}
 
@@ -27,13 +34,13 @@ public final class PDFMetaInfo {
 	 * @return Returns the creator.
 	 */
 	public String getCreator() {
-		return creator;
+		return this.creator;
 	}
 
 	/**
 	 * @param creator The creator to set.
 	 */
-	public void setCreator(String creator) {
+	public void setCreator(final String creator) {
 		this.creator = creator;
 	}
 
@@ -41,13 +48,13 @@ public final class PDFMetaInfo {
 	 * @return Returns the keywords.
 	 */
 	public String getKeywords() {
-		return keywords;
+		return this.keywords;
 	}
 
 	/**
 	 * @param keywords The keywords to set.
 	 */
-	public void setKeywords(String keywords) {
+	public void setKeywords(final String keywords) {
 		this.keywords = keywords;
 	}
 
@@ -55,13 +62,13 @@ public final class PDFMetaInfo {
 	 * @return Returns the producer.
 	 */
 	public String getProducer() {
-		return producer;
+		return this.producer;
 	}
 
 	/**
 	 * @param producer The producer to set.
 	 */
-	public void setProducer(String producer) {
+	public void setProducer(final String producer) {
 		this.producer = producer;
 	}
 
@@ -69,13 +76,13 @@ public final class PDFMetaInfo {
 	 * @return Returns the subject.
 	 */
 	public String getSubject() {
-		return subject;
+		return this.subject;
 	}
 
 	/**
 	 * @param subject The subject to set.
 	 */
-	public void setSubject(String subject) {
+	public void setSubject(final String subject) {
 		this.subject = subject;
 	}
 
@@ -83,29 +90,41 @@ public final class PDFMetaInfo {
 	 * @return Returns the title.
 	 */
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	/**
 	 * @param title The title to set.
 	 */
-	public void setTitle(String title) {
+	public void setTitle(final String title) {
 		this.title = title;
 	}
 
+	/**
+	 * @return The creation date as a timestamp, or -1 if not set.
+	 */
 	public long getCreationDate() {
 		return this.creationDate;
 	}
 
-	public void setCreationDate(long creationDate) {
+	/**
+	 * @param creationDate The creation date timestamp to set.
+	 */
+	public void setCreationDate(final long creationDate) {
 		this.creationDate = creationDate;
 	}
 
+	/**
+	 * @return The modification date as a timestamp, or -1 if not set.
+	 */
 	public long getModDate() {
 		return this.modDate;
 	}
 
-	public void setModDate(long modDate) {
+	/**
+	 * @param modDate The modification date timestamp to set.
+	 */
+	public void setModDate(final long modDate) {
 		this.modDate = modDate;
 	}
 }

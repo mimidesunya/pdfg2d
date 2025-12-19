@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 
 /**
- * アノテーションです。
+ * Annotation.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -18,41 +18,43 @@ public abstract class Annot {
 	protected String contents;
 
 	/**
-	 * アノテーションの領域を設定します。 cmオペレータ(あるいはPDF_GCのtransformメソッド)による 座標変換が適用されません。
-	 * そのため、shapeに対してはアプリケーションが明示的に座標変換を適用する必要があります。
+	 * Sets the annotation area. Coordinate transformation by cm operator (or
+	 * PDF_GC.transform method) is not applied. Therefore, the application must
+	 * explicitly apply coordinate transformation to the shape.
 	 * 
-	 * @param shape アクティブな範囲です。ただし、PDF1.5以前では、バウンディングボックスが指定範囲となります。
+	 * @param shape Active area. For PDF 1.5 or earlier, the bounding box becomes
+	 *              the specified range.
 	 */
-	public void setShape(Shape shape) {
+	public void setShape(final Shape shape) {
 		this.shape = shape;
 	}
 
 	public Shape getShape() {
-		return shape;
+		return this.shape;
 	}
 
 	public String getContents() {
 		return this.contents;
 	}
 
-	public void setContents(String contents) {
+	public void setContents(final String contents) {
 		this.contents = contents;
 	}
 
-	public void writeTo(PDFOutput out, PDFPageOutput pageOut) throws IOException {
+	public void writeTo(final PDFOutput out, final PDFPageOutput pageOut) throws IOException {
 		out.writeName("Type");
 		out.writeName("Annot");
 		out.lineBreak();
 
-		// 領域
-		double pageHeight = pageOut.getHeight();
+		// Area
+		final double pageHeight = pageOut.getHeight();
 		out.writeName("Rect");
 		out.startArray();
-		Rectangle2D rect = this.getShape().getBounds2D();
-		double x = rect.getX();
-		double y = rect.getY();
-		double width = rect.getWidth();
-		double height = rect.getHeight();
+		final Rectangle2D rect = this.getShape().getBounds2D();
+		final double x = rect.getX();
+		final double y = rect.getY();
+		final double width = rect.getWidth();
+		final double height = rect.getHeight();
 		out.writeReal(x);
 		out.writeReal(pageHeight - (y + height));
 		out.writeReal(x + width);
@@ -60,8 +62,8 @@ public abstract class Annot {
 		out.endArray();
 		out.lineBreak();
 
-		// 内容
-		String contents = this.getContents();
+		// Contents
+		final String contents = this.getContents();
 		if (contents != null) {
 			out.writeName("Contents");
 			out.writeText(contents);

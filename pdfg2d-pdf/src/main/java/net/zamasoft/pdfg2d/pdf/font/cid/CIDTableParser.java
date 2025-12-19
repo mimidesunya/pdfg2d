@@ -15,7 +15,7 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 import net.zamasoft.pdfg2d.util.IntMap;
 
 /**
- * CMapファイルのCIDテーブルを解析します。
+ * Parses the CID table from a CMap file.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -23,7 +23,7 @@ import net.zamasoft.pdfg2d.util.IntMap;
 class CIDTableParser {
 	private Reader in;
 
-	/** 現在の文字です。 */
+	/** Current character being parsed. */
 	private int ch;
 
 	private SourceResolver resolver;
@@ -73,7 +73,7 @@ class CIDTableParser {
 		if (a.length() <= 4) {
 			code = Integer.parseInt(a, 16);
 		} else {
-			// サロゲートペア
+			// Surrogate pair
 			int h = Integer.parseInt(a.substring(0, 4), 16);
 			int l = Integer.parseInt(a.substring(4, 8), 16);
 			code = 0x10000 + (h - 0xD800) * 0x400 + (l - 0xDC00);
@@ -114,7 +114,8 @@ class CIDTableParser {
 				int start = parseCode(a);
 				int end = parseCode(b);
 				if (a.length() != b.length() || a.length() % 2 != 0) {
-					throw new CMapException("開始位置と終了位置のキャラクターコードのバイト数が一致しないか、偶数桁の１16進数になっていません");
+					throw new CMapException(
+							"Start and end character codes must have matching byte lengths and be even-digit hex values");
 				}
 				int offset = Integer.parseInt(c);
 
@@ -190,4 +191,3 @@ class CIDTableParser {
 		return PDFUtils.decodeName(s, "MS932");
 	}
 }
-

@@ -15,7 +15,7 @@ import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
 import net.zamasoft.pdfg2d.util.IntList;
 
 /**
- * 標準Type1フォントです。
+ * Standard Type1 font source.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

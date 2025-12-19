@@ -34,7 +34,7 @@ public class PDFSecurityTest {
         perms.setCopy(false); // Disallow copying
         perms.setModify(false); // Disallow msg
 
-        params.setEncription(encParams);
+        params.setEncryption(encParams);
 
         try (final var out = new FileOutputStream(tempFile)) {
             final var builder = new StreamSequentialOutput(out);

@@ -76,7 +76,7 @@ public class SystemCIDIdentityFontSource extends SystemCIDFontSource {
 			GlyphVector gv = this.awtFont.createGlyphVector(this.getFontRenderContext(), this.chara);
 			gid = gv.getGlyphCode(0);
 			if (gid < 0 || gid > 0xFFFF) {
-				LOG.warning("16ビットを超えるGIDの文字は使用できません:" + c + "(gid=" + gid + ")");
+				LOG.warning("Characters with GID exceeding 16 bits cannot be used: " + c + " (gid=" + gid + ")");
 				gid = this.awtFont.getMissingGlyphCode();
 			}
 			charToGid.set(c, gid == 0 ? -1 : gid);

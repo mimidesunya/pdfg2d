@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * グリフ名とグリフコードの対応表です。
+ * Mapping table between glyph names and glyph codes.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -43,11 +43,11 @@ public class Encoding implements Serializable {
 	}
 
 	/**
-	 * キャラクタストリームからエンコーディングを読み込みます。
+	 * Parses an encoding from a character stream.
 	 * 
-	 * @param _in
-	 * @return
-	 * @throws IOException
+	 * @param _in the input stream
+	 * @return the parsed encoding
+	 * @throws IOException if an I/O error occurs
 	 */
 	public static Encoding parse(InputStream _in) throws IOException {
 		Map<String, CodeMap> map = new HashMap<String, CodeMap>();

@@ -51,7 +51,7 @@ import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
 
 /**
- * SakaeグラフィックコンテキストにJavaグラフィックコンテキストによりアクセスするためのクラスです。
+ * A class that provides access to pdfg2d graphics context via Java Graphics2D.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

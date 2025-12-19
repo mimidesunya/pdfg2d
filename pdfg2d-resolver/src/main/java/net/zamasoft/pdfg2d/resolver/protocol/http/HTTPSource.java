@@ -24,7 +24,7 @@ import net.zamasoft.pdfg2d.resolver.util.AbstractSource;
 /**
  * A Source that retrieves data from an HTTP/HTTPS connection.
  */
-public class HttpSource extends AbstractSource {
+public class HTTPSource extends AbstractSource {
 	private final CloseableHttpClient httpClient;
 
 	private String mimeType;
@@ -38,7 +38,7 @@ public class HttpSource extends AbstractSource {
 	private long lastModified = -1;
 	private long contentLength = -1;
 
-	public HttpSource(URI uri, CloseableHttpClient httpClient) {
+	public HTTPSource(URI uri, CloseableHttpClient httpClient) {
 		super(uri);
 		this.httpClient = httpClient;
 	}
@@ -179,7 +179,7 @@ public class HttpSource extends AbstractSource {
 
 	@Override
 	public SourceValidity getValidity() {
-		return new HttpSourceValidity(this.lastModified);
+		return new HTTPSourceValidity(this.lastModified);
 	}
 
 	@Override

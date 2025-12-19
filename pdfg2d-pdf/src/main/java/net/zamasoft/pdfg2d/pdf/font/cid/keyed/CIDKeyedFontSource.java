@@ -16,7 +16,7 @@ import net.zamasoft.pdfg2d.pdf.font.cid.WArray;
 import net.zamasoft.pdfg2d.pdf.font.util.PDFFontUtils;
 
 /**
- * 等幅の一般フォントです。 このフォントはプラットフォームによって書体が変わります。
+ * A general CID-keyed font. The appearance may vary by platform.
  * 
  * @author MIYABE Tatsuhiko
  * @version $Id: GenericType0FontFace.java,v 1.2 2005/06/06 04:42:24 harumanx
@@ -161,15 +161,15 @@ public class CIDKeyedFontSource extends AbstractFontSource implements CIDFontSou
 
 	public PDFFont createFont(String name, ObjectRef fontRef) {
 		switch (this.getDirection()) {
-		case LTR:
-		case RTL:// TODO RTL
-			// 横書き
-			return new CIDKeyedFont(this, name, fontRef, this.hcmap);
-		case TB:
-			// 縦書き
-			return new CIDKeyedFont(this, name, fontRef, this.vcmap);
-		default:
-			throw new IllegalArgumentException();
+			case LTR:
+			case RTL:// TODO RTL
+				// Horizontal writing
+				return new CIDKeyedFont(this, name, fontRef, this.hcmap);
+			case TB:
+				// Vertical writing
+				return new CIDKeyedFont(this, name, fontRef, this.vcmap);
+			default:
+				throw new IllegalArgumentException();
 		}
 	}
 

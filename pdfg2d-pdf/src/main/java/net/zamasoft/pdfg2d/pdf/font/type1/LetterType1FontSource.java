@@ -13,7 +13,7 @@ import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortList;
 
 /**
- * Type1欧文文字フォントです。
+ * Type1 Latin letter font source.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

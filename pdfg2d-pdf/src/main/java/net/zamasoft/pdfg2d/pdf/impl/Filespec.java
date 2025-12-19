@@ -3,16 +3,12 @@ package net.zamasoft.pdfg2d.pdf.impl;
 import net.zamasoft.pdfg2d.pdf.Attachment;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
-class Filespec {
-	final Attachment attachment;
-
-	final String name;
-
-	final ObjectRef ref;
-
-	Filespec(Attachment attachment, String name, ObjectRef ref) {
-		this.attachment = attachment;
-		this.name = name;
-		this.ref = ref;
-	}
+/**
+ * Represents a file specification in a PDF document.
+ * 
+ * @param attachment The attachment information.
+ * @param name       The name of the file.
+ * @param ref        The object reference.
+ */
+record Filespec(Attachment attachment, String name, ObjectRef ref) {
 }

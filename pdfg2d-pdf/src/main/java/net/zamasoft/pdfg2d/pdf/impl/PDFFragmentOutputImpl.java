@@ -14,32 +14,32 @@ import net.zamasoft.pdfg2d.pdf.util.encryption.Encryptor;
 import net.zamasoft.pdfg2d.pdf.util.io.FastBufferedOutputStream;
 
 /**
+ * Implementation of PDFFragmentOutput.
+ * 
  * @author MIYABE Tatsuhiko
- * @version $Id: PDFFragmentOutputImpl.java,v 1.2 2005/06/02 10:40:30 harumanx
- *          Exp $
  */
 class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	private final PDFWriterImpl pdfWriter;
 
-	/** 自分自身と次の断片ID。 */
+	/** Self and next fragment ID. */
 	private int id, anchorId = -1;
 
-	/** 出力バイト数。 */
+	/** Output byte count. */
 	private int length = 0;
 
-	/** 書き込み中のストリーム。 */
+	/** Writing stream. */
 	private PDFFragmentOutputImpl streamLengthFlow = null;
 
-	/** ストリームの開始位置。 */
+	/** Stream start position. */
 	private int startStreamPosition = 0;
 
-	/** 現在のオブジェクトのリファレンス。 */
+	/** Current object reference. */
 	private ObjectRef currentRef;
 
 	private byte[] buff = null;
 
-	public PDFFragmentOutputImpl(OutputStream out, PDFWriterImpl pdfWriter, int id, int nextId, ObjectRef currentRef)
-			throws IOException {
+	public PDFFragmentOutputImpl(final OutputStream out, final PDFWriterImpl pdfWriter, final int id, final int nextId,
+			final ObjectRef currentRef) throws IOException {
 		super(out, pdfWriter.getParams().getPlatformEncoding());
 		this.pdfWriter = pdfWriter;
 		this.id = id;
@@ -56,76 +56,64 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 	protected PDFFragmentOutputImpl forkFragment() throws IOException {
 		this.close();
-		int nextId = this.pdfWriter.nextId();
+		final int nextId = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
 			this.pdfWriter.builder.addFragment();
 		} else {
 			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
-		OutputStream out = new FragmentOutputAdapter(this.pdfWriter.builder, nextId);
+		final OutputStream out = new FragmentOutputAdapter(this.pdfWriter.builder, nextId);
 		this.id = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
 			this.pdfWriter.builder.addFragment();
 		} else {
 			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
 		}
-		PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, nextId, this.id,
+		final PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, nextId, this.id,
 				this.currentRef);
 		this.out = new FragmentOutputAdapter(this.pdfWriter.builder, this.id);
 		this.length = 0;
 		return newFragOut;
 	}
 
-	/**
-	 * オブジェクトの開始を出力します。
-	 * 
-	 * @param ref
-	 * @throws IOException
-	 */
-	public void startObject(ObjectRef ref) throws IOException {
+	@Override
+	public void startObject(final ObjectRef ref) throws IOException {
 		this.breakBefore();
 		((ObjectRefImpl) ref).setPosition(this.id, this.getLength());
-		this.writeInt(ref.objectNumber);
-		this.writeInt(ref.generationNumber);
+		this.writeInt(ref.objectNumber());
+		this.writeInt(ref.generationNumber());
 		this.writeOperator("obj");
 		this.lineBreak();
 		if (this.currentRef != null) {
-			throw new IllegalStateException("既にオブジェクトの中です:" + this.currentRef);
+			throw new IllegalStateException("Already inside object: " + this.currentRef);
 		}
 		this.currentRef = ref;
 	}
 
-	/**
-	 * オブジェクトの終端を出力します。
-	 * 
-	 * @throws IOException
-	 */
+	@Override
 	public void endObject() throws IOException {
 		this.writeLine("endobj");
 		if (this.currentRef == null) {
-			throw new IllegalStateException("既にオブジェクトの外です");
+			throw new IllegalStateException("Already outside object");
 		}
 		this.currentRef = null;
 	}
 
-	/**
-	 * ストリームの開始を出力します。
-	 * 
-	 * @throws IOException
-	 */
-	public OutputStream startStream(Mode mode) throws IOException {
+	@Override
+	public OutputStream startStream(final Mode mode) throws IOException {
 		if (this.streamLengthFlow != null) {
-			throw new IllegalStateException("ストリームをネストすることはできません:" + this.streamLengthFlow);
+			throw new IllegalStateException("Cannot nest streams: " + this.streamLengthFlow);
 		}
 		this.startHash();
 
 		return this.startStreamFromHash(mode);
 	}
 
+	@Override
 	@SuppressWarnings("resource")
-	public OutputStream startStreamFromHash(Mode mode) throws IOException {
+	public OutputStream startStreamFromHash(final Mode mode) throws IOException {
 		if (this.streamLengthFlow != null) {
-			throw new IllegalStateException("ストリームをネストすることはできません:" + this.streamLengthFlow);
+			throw new IllegalStateException("Cannot nest streams: " + this.streamLengthFlow);
 		}
 
 		switch (mode) {
@@ -196,17 +184,18 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		this.startStreamPosition = this.getLength();
 
 		OutputStream out = new FilterOutputStream(this) {
+			@Override
 			public void close() throws IOException {
 				PDFFragmentOutputImpl.this.endStream();
 			}
 		};
 
-		// 暗号化
+		// Encryption
 		if (this.pdfWriter.encryption != null) {
 			out = this.pdfWriter.encryption.getEncryptor(this.currentRef).getOutputStream(out);
 		}
 
-		// 各種符号化
+		// Encodings
 		switch (mode) {
 			case RAW:
 				break;
@@ -251,38 +240,42 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	}
 
 	/**
-	 * ストリームの終端を出力します。
+	 * Writes end of stream.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	protected void endStream() throws IOException {
 		this.streamLengthFlow.writeInt(this.getLength() - this.startStreamPosition);
 		this.streamLengthFlow.close();
 		this.streamLengthFlow = null;
 		this.startStreamPosition = 0;
-		this.lineBreak(); // PDF/A-1ではendstreamの前にEOLを入れ、この長さはLengthに含めない
+		// In PDF/A-1, insert EOL before endstream, this length is not included in
+		// Length
+		this.lineBreak();
 		this.writeLine("endstream");
 	}
 
-	public void writeBytes16(int c) throws IOException {
+	@Override
+	public void writeBytes16(final int c) throws IOException {
 		if (this.pdfWriter.encryption == null) {
 			super.writeBytes16(c);
 			return;
 		}
-		byte[] data = new byte[2];
+		final byte[] data = new byte[2];
 		data[0] = (byte) ((c >> 8) & 0xFF);
 		data[1] = (byte) (c & 0xFF);
 		this.writeEncryptedBytes8(data, 0, data.length);
 	}
 
-	public void writeBytes16(int[] a, int off, int len) throws IOException {
+	@Override
+	public void writeBytes16(final int[] a, final int off, final int len) throws IOException {
 		if (this.pdfWriter.encryption == null) {
 			super.writeBytes16(a, off, len);
 			return;
 		}
-		byte[] data = new byte[len * 2];
+		final byte[] data = new byte[len * 2];
 		for (int i = 0; i < len; ++i) {
-			int c = a[i + off];
+			final int c = a[i + off];
 			data[i * 2] = (byte) ((c >> 8) & 0xFF);
 			data[i * 2 + 1] = (byte) (c & 0xFF);
 		}
@@ -290,7 +283,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	}
 
 	protected void writeEncryptedBytes8(byte[] data, int off, int len) throws IOException {
-		Encryptor e = this.pdfWriter.encryption.getEncryptor(this.currentRef);
+		final Encryptor e = this.pdfWriter.encryption.getEncryptor(this.currentRef);
 		if (e.isBlock()) {
 			data = e.blockEncrypt(data, off, len);
 			off = 0;
@@ -301,16 +294,18 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		super.writeBytes8(data, off, len);
 	}
 
-	public void writeString(String str) throws IOException {
+	@Override
+	public void writeString(final String str) throws IOException {
 		if (this.pdfWriter.encryption == null) {
 			super.writeString(str);
 			return;
 		}
-		byte[] data = str.getBytes("iso-8859-1");
+		final byte[] data = str.getBytes("iso-8859-1");
 		this.writeEncryptedBytes8(data, 0, data.length);
 	}
 
-	public void writeText(String text) throws IOException {
+	@Override
+	public void writeText(final String text) throws IOException {
 		if (this.pdfWriter.encryption == null) {
 			super.writeText(text);
 			return;
@@ -318,16 +313,17 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		this.writeUTF16(text);
 	}
 
-	public void writeUTF16(String text) throws IOException {
+	@Override
+	public void writeUTF16(final String text) throws IOException {
 		if (this.pdfWriter.encryption == null) {
 			super.writeUTF16(text);
 			return;
 		}
-		byte[] data = new byte[text.length() * 2 + 2];
+		final byte[] data = new byte[text.length() * 2 + 2];
 		data[0] = (byte) 0xFE;
 		data[1] = (byte) 0xFF;
 		for (int i = 0; i < text.length(); ++i) {
-			char c = text.charAt(i);
+			final char c = text.charAt(i);
 			data[i * 2 + 2] = (byte) ((c >> 8) & 0xFF);
 			data[i * 2 + 3] = (byte) (c & 0xFF);
 		}
@@ -335,9 +331,9 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	}
 
 	/**
-	 * 現在の書き込みバイト数を返します。
+	 * Returns current written byte count.
 	 * 
-	 * @return
+	 * @return the length
 	 */
 	protected int getLength() {
 		return this.length;
@@ -347,27 +343,31 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		return this.id;
 	}
 
-	public void write(byte[] buff, int off, int len) throws IOException {
+	@Override
+	public void write(final byte[] buff, final int off, final int len) throws IOException {
 		super.write(buff, off, len);
 		this.length += len;
 	}
 
-	public void write(byte[] buff) throws IOException {
+	@Override
+	public void write(final byte[] buff) throws IOException {
 		super.write(buff);
 		this.length += buff.length;
 	}
 
-	public void write(int c) throws IOException {
+	@Override
+	public void write(final int c) throws IOException {
 		super.write(c);
 		this.length++;
 	}
 
+	@Override
 	public void close() throws IOException {
 		if (this.streamLengthFlow != null) {
-			throw new IllegalStateException("ストリームが閉じられていません");
+			throw new IllegalStateException("Stream not closed");
 		}
 		if (this.out == null) {
-			throw new IllegalStateException("既に閉じられています");
+			throw new IllegalStateException("Already closed");
 		}
 		super.close();
 		this.out = null;

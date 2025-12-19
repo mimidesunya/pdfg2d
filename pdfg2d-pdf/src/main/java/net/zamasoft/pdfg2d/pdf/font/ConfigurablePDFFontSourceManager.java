@@ -69,7 +69,7 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 		try {
 			if (!this.config.exists()) {
 				Exception e = new FileNotFoundException(this.config.getURI().toString());
-				LOG.log(Level.SEVERE, this.config + "がありません", e);
+				LOG.log(Level.SEVERE, this.config + " not found", e);
 				throw new RuntimeException(e);
 			}
 		} catch (IOException e) {
@@ -81,7 +81,7 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 			return;
 		}
 
-		LOG.fine(this.config.getURI() + "からフォントをDBを構築しています...");
+		LOG.fine("Building font database from " + this.config.getURI() + "...");
 		SAXParserFactory parserFactory = SAXParserFactory.newInstance();
 		XMLReader parser;
 		try {
@@ -117,9 +117,9 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 
 			this.fontListCache = null;
 
-			LOG.fine("フォントをDBを構築しました");
+			LOG.fine("Font database built successfully");
 		} catch (Exception e) {
-			LOG.log(Level.SEVERE, this.config.getURI() + "を読み込めませんでした", e);
+			LOG.log(Level.SEVERE, "Failed to load " + this.config.getURI(), e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -129,4 +129,3 @@ public class ConfigurablePDFFontSourceManager extends PDFFontSourceManager {
 		return super.lookup(fontStyle);
 	}
 }
-

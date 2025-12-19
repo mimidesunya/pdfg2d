@@ -1,12 +1,18 @@
 package net.zamasoft.pdfg2d.pdf;
 
 /**
- * 添付ファイルです。
+ * Represents an attachment in a PDF document.
  * 
+ * @param description The description of the attachment.
+ * @param mimeType    The MIME type of the attachment.
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-public class Attachment {
-	public String description = null;
-	public String mimeType = null;
+public record Attachment(String description, String mimeType) {
+    /**
+     * Creates an attachment with no description or MIME type.
+     */
+    public Attachment() {
+        this(null, null);
+    }
 }

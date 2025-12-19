@@ -6,7 +6,7 @@ import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * JavaScriptを実行するアクションです。
+ * Action that executes JavaScript.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -14,7 +14,7 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 public class JavaScriptAction extends Action {
 	protected final String script;
 
-	public JavaScriptAction(String script) {
+	public JavaScriptAction(final String script) {
 		this.script = script;
 	}
 
@@ -22,10 +22,10 @@ public class JavaScriptAction extends Action {
 		return this.script;
 	}
 
-	public void writeTo(PDFOutput out) throws IOException {
+	public void writeTo(final PDFOutput out) throws IOException {
 		super.writeTo(out);
 		if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
-			throw new UnsupportedOperationException("JavaScript Actionは PDF 1.3 以降で使用できます。");
+			throw new UnsupportedOperationException("JavaScript Action requires PDF 1.3 or later.");
 		}
 		out.writeName("S");
 		out.writeName("JavaScript");

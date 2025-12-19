@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
 /**
- * CFFのデータを出力します。
+ * Outputs CFF (Compact Font Format) data.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -169,18 +169,18 @@ public class CFFOutputStream extends FilterOutputStream {
 
 	public void writeOffset(int a, int size) throws IOException {
 		switch (size) {
-		case 4:
-			this.write(a >> 24);
-		case 3:
-			this.write(a >> 16);
-		case 2:
-			this.write(a >> 8);
-		case 1:
-			this.write(a);
-			break;
+			case 4:
+				this.write(a >> 24);
+			case 3:
+				this.write(a >> 16);
+			case 2:
+				this.write(a >> 8);
+			case 1:
+				this.write(a);
+				break;
 
-		default:
-			throw new IllegalArgumentException();
+			default:
+				throw new IllegalArgumentException();
 		}
 	}
 
@@ -238,29 +238,29 @@ public class CFFOutputStream extends FilterOutputStream {
 			char c = real.charAt(i);
 			byte hex;
 			switch (c) {
-			case '.':
-				hex = 0xA;
-				break;
+				case '.':
+					hex = 0xA;
+					break;
 
-			case 'E':
-				if (real.charAt(i + 1) == '-') {
-					++i;
-					hex = 0xC;
-				} else {
-					hex = 0xB;
-				}
-				break;
+				case 'E':
+					if (real.charAt(i + 1) == '-') {
+						++i;
+						hex = 0xC;
+					} else {
+						hex = 0xB;
+					}
+					break;
 
-			case '-':
-				hex = 0xE;
-				break;
+				case '-':
+					hex = 0xE;
+					break;
 
-			default:
-				if (c < '0' || c > '9') {
-					throw new IllegalArgumentException();
-				}
-				hex = (byte) (c - '0');
-				break;
+				default:
+					if (c < '0' || c > '9') {
+						throw new IllegalArgumentException();
+					}
+					hex = (byte) (c - '0');
+					break;
 			}
 
 			if (low) {
@@ -290,12 +290,12 @@ public class CFFOutputStream extends FilterOutputStream {
 	public void writeIndex(byte[][] objects, byte offSize) throws IOException {
 		this.writeCard16((short) (objects.length));
 		if (objects.length <= 0) {
-			// 空のインデックスはカウントだけ出力する
+			// Empty index only outputs the count
 			return;
 		}
 		this.writeOffSize(offSize);
 
-		// 各オブジェクトの位置(1オリジン)
+		// Position of each object (1-origin)
 		int offset = 1;
 		for (int i = 0; i < objects.length; ++i) {
 			byte[] object = objects[i];
@@ -303,10 +303,10 @@ public class CFFOutputStream extends FilterOutputStream {
 			offset += object.length;
 		}
 
-		// データ全体の大きさ+1
+		// Total data size + 1
 		this.writeOffset(offset, offSize);
 
-		// データ本体
+		// Data body
 		for (int i = 0; i < objects.length; ++i) {
 			byte[] object = objects[i];
 			this.write(object);

@@ -13,6 +13,8 @@ import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
 
 /**
+ * Manages font resources.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -23,26 +25,26 @@ class FontFlow {
 
 	private final PDFFragmentOutputImpl objectsFlow;
 
-	/** FontKeyからPDFFontへのマッピング。 */
-	private final Map<FontSource, Font> fonts = new HashMap<FontSource, Font>();
-	private final List<PDFFont> fontList = new ArrayList<PDFFont>();
+	/** Mapping from FontSource to PDFFont. */
+	private final Map<FontSource, Font> fonts = new HashMap<>();
+	private final List<PDFFont> fontList = new ArrayList<>();
 
-	public FontFlow(Map<String, ObjectRef> nameToResourceRef, PDFFragmentOutputImpl objectsFlow, XRefImpl xref)
-			throws IOException {
+	public FontFlow(final Map<String, ObjectRef> nameToResourceRef, final PDFFragmentOutputImpl objectsFlow,
+			final XRefImpl xref) throws IOException {
 		this.xref = xref;
 		this.nameToResourceRef = nameToResourceRef;
 		this.objectsFlow = objectsFlow;
 	}
 
-	public Font useFont(FontSource source) throws IOException {
+	public Font useFont(final FontSource source) throws IOException {
 		Font font = this.fonts.get(source);
 		if (font != null) {
 			return font;
 		}
 
 		if (source instanceof PDFFontSource) {
-			String name = "F" + this.fonts.size();
-			ObjectRef fontRef = this.xref.nextObjectRef();
+			final String name = "F" + this.fonts.size();
+			final ObjectRef fontRef = this.xref.nextObjectRef();
 			this.nameToResourceRef.put(name, fontRef);
 
 			font = ((PDFFontSource) source).createFont(name, fontRef);
@@ -56,8 +58,7 @@ class FontFlow {
 	}
 
 	public void close() throws IOException {
-		for (int i = 0; i < this.fontList.size(); ++i) {
-			PDFFont font = (PDFFont) this.fontList.get(i);
+		for (final PDFFont font : this.fontList) {
 			font.writeTo(this.objectsFlow, this.xref);
 		}
 	}

@@ -13,7 +13,7 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
 /**
  * SourceResolver that retrieves data using HttpClient.
  */
-public class HttpSourceResolver implements SourceResolver {
+public class HTTPSourceResolver implements SourceResolver {
 	protected CloseableHttpClient createHttpClient() {
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 		return HttpClientBuilder.create().setConnectionManager(cm).build();
@@ -22,12 +22,12 @@ public class HttpSourceResolver implements SourceResolver {
 	@Override
 	public Source resolve(final URI uri) throws IOException {
 		final CloseableHttpClient client = this.createHttpClient();
-		return new HttpSource(uri, client);
+		return new HTTPSource(uri, client);
 	}
 
 	@Override
 	public void release(final Source source) {
-		if (source instanceof HttpSource httpSource) {
+		if (source instanceof HTTPSource httpSource) {
 			httpSource.close();
 		}
 	}

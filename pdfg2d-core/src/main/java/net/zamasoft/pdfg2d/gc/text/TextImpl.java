@@ -6,7 +6,7 @@ import net.zamasoft.pdfg2d.gc.font.FontMetrics;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 
 /**
- * 描画可能なテキストです。
+ * Represents renderable text.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

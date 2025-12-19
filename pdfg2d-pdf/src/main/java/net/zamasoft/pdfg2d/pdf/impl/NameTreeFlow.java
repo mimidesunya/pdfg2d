@@ -1,7 +1,6 @@
 package net.zamasoft.pdfg2d.pdf.impl;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -10,6 +9,8 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
+ * Manages name trees.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -24,35 +25,35 @@ abstract class NameTreeFlow {
 
 	private SortedMap<String, Object> nameToEntry = null;
 
-	public NameTreeFlow(PDFWriterImpl pdfWriter, String key) throws IOException {
+	public NameTreeFlow(final PDFWriterImpl pdfWriter, final String key) throws IOException {
 		this.pdfWriter = pdfWriter;
 		this.key = key;
 
-		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		final PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
 		this.out = mainFlow.forkFragment();
 		this.nameDict = pdfWriter.nameDict;
 	}
 
-	public void addEntry(String name, Object entry) {
+	public void addEntry(final String name, final Object entry) {
 		if (this.nameToEntry == null) {
-			this.nameToEntry = new TreeMap<String, Object>();
+			this.nameToEntry = new TreeMap<>();
 		}
 		this.nameToEntry.put(name, entry);
 	}
 
 	public void close() throws IOException {
 		if (this.nameToEntry != null) {
-			ObjectRef destsRef = this.pdfWriter.xref.nextObjectRef();
+			final ObjectRef destsRef = this.pdfWriter.xref.nextObjectRef();
 			this.nameDict.addEntry(this.key, destsRef);
 
 			this.out.startObject(destsRef);
 			this.out.startHash();
 
-			// PDF 1.2以前ではトップレベルのNames配列がサポートされていない
+			// PDF 1.2 or earlier does not support top-level Names array.
 			if (this.pdfWriter.params.getVersion().v <= PDFParams.Version.V_1_2.v) {
 				this.out.writeName("Kids");
 				this.out.startArray();
-				ObjectRef destsKidRef = this.pdfWriter.xref.nextObjectRef();
+				final ObjectRef destsKidRef = this.pdfWriter.xref.nextObjectRef();
 				this.out.writeObjectRef(destsKidRef);
 				this.out.endArray();
 				this.out.lineBreak();
@@ -65,17 +66,16 @@ abstract class NameTreeFlow {
 
 				this.out.writeName("Limits");
 				this.out.startArray();
-				this.out.writeText((String) this.nameToEntry.firstKey());
-				this.out.writeText((String) this.nameToEntry.lastKey());
+				this.out.writeText(this.nameToEntry.firstKey());
+				this.out.writeText(this.nameToEntry.lastKey());
 				this.out.endArray();
 				this.out.lineBreak();
 			}
 
 			this.out.writeName("Names");
 			this.out.startArray();
-			for (Iterator<Map.Entry<String, Object>> i = this.nameToEntry.entrySet().iterator(); i.hasNext();) {
-				Map.Entry<String, Object> entry = i.next();
-				this.out.writeText((String) entry.getKey());
+			for (final Map.Entry<String, Object> entry : this.nameToEntry.entrySet()) {
+				this.out.writeText(entry.getKey());
 				this.writeEntry(entry.getValue());
 			}
 			this.out.endArray();

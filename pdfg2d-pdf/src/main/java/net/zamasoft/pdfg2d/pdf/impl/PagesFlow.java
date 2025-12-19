@@ -5,29 +5,31 @@ import java.io.IOException;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 /**
+ * Manages PDF page structure (Pages tree).
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 class PagesFlow {
 	private final PDFWriterImpl pdfWriter;
 
-	/** ルートページリファレンス。 */
+	/** Root page reference. */
 	private final ObjectRef rootPageRef;
 
-	/** 子ページ参照フロー。 */
+	/** Child page reference flow. */
 	private final PDFFragmentOutputImpl pagesKidsFlow;
 
-	/** ページ数フロー。 */
+	/** Page count flow. */
 	private final PDFFragmentOutputImpl pageCountFlow;
 
-	/** ページ数カウンタ */
+	/** Page count counter. */
 	private int pageCount = 0;
 
-	public PagesFlow(PDFWriterImpl pdfWriter, ObjectRef rootPageRef) throws IOException {
+	public PagesFlow(final PDFWriterImpl pdfWriter, final ObjectRef rootPageRef) throws IOException {
 		this.pdfWriter = pdfWriter;
 		this.rootPageRef = rootPageRef;
 
-		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		final PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
 		mainFlow.startObject(rootPageRef);
 
 		mainFlow.startHash();
@@ -51,8 +53,8 @@ class PagesFlow {
 		mainFlow.endObject();
 	}
 
-	public PDFPageOutputImpl createPage(double width, double height) throws IOException {
-		// ページオブジェクト
+	public PDFPageOutputImpl createPage(final double width, final double height) throws IOException {
+		// Page Object
 		++this.pageCount;
 
 		return new PDFPageOutputImpl(this.pdfWriter, this.rootPageRef, this.pagesKidsFlow, width, height);

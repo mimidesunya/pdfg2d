@@ -1,66 +1,82 @@
 package net.zamasoft.pdfg2d.pdf.font.cid;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
-public class Width implements Serializable {
-	private static final long serialVersionUID = 0;
-
-	/** 最初のコードと最後のコードです。 */
-	int firstCode, lastCode;
-
-	/** 幅のリストです。 */
-	short[] widths;
+/**
+ * Represents a width entry for a range of characters.
+ *
+ * @param firstCode The first character code.
+ * @param lastCode  The last character code.
+ * @param widths    The list of character widths.
+ */
+public record Width(int firstCode, int lastCode, short[] widths) implements Serializable {
+	private static final long serialVersionUID = 0L;
 
 	/**
-	 * ある範囲の文字に対するエントリを構築します。
-	 * 
-	 * @param firstCode 最初の文字のコード。
-	 * @param lastCode  最後の文字のコード。
-	 * @param widths    文字の幅のリスト。
+	 * Creates a width entry for a single code.
+	 *
+	 * @param code   The character code.
+	 * @param widths The list of character widths.
 	 */
-	public Width(int firstCode, int lastCode, short[] widths) {
-		this.firstCode = firstCode;
-		this.lastCode = lastCode;
-		this.widths = widths;
-	}
-
-	public Width(int code, short[] widths) {
+	public Width(final int code, final short[] widths) {
 		this(code, code, widths);
 	}
 
-	public Width(short[] widths) {
+	/**
+	 * Creates a width entry for code 0.
+	 *
+	 * @param widths The list of character widths.
+	 */
+	public Width(final short[] widths) {
 		this(0, 0, widths);
 	}
 
-	public int getFirstCode() {
-		return this.firstCode;
-	}
-
-	public int getLastCode() {
-		return this.lastCode;
-	}
-
-	public short[] getWidths() {
-		return this.widths;
-	}
-
-	public short getWidth(int code) {
+	/**
+	 * Returns the width for the given character code.
+	 *
+	 * @param code The character code.
+	 * @return The width.
+	 */
+	public short getWidth(final int code) {
 		assert (code >= this.firstCode && code <= this.lastCode);
-		int index = code - this.firstCode;
+		final int index = code - this.firstCode;
 		if (index >= this.widths.length) {
 			return this.widths[this.widths.length - 1];
 		}
 		return this.widths[index];
 	}
 
+	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		final var buff = new StringBuilder();
 		buff.append(this.firstCode).append(' ');
 		buff.append(this.lastCode);
-		for (int i = 0; i < this.widths.length; ++i) {
+		for (final short width : this.widths) {
 			buff.append(' ');
-			buff.append(this.widths[i]);
+			buff.append(width);
 		}
 		return buff.toString();
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Width other)) {
+			return false;
+		}
+		return this.firstCode == other.firstCode
+				&& this.lastCode == other.lastCode
+				&& Arrays.equals(this.widths, other.widths);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = Integer.hashCode(this.firstCode);
+		result = 31 * result + Integer.hashCode(this.lastCode);
+		result = 31 * result + Arrays.hashCode(this.widths);
+		return result;
 	}
 }

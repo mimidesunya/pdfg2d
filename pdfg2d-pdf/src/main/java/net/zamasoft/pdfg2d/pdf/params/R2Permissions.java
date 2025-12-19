@@ -1,5 +1,8 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
+/**
+ * Permissions for Revision 2 (PDF 1.1).
+ */
 public class R2Permissions extends Permissions {
 	public static final int PRINT = 1 << 2;
 
@@ -9,10 +12,12 @@ public class R2Permissions extends Permissions {
 
 	public static final int ADD = 1 << 5;
 
+	@Override
 	public Type getType() {
 		return Type.R2;
 	}
 
+	@Override
 	public int getFlags() {
 		return this.flags;
 	}
@@ -21,7 +26,7 @@ public class R2Permissions extends Permissions {
 		return (this.flags & ADD) != 0;
 	}
 
-	public void setAdd(boolean add) {
+	public void setAdd(final boolean add) {
 		if (add) {
 			this.flags |= ADD;
 		} else {
@@ -33,7 +38,7 @@ public class R2Permissions extends Permissions {
 		return (this.flags & COPY) != 0;
 	}
 
-	public void setCopy(boolean copy) {
+	public void setCopy(final boolean copy) {
 		if (copy) {
 			this.flags |= COPY;
 		} else {
@@ -45,7 +50,7 @@ public class R2Permissions extends Permissions {
 		return (this.flags & MODIFY) != 0;
 	}
 
-	public void setModify(boolean modify) {
+	public void setModify(final boolean modify) {
 		if (modify) {
 			this.flags |= MODIFY;
 		} else {
@@ -57,7 +62,7 @@ public class R2Permissions extends Permissions {
 		return (this.flags & PRINT) != 0;
 	}
 
-	public void setPrint(boolean print) {
+	public void setPrint(final boolean print) {
 		if (print) {
 			this.flags |= PRINT;
 		} else {

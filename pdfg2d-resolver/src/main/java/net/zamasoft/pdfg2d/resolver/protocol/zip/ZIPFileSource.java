@@ -19,15 +19,15 @@ import net.zamasoft.pdfg2d.resolver.util.URIHelper;
 /**
  * A Source that retrieves data from a ZIP file.
  */
-public class ZipFileSource extends AbstractSource {
-	private static final Logger LOG = Logger.getLogger(ZipFileSource.class.getName());
+public class ZIPFileSource extends AbstractSource {
+	private static final Logger LOG = Logger.getLogger(ZIPFileSource.class.getName());
 
 	private final ZipFile zip;
 	private final ZipEntry entry;
 	private final String encoding;
 	private String mimeType = null;
 
-	public ZipFileSource(ZipFile zip, String path, URI uri, String mimeType, String encoding) {
+	public ZIPFileSource(ZipFile zip, String path, URI uri, String mimeType, String encoding) {
 		super(uri);
 		this.zip = Objects.requireNonNull(zip, "ZipFile must not be null");
 
@@ -46,23 +46,23 @@ public class ZipFileSource extends AbstractSource {
 		this.encoding = encoding;
 	}
 
-	public ZipFileSource(ZipFile zip, URI uri, String mimeType, String encoding) {
+	public ZIPFileSource(ZipFile zip, URI uri, String mimeType, String encoding) {
 		this(zip, null, uri, mimeType, encoding);
 	}
 
-	public ZipFileSource(ZipFile zip, URI uri, String mimeType) {
+	public ZIPFileSource(ZipFile zip, URI uri, String mimeType) {
 		this(zip, uri, mimeType, null);
 	}
 
-	public ZipFileSource(ZipFile zip, URI uri) throws IOException {
+	public ZIPFileSource(ZipFile zip, URI uri) throws IOException {
 		this(zip, uri, null);
 	}
 
-	public ZipFileSource(ZipFile zip, String path, URI uri, String mimeType) {
+	public ZIPFileSource(ZipFile zip, String path, URI uri, String mimeType) {
 		this(zip, path, uri, mimeType, null);
 	}
 
-	public ZipFileSource(ZipFile zip, String path, URI uri) {
+	public ZIPFileSource(ZipFile zip, String path, URI uri) {
 		this(zip, path, uri, null, null);
 	}
 
@@ -143,6 +143,6 @@ public class ZipFileSource extends AbstractSource {
 	public SourceValidity getValidity() throws IOException {
 		File file = new File(this.zip.getName());
 		long timestamp = file.lastModified();
-		return new ZipFileSourceValidity(timestamp, file);
+		return new ZIPFileSourceValidity(timestamp, file);
 	}
 }

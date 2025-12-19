@@ -713,7 +713,7 @@ public class Type2CharString {
 	private int readOperator() throws IOException {
 		if (this.b0 == -1) {
 			if (this.nextType() != TYPE_OPERATOR) {
-				throw new IOException("Operatorではありません。");
+				throw new IOException("Not an operator.");
 			}
 		}
 		int b = this.b0;
@@ -729,7 +729,7 @@ public class Type2CharString {
 	private int readInteger() throws IOException {
 		if (this.b0 == -1) {
 			if (this.nextType() != TYPE_INTEGER) {
-				throw new IOException("Integerではありません。");
+				throw new IOException("Not an integer.");
 			}
 		}
 		int b0 = this.b0;
@@ -757,7 +757,7 @@ public class Type2CharString {
 			int b4 = this.raf.read();
 			return b1 << 24 | b2 << 16 | b3 << 8 | b4;
 		}
-		throw new IOException("不正なIntegerです。:" + b0);
+		throw new IOException("Invalid integer: " + b0);
 	}
 
 }

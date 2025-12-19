@@ -8,7 +8,7 @@ import net.zamasoft.pdfg2d.util.IntList;
 import net.zamasoft.pdfg2d.util.ShortMapIterator;
 
 /**
- * フォントのDW,W属性です。
+ * Represents font DW (default width) and W (width) attributes.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -24,8 +24,8 @@ public class WArray implements Serializable {
 
 	/**
 	 * 
-	 * @param defaultWidth デフォルト幅(DW)
-	 * @param widths       W要素の配列(W)
+	 * @param defaultWidth the default width (DW)
+	 * @param widths       the array of W elements (W)
 	 */
 	public WArray(short defaultWidth, Width[] widths) {
 		this.defaultWidth = defaultWidth;
@@ -37,33 +37,32 @@ public class WArray implements Serializable {
 	}
 
 	/**
-	 * デフォルト幅(DW)を返します。
+	 * Returns the default width (DW).
 	 * 
-	 * @return
+	 * @return the default width
 	 */
 	public short getDefaultWidth() {
 		return this.defaultWidth;
 	}
 
 	/**
-	 * W要素の配列(W)を返します。
+	 * Returns the array of W elements (W).
 	 * 
-	 * @return
+	 * @return the width array
 	 */
 	public Width[] getWidths() {
 		return this.widths;
 	}
 
 	/**
-	 * グリフの幅を返します。
+	 * Returns the width of a glyph.
 	 * 
-	 * @param gid
-	 * @return
+	 * @param gid the glyph ID
+	 * @return the width
 	 */
-	public short getWidth(int gid) {
-		for (int i = 0; i < this.widths.length; ++i) {
-			Width width = this.widths[i];
-			if (width.getFirstCode() <= gid && width.getLastCode() >= gid) {
+	public short getWidth(final int gid) {
+		for (final var width : this.widths) {
+			if (width.firstCode() <= gid && width.lastCode() >= gid) {
 				return width.getWidth(gid);
 			}
 		}
@@ -71,14 +70,14 @@ public class WArray implements Serializable {
 	}
 
 	/**
-	 * 幅のリストから最適なWArrayを構築します。
+	 * Builds an optimal WArray from a list of widths.
 	 * 
-	 * @param widths
-	 * @return
+	 * @param widths the width iterator
+	 * @return the WArray instance
 	 */
 	public static WArray buildFromWidths(ShortMapIterator widths) {
 		final List<Width> list = new ArrayList<Width>();
-		final IntList widthCounts = new IntList();// 最も多い幅をデフォルトとする
+		final IntList widthCounts = new IntList();// Use most frequent width as default
 		final short[] runWidths = new short[255];
 
 		int position = 0;
@@ -88,7 +87,7 @@ public class WArray implements Serializable {
 		while (widths.next()) {
 			cid = widths.key();
 			short advance = widths.value();
-			// Short.MIN_VALUEはデフォルトの幅とする
+			// Short.MIN_VALUE indicates default width
 			if (advance == Short.MIN_VALUE) {
 				if (position == 0) {
 					continue;
@@ -101,22 +100,22 @@ public class WArray implements Serializable {
 			widthCounts.set(advance, count);
 
 			if (startCid == -1) {
-				// 最初
+				// First character
 				startCid = cid;
 				runWidths[position++] = advance;
 				continue;
 			} else {
 				if (runWidths[position - 1] == advance) {
-					// ランの開始/継続
+					// Start/continue run
 					run = true;
 					continue;
 				} else if (startCid == cid - 1 || (!run && position < runWidths.length)) {
-					// 配列の開始/継続
+					// Start/continue array
 					runWidths[position++] = advance;
 					continue;
 				}
 			}
-			// ランの終了
+			// End of run
 			short[] temp = new short[position];
 			System.arraycopy(runWidths, 0, temp, 0, position);
 			list.add(new Width(startCid, cid - 1, temp));
@@ -141,10 +140,9 @@ public class WArray implements Serializable {
 				}
 			}
 		}
-		List<Width> newList = new ArrayList<Width>();
-		for (int i = 0; i < list.size(); ++i) {
-			Width width = (Width) list.get(i);
-			if (width.widths.length == 1 && width.widths[0] == defaultWidth) {
+		final var newList = new ArrayList<Width>();
+		for (final var width : list) {
+			if (width.widths().length == 1 && width.widths()[0] == defaultWidth) {
 				continue;
 			}
 			newList.add(width);
@@ -153,10 +151,10 @@ public class WArray implements Serializable {
 	}
 
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		final var buff = new StringBuilder();
 		buff.append(this.defaultWidth).append('\n');
-		for (int i = 0; i < this.widths.length; ++i) {
-			buff.append(this.widths[i]).append('\n');
+		for (final var w : this.widths) {
+			buff.append(w).append('\n');
 		}
 		return buff.toString();
 	}

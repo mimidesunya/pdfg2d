@@ -16,7 +16,7 @@ import net.zamasoft.pdfg2d.util.IntMapIterator;
 import net.zamasoft.pdfg2d.util.MapIntMap;
 
 /**
- * CIDフォントのキャラクタマッピング情報です。
+ * Character mapping information for CID fonts.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -58,7 +58,7 @@ public class CIDTable implements Serializable {
 		CIDTableParser parser = new CIDTableParser();
 		try {
 			Charset charset = this.getCharset();
-			// UTF-16BEの場合は、Javaの内部コードと一致する
+			// UTF-16BE matches Java's internal character code
 			if (charset.name().equalsIgnoreCase("UTF-16BE")) {
 				toCid = new MapIntMap();
 				parser.parse(this.cmapSource, toCid);
@@ -111,9 +111,9 @@ public class CIDTable implements Serializable {
 	}
 
 	/**
-	 * Javaエンコーディングを返します。
+	 * Returns the Java charset used for encoding.
 	 * 
-	 * @return
+	 * @return the charset
 	 */
 	public Charset getCharset() {
 		if (this.charset == null) {
@@ -123,9 +123,9 @@ public class CIDTable implements Serializable {
 	}
 
 	/**
-	 * 不明な文字のCIDを返します。
+	 * Returns the CID for missing/unknown characters.
 	 * 
-	 * @return
+	 * @return the CID for the missing character glyph
 	 */
 	public int getMissingCID() {
 		if (this.missingCID == 0) {
@@ -135,10 +135,10 @@ public class CIDTable implements Serializable {
 	}
 
 	/**
-	 * 文字をCIDに変換します。
+	 * Converts a character code to its CID.
 	 * 
-	 * @param c 文字
-	 * @return cid
+	 * @param c the character code
+	 * @return the corresponding CID
 	 */
 	public int toCID(int c) {
 		IntMap toCid = this.getToCid();
@@ -149,10 +149,10 @@ public class CIDTable implements Serializable {
 	}
 
 	/**
-	 * 文字を含んでいればtrueを返します。
+	 * Checks if this table contains a mapping for the given character.
 	 * 
-	 * @param c
-	 * @return
+	 * @param c the character code
+	 * @return true if the character is mapped, false otherwise
 	 */
 	public boolean containsChar(int c) {
 		IntMap toCid = this.getToCid();

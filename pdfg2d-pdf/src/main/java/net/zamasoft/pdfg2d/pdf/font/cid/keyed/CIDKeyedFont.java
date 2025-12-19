@@ -44,7 +44,7 @@ class CIDKeyedFont extends CIDFont {
 		assert text.getCharCount() > 0;
 		if (gc instanceof PDFGC) {
 			PDFGraphicsOutput out = ((PDFGC) gc).getPDFGraphicsOutput();
-			// ネイティブの文字コード
+			// Native character encoding
 			char[] ch = text.getChars();
 			int clen = text.getCharCount();
 			double[] xadvances = text.getXAdvances(false);
@@ -61,7 +61,7 @@ class CIDKeyedFont extends CIDFont {
 				for (int i = 0; i < glyphCount; ++i) {
 					double xadvance = xadvances[i];
 					if (xadvance != 0) {
-						// 縦書きでは負の値を使う(SPEC PDF1.3 8.7.1.1)
+						// Use negative values for vertical writing (SPEC PDF1.3 8.7.1.1)
 						if (this.source.getDirection() == Direction.TB) {
 							xadvance = -xadvance;
 						}
@@ -101,7 +101,7 @@ class CIDKeyedFont extends CIDFont {
 			int llen = Math.min(len, CALLOC);
 			for (int i = 0; i < llen; ++i) {
 				char c = ch[i + off];
-				// \A0は空白に変換
+				// Convert NBSP (\u00A0) to space
 				c = (c == '\u00A0') ? '\u0020' : c;
 				this.cbuff.put(c);
 			}
@@ -119,7 +119,7 @@ class CIDKeyedFont extends CIDFont {
 	public void writeTo(PDFFragmentOutput out, XRef xref) throws IOException {
 		CIDKeyedFontSource source = (CIDKeyedFontSource) this.source;
 
-		// 主フォント
+		// Main font
 		out.startObject(this.fontRef);
 		out.startHash();
 		out.writeName("Type");
@@ -142,7 +142,7 @@ class CIDKeyedFont extends CIDFont {
 		out.endHash();
 		out.endObject();
 
-		// 拡張フォント
+		// Descendant font
 		out.startObject(xfontRef);
 		out.startHash();
 		out.writeName("Type");
@@ -178,7 +178,7 @@ class CIDKeyedFont extends CIDFont {
 		out.endHash();
 		out.endObject();
 
-		// フォント情報
+		// Font descriptor
 		out.startObject(fontDescRef);
 		out.startHash();
 		out.writeName("Type");
@@ -221,7 +221,7 @@ class CIDKeyedFont extends CIDFont {
 	}
 
 	public int toGID(int c) {
-		// ユニコードからCIDコードに変換
+		// Convert Unicode to CID code
 		int gid = this.cmap.getCIDTable().toCID(c);
 		return gid;
 	}

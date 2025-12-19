@@ -5,60 +5,64 @@ import net.zamasoft.pdfg2d.pdf.PDFMetaInfo;
 import net.zamasoft.pdfg2d.pdf.action.Action;
 import net.zamasoft.pdfg2d.pdf.font.ConfigurablePDFFontSourceManager;
 
+/**
+ * Parameters for generating PDF documents.
+ */
 public class PDFParams {
 	private FontSourceManager fsm;
 
-	/** バージョン */
+	/** PDF Version */
 	private Version version = Version.V_1_4;
 
-	public static enum Version {
+	public enum Version {
 		V_1_2(1200), V_1_3(1300), V_1_4(1400), V_PDFA1B(1412), V_PDFX1A(1421), V_1_5(1500), V_1_6(1600), V_1_7(1700);
 
 		public final int v;
 
-		private Version(int v) {
+		Version(int v) {
 			this.v = v;
 		}
 	}
 
-	/** 圧縮方法。 */
+	/** Compression method. */
 	private Compression compression = Compression.BINARY;
 
-	public static enum Compression {
-		NONE, BINARY, ASCII;
+	public enum Compression {
+		NONE, BINARY, ASCII
 	}
 
-	/** JPEG画像の扱い。 */
+	/** JPEG image handling. */
 	private JPEGImage jpegImage = JPEGImage.RAW;
 
-	public static enum JPEGImage {
-		RAW, RECOMPRESS;
+	public enum JPEGImage {
+		RAW, RECOMPRESS
 	}
 
-	/** 画像の変換。 */
+	/** Image compression method. */
 	private ImageCompression imageCompression = ImageCompression.FLATE;
 
-	public static enum ImageCompression {
-		FLATE, JPEG, JPEG2000;
+	public enum ImageCompression {
+		FLATE, JPEG, JPEG2000
 	}
 
 	private int imageCompressionLossless = 200;
 
-	// 名前のエンコーディング
-	// WindowsをターゲットとしたPDFではMS932にしないと、正しいフォントが選択されない現象が起こる。
+	// Name encoding
+	// Must be MS932 for PDFs targeting Windows to ensure correct font selection.
 	private String platformEncoding = "UTF-8";
 
 	private boolean bookmarks = false;
 
-	private EncryptionParams encription = null;
+	private EncryptionParams encryption = null;
 
 	private ColorMode colorMode = ColorMode.PRESERVE;
 
-	public static enum ColorMode {
-		PRESERVE, GRAY, CMYK;
+	public enum ColorMode {
+		PRESERVE, GRAY, CMYK
 	}
 
-	private int maxImageWidth = 0, maxImageHeight = 0;
+	private int maxImageWidth = 0;
+	private int maxImageHeight = 0;
 
 	private byte[] fileId = null;
 
@@ -76,11 +80,11 @@ public class PDFParams {
 	}
 
 	/**
-	 * フォントソースを指定します。
+	 * Sets the font source manager.
 	 * 
-	 * @param fsm
+	 * @param fsm the font source manager
 	 */
-	public void setFontSourceManager(FontSourceManager fsm) {
+	public void setFontSourceManager(final FontSourceManager fsm) {
 		this.fsm = fsm;
 	}
 
@@ -89,20 +93,20 @@ public class PDFParams {
 	}
 
 	/**
-	 * 圧縮方法を設定します。 COMPRESSION_XXXの値を使用してください。
+	 * Sets the compression method.
 	 * 
-	 * @param compression
+	 * @param compression the compression method
 	 */
-	public void setCompression(Compression compression) {
+	public void setCompression(final Compression compression) {
 		this.compression = compression;
 	}
 
 	/**
-	 * JPEG画像の扱いを設定します。 JPEG_IMAGE_XXXの値を使用してください。
+	 * Sets the handling of JPEG images.
 	 * 
-	 * @param jpegImage
+	 * @param jpegImage the JPEG image handling mode
 	 */
-	public void setJPEGImage(JPEGImage jpegImage) {
+	public void setJPEGImage(final JPEGImage jpegImage) {
 		this.jpegImage = jpegImage;
 	}
 
@@ -111,11 +115,11 @@ public class PDFParams {
 	}
 
 	/**
-	 * 画像の再圧縮形式を設定します。
+	 * Sets the image re-compression format.
 	 * 
-	 * @param imageCompression
+	 * @param imageCompression the image compression format
 	 */
-	public void setImageCompression(ImageCompression imageCompression) {
+	public void setImageCompression(final ImageCompression imageCompression) {
 		this.imageCompression = imageCompression;
 	}
 
@@ -124,11 +128,12 @@ public class PDFParams {
 	}
 
 	/**
-	 * 不可逆圧縮をおこなう画像の大きさ(縦+横)の閾値です。 この値より大きさが大きい場合に不可逆圧縮を適用します。
+	 * Sets the size threshold (width + height) for lossy compression.
+	 * Images larger than this value will apply lossy compression.
 	 * 
-	 * @param imageCompressionLossless
+	 * @param imageCompressionLossless the threshold value
 	 */
-	public void setImageCompressionLossless(int imageCompressionLossless) {
+	public void setImageCompressionLossless(final int imageCompressionLossless) {
 		this.imageCompressionLossless = imageCompressionLossless;
 	}
 
@@ -140,7 +145,7 @@ public class PDFParams {
 		return this.maxImageWidth;
 	}
 
-	public void setMaxImageWidth(int maxImageWidth) {
+	public void setMaxImageWidth(final int maxImageWidth) {
 		this.maxImageWidth = maxImageWidth;
 	}
 
@@ -148,7 +153,7 @@ public class PDFParams {
 		return this.maxImageHeight;
 	}
 
-	public void setMaxImageHeight(int maxImageHeight) {
+	public void setMaxImageHeight(final int maxImageHeight) {
 		this.maxImageHeight = maxImageHeight;
 	}
 
@@ -157,11 +162,11 @@ public class PDFParams {
 	}
 
 	/**
-	 * PDFのバージョンを設定します。
+	 * Sets the PDF version.
 	 * 
-	 * @param version
+	 * @param version the PDF version
 	 */
-	public void setVersion(Version version) {
+	public void setVersion(final Version version) {
 		this.version = version;
 	}
 
@@ -170,11 +175,11 @@ public class PDFParams {
 	}
 
 	/**
-	 * プラットフォームのエンコーディングを設定します。
+	 * Sets the platform encoding.
 	 * 
-	 * @param platformEncoding
+	 * @param platformEncoding the encoding name
 	 */
-	public void setPlatformEncoding(String platformEncoding) {
+	public void setPlatformEncoding(final String platformEncoding) {
 		this.platformEncoding = platformEncoding;
 	}
 
@@ -183,28 +188,25 @@ public class PDFParams {
 	}
 
 	/**
-	 * ブックマークを作成するかどうかを設定します。
+	 * Sets whether to generate bookmarks.
 	 * 
-	 * @param bookmarks
+	 * @param bookmarks true to generate bookmarks
 	 */
-	public void setBookmarks(boolean bookmarks) {
+	public void setBookmarks(final boolean bookmarks) {
 		this.bookmarks = bookmarks;
 	}
 
-	public EncryptionParams getEncription() {
-		return this.encription;
+	public EncryptionParams getEncryption() {
+		return this.encryption;
 	}
 
 	/**
-	 * 暗号化方法を設定します。
+	 * Sets the encryption parameters.
 	 * 
-	 * @see EncryptionParams
-	 * @see V2EncryptionParams
-	 * 
-	 * @param encription
+	 * @param encryption the encryption parameters
 	 */
-	public void setEncription(EncryptionParams encription) {
-		this.encription = encription;
+	public void setEncryption(final EncryptionParams encryption) {
+		this.encryption = encryption;
 	}
 
 	public ColorMode getColorMode() {
@@ -212,59 +214,60 @@ public class PDFParams {
 	}
 
 	/**
-	 * カラー変換オブジェクトを設定します。
+	 * Sets the color mode.
 	 * 
-	 * @param colorMode
+	 * @param colorMode the color mode
 	 */
-	public void setColorMode(ColorMode colorMode) {
+	public void setColorMode(final ColorMode colorMode) {
 		this.colorMode = colorMode;
 	}
 
 	/**
-	 * ファイルIDを設定します。ファイルIDは16バイトのバイト列です。
+	 * Sets the file ID. Must be a 16-byte array.
 	 * 
-	 * @param fileId
+	 * @param fileId the file ID
+	 * @throws IllegalArgumentException if fileId is not 16 bytes
 	 */
-	public void setFileId(byte[] fileId) {
+	public void setFileId(final byte[] fileId) {
 		if (fileId != null && fileId.length != 16) {
-			throw new IllegalArgumentException("ファイルIDは16バイトのバイト列でなければなりません");
+			throw new IllegalArgumentException("File ID must be a 16-byte array.");
 		}
 		this.fileId = fileId;
 	}
 
 	/**
-	 * ファイルIDを返します。
+	 * Returns the file ID.
 	 * 
-	 * @return
+	 * @return the file ID
 	 */
 	public byte[] getFileId() {
 		return this.fileId;
 	}
 
 	/**
-	 * 文書情報を設定します。
+	 * Sets the document metadata.
 	 * 
-	 * @param metaInfo
+	 * @param metaInfo the metadata
 	 */
-	public void setMetaInfo(PDFMetaInfo metaInfo) {
+	public void setMetaInfo(final PDFMetaInfo metaInfo) {
 		this.metaInfo = metaInfo;
 	}
 
 	/**
-	 * 文書情報を返します。
+	 * Returns the document metadata.
 	 * 
-	 * @return
+	 * @return the metadata
 	 */
 	public PDFMetaInfo getMetaInfo() {
 		return this.metaInfo;
 	}
 
 	/**
-	 * 文書を開いた時に実行されるアクションを設定します。
+	 * Sets the action to be performed when the document is opened.
 	 * 
-	 * @param openAction
+	 * @param openAction the open action
 	 */
-	public void setOpenAction(Action openAction) {
+	public void setOpenAction(final Action openAction) {
 		if (openAction != null) {
 			openAction.setParams(this);
 		}
@@ -276,18 +279,18 @@ public class PDFParams {
 	}
 
 	/**
-	 * 表示設定を設定します。
+	 * Sets the viewer preferences.
 	 * 
-	 * @param viewerPreferences
+	 * @param viewerPreferences the viewer preferences
 	 */
-	public void setViewerPreferences(ViewerPreferences viewerPreferences) {
+	public void setViewerPreferences(final ViewerPreferences viewerPreferences) {
 		this.viewerPreferences = viewerPreferences;
 	}
 
 	/**
-	 * 表示設定を返します。
+	 * Returns the viewer preferences.
 	 * 
-	 * @return
+	 * @return the viewer preferences
 	 */
 	public ViewerPreferences getViewerPreferences() {
 		return this.viewerPreferences;

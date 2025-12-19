@@ -52,7 +52,7 @@ import net.zamasoft.pdfg2d.pdf.font.PDFFontSource.Type;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.util.ColorUtils;
 
-/* PDF命令早見表
+/* PDF Operator Reference
  * 
  * w	line width
  * J	line cap
@@ -147,7 +147,7 @@ import net.zamasoft.pdfg2d.util.ColorUtils;
  */
 
 /**
- * PDFグラフィックコンテキストです。
+ * PDF Graphics Context.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -160,7 +160,7 @@ public class PDFGC implements GC, Closeable {
 	protected final PDFGraphicsOutput out;
 
 	/**
-	 * 設定されたグラフィック状態を保存するためのオブジェクト。
+	 * Object for saving the configured graphics state.
 	 * 
 	 * @author MIYABE Tatsuhiko
 	 * @since 1.0
@@ -227,7 +227,7 @@ public class PDFGC implements GC, Closeable {
 	}
 
 	/**
-	 * PDFのカレントのグラフィック状態を保存するためのオブジェクト。
+	 * Object for saving the current PDF graphics state.
 	 * 
 	 * @author MIYABE Tatsuhiko
 	 * @since 1.0
@@ -296,116 +296,72 @@ public class PDFGC implements GC, Closeable {
 
 	private Shape clip = null;
 
-	/**
-	 * 使用する線の末端の形状。
-	 */
+	/** Line cap style. */
 	private LineCap lineCap = LineCap.SQUARE;
 
-	/**
-	 * PDFのカレントの線の末端の形状。
-	 */
+	/** Current PDF line cap style. */
 	private LineCap xlineCap = LineCap.SQUARE;
 
-	/**
-	 * 使用する線の接続部分の形状。
-	 */
+	/** Line join style. */
 	private LineJoin lineJoin = LineJoin.MITER;
 
-	/**
-	 * PDFのカレントの線の接続部分の形状。
-	 */
+	/** Current PDF line join style. */
 	private LineJoin xlineJoin = LineJoin.MITER;
 
-	/**
-	 * 使用する線の幅。
-	 */
+	/** Line width. */
 	private double lineWidth = 1;
 
-	/**
-	 * PDFのカレントの線の幅。
-	 */
+	/** Current PDF line width. */
 	private double xlineWidth = 1;
 
-	/**
-	 * 使用する線のパターン。
-	 */
+	/** Line dash pattern. */
 	private double[] linePattern = STROKE_SOLID;
 
-	/**
-	 * PDFのカレントの線のパターン。
-	 */
+	/** Current PDF line dash pattern. */
 	private double[] xlinePattern = STROKE_SOLID;
 
-	/**
-	 * 使用する線の色。
-	 */
+	/** Stroke paint. */
 	private Paint strokePaint = GrayColor.BLACK;
 
-	/**
-	 * PDFのカレントの線の色。
-	 */
+	/** Current PDF stroke paint. */
 	private Paint xstrokePaint = GrayColor.BLACK;
 
-	/**
-	 * 使用する塗りつぶし色。
-	 */
+	/** Fill paint. */
 	private Paint fillPaint = GrayColor.BLACK;
 
-	/**
-	 * PDFのカレントの塗りつぶし色。
-	 */
+	/** Current PDF fill paint. */
 	private Paint xfillPaint = GrayColor.BLACK;
 
 	private double xletterSpacing = 0;
 
-	/**
-	 * テキストの描画方法。
-	 */
+	/** Text rendering mode. */
 	private TextMode textMode = TextMode.FILL;
 
-	/**
-	 * PDFのカレントのテキストの描画方法。
-	 */
+	/** Current PDF text rendering mode. */
 	private TextMode xtextMode = TextMode.FILL;
 
-	/**
-	 * 線の不透明度。
-	 */
+	/** Stroke opacity. */
 	public float strokeAlpha = 1;
 
-	/**
-	 * PDFのカレントの線の不透明度。
-	 */
+	/** Current PDF stroke opacity. */
 	public float xstrokeAlpha = 1;
 
-	/**
-	 * 塗りの不透明度。
-	 */
+	/** Fill opacity. */
 	public float fillAlpha = 1;
 
-	/**
-	 * PDFのカレントの塗りの不透明度。
-	 */
+	/** Current PDF fill opacity. */
 	public float xfillAlpha = 1;
 
-	/**
-	 * 線のオーバープリントモード。
-	 */
+	/** Stroke overprint mode. */
 	public byte strokeOverprint = 0;
 
-	/**
-	 * PDFのカレントの線のオーバープリントモード。
-	 */
+	/** Current PDF stroke overprint mode. */
 	public byte xstrokeOverprint = 0;
 
-	/**
-	 * 塗りのオーバープリントモード。
-	 */
+	/** Fill overprint mode. */
 	public byte fillOverprint = 0;
 
-	/**
-	 * PDFのカレントの塗りのオーバープリントモード。
-	 */
+	/** Current PDF fill overprint mode. */
 	public byte xfillOverprint = 0;
 
 	private static class PatternKey {
@@ -865,7 +821,7 @@ public class PDFGC implements GC, Closeable {
 						}
 					}
 					if (!hasShape) {
-						// 描画する文字がない
+						// No characters to draw
 						return;
 					}
 				}
@@ -892,7 +848,7 @@ public class PDFGC implements GC, Closeable {
 					|| this.pdfVersion.v == PDFParams.Version.V_PDFX1A.v) {
 				Type type = source.getType();
 				if (type != Type.EMBEDDED && type != Type.MISSING) {
-					throw new IllegalStateException("PDF/A-1またはPDF/X-1aで埋め込みフォント以外は使用できません。");
+					throw new IllegalStateException("Only embedded fonts can be used in PDF/A-1 or PDF/X-1a.");
 				}
 			}
 			FontStyle fontStyle = text.getFontStyle();
@@ -906,7 +862,7 @@ public class PDFGC implements GC, Closeable {
 			double enlargement;
 			Weight weight = fontStyle.getWeight();
 			if (this.textMode == TextMode.FILL && weight.w >= 500 && source.getWeight().w < 500) {
-				// 自前でBOLDを再現する
+				// Simulate bold manually
 				switch (weight) {
 					case W_500:
 						enlargement = size / 28.0;
@@ -945,7 +901,7 @@ public class PDFGC implements GC, Closeable {
 				enlargement = 0;
 			}
 
-			// 描画方向
+			// Text direction
 			Direction direction = fontStyle.getDirection();
 			AffineTransform rotate = null;
 			double center = 0;
@@ -953,15 +909,15 @@ public class PDFGC implements GC, Closeable {
 			switch (direction) {
 				case LTR:
 				case RTL:// TODO RTL
-					// 横書き
+					// Horizontal
 					break;
 				case TB:
-					// 縦書き
+					// Vertical
 					if (source.getDirection() == direction) {
-						// 縦組み
+						// Vertical typesetting
 						verticalFont = true;
 					} else {
-						// ９０度回転横組み
+						// 90-degree rotated horizontal
 						if (!localContext) {
 							this.q();
 							localContext = true;
@@ -978,15 +934,15 @@ public class PDFGC implements GC, Closeable {
 					throw new IllegalStateException();
 			}
 
-			// テキスト開始
+			// Begin text
 			this.out.writeOperator("BT");
 
-			// イタリック
+			// Italic
 			Style style = fontStyle.getStyle();
 			if (style != Style.NORMAL && !source.isItalic()) {
-				// 自前でイタリックを再現する
+				// Simulate italic manually
 				if (verticalFont) {
-					// 縦書きイタリック
+					// Vertical italic
 					this.out.writeReal(1);
 					this.out.writeReal(-0.25);
 					this.out.writeReal(0);
@@ -994,7 +950,7 @@ public class PDFGC implements GC, Closeable {
 					this.out.writePosition(x, y);
 					this.out.writeOperator("Tm");
 				} else {
-					// 横書きイタリック
+					// Horizontal italic
 					this.out.writeReal(1);
 					this.out.writeReal(0);
 					this.out.writeReal(0.25);
@@ -1007,16 +963,16 @@ public class PDFGC implements GC, Closeable {
 				this.out.writeOperator("Td");
 			}
 
-			// フォント名とサイズ
+			// Font name and size
 			String name = ((PDFFont) font).getName();
 			this.out.useResource("Font", name);
 			this.out.writeName(name);
 			this.out.writeReal(size);
 			this.out.writeOperator("Tf");
 
-			// // 字間
+			// Letter spacing
 			double letterSpacing = text.getLetterSpacing();
-			// 縦書きでは負の値を使う(SPEC PDF1.3 8.7.1.1)
+			// Use negative value for vertical writing (PDF 1.3 spec 8.7.1.1)
 			if (verticalFont) {
 				letterSpacing = -letterSpacing;
 			}
@@ -1028,14 +984,14 @@ public class PDFGC implements GC, Closeable {
 				}
 			}
 
-			// 描画
+			// Draw
 			font.drawTo(this, text);
 
-			// テキスト終了
+			// End text
 			this.out.writeOperator("ET");
 
 			if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.Type.COLOR && this.fillAlpha == 1) {
-				// Bold終了
+				// End bold simulation
 				this.out.writeInt(TextMode.FILL.code);
 				this.out.writeOperator("Tr");
 				if (!this.fillPaint.equals(this.strokePaint)) {
@@ -1247,7 +1203,7 @@ public class PDFGC implements GC, Closeable {
 	}
 
 	protected void shadingFunction(PDFOutput sout, Color[] colors, double[] fractions) throws IOException {
-		// TODO alphaグラデーション
+		// TODO Alpha gradient
 		sout.writeName("ColorSpace");
 		Color.Type colorType;
 		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
@@ -1292,7 +1248,7 @@ public class PDFGC implements GC, Closeable {
 		if (colors.length <= 2
 				&& (fractions == null || fractions.length == 0 || (fractions.length == 1 && fractions[0] == 0)
 						|| (fractions.length == 2 && fractions[0] == 0 && fractions[1] == 1))) {
-			// 単純な場合
+			// Simple case
 			Color c0 = colors[0];
 			Color c1 = colors[1];
 
@@ -1323,7 +1279,7 @@ public class PDFGC implements GC, Closeable {
 			sout.endArray();
 			sout.lineBreak();
 		} else {
-			// 複雑な場合
+			// Complex case
 			int segments = fractions.length - 1;
 			if (fractions[0] != 0) {
 				++segments;
@@ -1452,11 +1408,11 @@ public class PDFGC implements GC, Closeable {
 	}
 
 	protected void applyStates() throws IOException {
-		// 変換
+		// Transform
 		this.applyTransform();
 		this.applyClip();
 
-		// ストローク
+		// Stroke
 		if (this.lineWidth != this.xlineWidth) {
 			this.xlineWidth = this.lineWidth;
 			this.out.writeReal(this.lineWidth);
@@ -1485,7 +1441,7 @@ public class PDFGC implements GC, Closeable {
 			this.out.writeOperator("d");
 		}
 
-		// 色
+		// Color
 		if (this.strokePaint != null && !this.strokePaint.equals(this.xstrokePaint)) {
 			switch (this.strokePaint.getPaintType()) {
 				case COLOR:
@@ -1539,11 +1495,11 @@ public class PDFGC implements GC, Closeable {
 			this.xfillPaint = this.fillPaint;
 		}
 
-		// 不透明度
+		// Opacity
 		boolean supportAlpha = this.pdfVersion.v >= PDFParams.Version.V_1_4.v
 				&& this.pdfVersion.v != PDFParams.Version.V_PDFA1B.v
 				&& this.pdfVersion.v != PDFParams.Version.V_PDFX1A.v;
-		// 透明化処理がサポートされる場合。
+		// When transparency is supported
 		if ((supportAlpha && (this.strokeAlpha != this.xstrokeAlpha || this.fillAlpha != this.xfillAlpha))
 				|| (this.strokeOverprint != this.xstrokeOverprint || this.fillOverprint != this.xfillOverprint)) {
 			this.xstrokeAlpha = this.strokeAlpha;
@@ -1598,9 +1554,11 @@ public class PDFGC implements GC, Closeable {
 	}
 
 	/**
-	 * 現在のグラフィック状態が最初に適用された場合、 グラフィックコンテキスト開始命令(q)を出力し、現在のグラフィック状態を保存します。
+	 * If the current graphics state is applied for the first time,
+	 * outputs the graphics context start instruction (q) and saves the current
+	 * graphics state.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs
 	 */
 	private void gsave() throws IOException {
 		if (this.stack.isEmpty()) {
@@ -1614,9 +1572,11 @@ public class PDFGC implements GC, Closeable {
 	}
 
 	/**
-	 * 以前のグラフィック状態が保存されている場合、 グラフィックコンテキスト終了命令(Q)を出力し、現在のグラフィック状態を復帰します。
+	 * If a previous graphics state is saved,
+	 * outputs the graphics context end instruction (Q) and restores the graphics
+	 * state.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs
 	 */
 	private void grestore() throws IOException {
 		GraphicsState state = (GraphicsState) this.stack.get(this.stack.size() - 1);
@@ -1631,7 +1591,7 @@ public class PDFGC implements GC, Closeable {
 		++this.qDepth;
 		if (this.pdfVersion.v == PDFParams.Version.V_PDFA1B.v) {
 			if (this.qDepth > 28) {
-				throw new IllegalStateException("PDF/A-1ではグラフィックステートを28以上入れ子にできません。");
+				throw new IllegalStateException("PDF/A-1 cannot nest graphic states more than 28 levels.");
 			}
 		}
 		this.out.writeOperator("q");

@@ -3,7 +3,7 @@ package net.zamasoft.pdfg2d.pdf.font.type1;
 import java.io.Serializable;
 
 /**
- * 1文字についての情報です。
+ * Information about a single glyph.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0

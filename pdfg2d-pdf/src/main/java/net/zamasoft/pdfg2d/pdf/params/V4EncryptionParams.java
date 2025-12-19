@@ -1,12 +1,15 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
-public class V4EncryptionParams extends EncryptionParams {
-	public static enum CFM {
+/**
+ * Parameters for V4 encryption (PDF 1.5/1.6).
+ */
+public final class V4EncryptionParams extends EncryptionParams {
+	public enum CFM {
 		V2("V2"), AESV2("AESV2");
 
 		public final String name;
 
-		private CFM(String name) {
+		CFM(final String name) {
 			this.name = name;
 		}
 	}
@@ -17,8 +20,9 @@ public class V4EncryptionParams extends EncryptionParams {
 
 	private CFM cfm = CFM.V2;
 
-	private boolean enctyptMetadata = true;
+	private boolean encryptMetadata = true;
 
+	@Override
 	public Type getType() {
 		return Type.V4;
 	}
@@ -31,9 +35,10 @@ public class V4EncryptionParams extends EncryptionParams {
 		return this.length;
 	}
 
-	public void setLength(int length) throws IllegalArgumentException {
+	public void setLength(final int length) throws IllegalArgumentException {
 		if (length < 40 || length > 128 || (length % 8) != 0) {
-			throw new IllegalArgumentException("V2暗号化の長さは40-128ビットの範囲で8刻みです。: " + length);
+			throw new IllegalArgumentException(
+					"V4 encryption length must be between 40 and 128 bits, in increments of 8: " + length);
 		}
 		this.length = length;
 	}
@@ -42,16 +47,16 @@ public class V4EncryptionParams extends EncryptionParams {
 		return this.cfm;
 	}
 
-	public void setCFM(CFM cfm) {
+	public void setCFM(final CFM cfm) {
 		this.cfm = cfm;
 	}
 
 	public boolean getEncryptMetadata() {
-		return this.enctyptMetadata;
+		return this.encryptMetadata;
 	}
 
-	public void setEncryptMetadata(boolean enctyptMetadata) {
-		this.enctyptMetadata = enctyptMetadata;
+	public void setEncryptMetadata(final boolean encryptMetadata) {
+		this.encryptMetadata = encryptMetadata;
 	}
 
 }

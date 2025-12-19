@@ -97,346 +97,352 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 
 	public void startElement(String uri, String lName, String qName, Attributes atts) throws SAXException {
 		switch (this.state) {
-		case IN_FONTS:
-			if (qName.equals("encodings")) {
-				// <encodings>
+			case IN_FONTS:
+				if (qName.equals("encodings")) {
+					// <encodings>
 
-				this.state = IN_ENCODINGS;
-			} else if (qName.equals("core-fonts")) {
-				// <core-fonts>
-				String encoding = atts.getValue("encoding");
-				String unicodeSrc = atts.getValue("unicode-src");
-
-				this.defaultEncoding = (Encoding) this.nameToEncoding.get(encoding);
-
-				try {
-					Source source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, unicodeSrc));
-					try {
-						this.unicodeEncoding = GlyphMap.parse(source.getInputStream());
-					} finally {
-						this.resolver.release(source);
-					}
-				} catch (IOException e) {
-					throw new SAXException(e);
-				} catch (URISyntaxException e) {
-					throw new SAXException(e);
-				}
-				this.state = IN_CORE_FONTS;
-			} else if (qName.equals("cmaps")) {
-				// <cmaps>
-
-				this.state = IN_CMAPS;
-			} else if (qName.equals("cid-fonts")) {
-				// <cid-fonts>
-				this.state = IN_CID_FONTS;
-			} else if (qName.equals("generic-fonts")) {
-				// <generic-fonts>
-				this.state = IN_GENERIC_FONTS;
-			}
-			break;
-		case IN_ENCODINGS:
-			if (qName.equals("encoding")) {
-				// <encoding>
-				String src = atts.getValue("src");
-				Source source = null;
-				try {
-					source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
-					Encoding encoding = Encoding.parse(source.getInputStream());
-					this.nameToEncoding.put(encoding.name, encoding);
-				} catch (IOException e) {
-					throw new SAXException(e);
-				} catch (URISyntaxException e) {
-					throw new SAXException(e);
-				} finally {
-					if (source != null) {
-						this.resolver.release(source);
-					}
-				}
-			}
-			break;
-
-		case IN_CORE_FONTS:
-			if (qName.equals("letter-font")) {
-				// letter-font
-				String src = atts.getValue("src");
-				Source source = null;
-				try {
-					source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
-
-					Encoding pdfEncoding;
+					this.state = IN_ENCODINGS;
+				} else if (qName.equals("core-fonts")) {
+					// <core-fonts>
 					String encoding = atts.getValue("encoding");
-					if (encoding != null) {
-						pdfEncoding = (Encoding) this.nameToEncoding.get(encoding);
-					} else {
-						pdfEncoding = this.defaultEncoding;
-					}
+					String unicodeSrc = atts.getValue("unicode-src");
 
-					this.fontSources = new PdfFontSourceWrapper[] { new PdfFontSourceWrapper(FontLoader
-							.readLetterType1Font(this.unicodeEncoding, pdfEncoding, source.getInputStream())) };
-				} catch (Exception e) {
-					LOG.log(Level.SEVERE, "AFMファイル'" + src + "'を読み込めません。", e);
-					throw new SAXException(e);
-				} finally {
-					if (source != null) {
-						this.resolver.release(source);
-					}
-				}
+					this.defaultEncoding = (Encoding) this.nameToEncoding.get(encoding);
 
-			} else if (qName.equals("symbol-font")) {
-				// symbol-font
-				String src = atts.getValue("src");
-				Source source = null, encodingSource = null;
-				try {
-					source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
-
-					String encodingSrc = atts.getValue("encoding-src");
-					encodingSource = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, encodingSrc));
-
-					this.fontSources = new PdfFontSourceWrapper[] { new PdfFontSourceWrapper(
-							FontLoader.readSymbolType1Font(source.getInputStream(), encodingSource)) };
-				} catch (Exception e) {
-					LOG.log(Level.SEVERE, "AFMファイル'" + src + "'を読み込めません。", e);
-					throw new SAXException(e);
-				} finally {
-					if (source != null) {
-						this.resolver.release(source);
-					}
-					if (encodingSource != null) {
-						this.resolver.release(encodingSource);
-					}
-				}
-			}
-			break;
-
-		case IN_CMAPS:
-			if (qName.equals("cmap")) {
-				// <cmap>
-				String src = atts.getValue("src");
-				String javaEncoding = atts.getValue("java-encoding");
-				try {
-					Source source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
-					CMap cmap = new CMap(source, javaEncoding);
-					this.nameToCMap.put(cmap.getEncoding(), cmap);
-				} catch (Exception e) {
-					LOG.log(Level.SEVERE, "CMapファイル'" + src + "'を読み込めません", e);
-					throw new SAXException(e);
-				}
-			}
-			break;
-
-		case IN_CID_FONTS:
-			if (qName.equals("cid-keyed-font")) {
-				String warraySrc = atts.getValue("warray");
-				Source source = null;
-				try {
-					source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, warraySrc));
-
-					FontFace face = FontLoader.toFontFace(atts);
-					PDFFontSource[] sources = FontLoader.readCIDKeyedFont(source, face, this.nameToCMap);
-					this.fontSources = new PdfFontSourceWrapper[sources.length];
-					for (int i = 0; i < sources.length; ++i) {
-						this.fontSources[i] = new PdfFontSourceWrapper(sources[i]);
-					}
-				} catch (Exception e) {
-					LOG.log(Level.SEVERE, "'" + source.getURI() + "'の読み込みに失敗しました。", e);
-					throw new SAXException(e);
-				} finally {
-					if (source != null) {
-						this.resolver.release(source);
-					}
-				}
-			} else if (qName.equals("font-file")) {
-				String src = atts.getValue("src");
-				String types = atts.getValue("types");
-
-				try {
-					File ttfFile = this.toFile(src);
-					int index;
 					try {
-						index = Integer.parseInt(atts.getValue("index"));
-					} catch (Exception e) {
-						index = 0;
+						Source source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, unicodeSrc));
+						try {
+							this.unicodeEncoding = GlyphMap.parse(source.getInputStream());
+						} finally {
+							this.resolver.release(source);
+						}
+					} catch (IOException e) {
+						throw new SAXException(e);
+					} catch (URISyntaxException e) {
+						throw new SAXException(e);
 					}
+					this.state = IN_CORE_FONTS;
+				} else if (qName.equals("cmaps")) {
+					// <cmaps>
+
+					this.state = IN_CMAPS;
+				} else if (qName.equals("cid-fonts")) {
+					// <cid-fonts>
+					this.state = IN_CID_FONTS;
+				} else if (qName.equals("generic-fonts")) {
+					// <generic-fonts>
+					this.state = IN_GENERIC_FONTS;
+				}
+				break;
+			case IN_ENCODINGS:
+				if (qName.equals("encoding")) {
+					// <encoding>
+					String src = atts.getValue("src");
+					Source source = null;
+					try {
+						source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
+						Encoding encoding = Encoding.parse(source.getInputStream());
+						this.nameToEncoding.put(encoding.name, encoding);
+					} catch (IOException e) {
+						throw new SAXException(e);
+					} catch (URISyntaxException e) {
+						throw new SAXException(e);
+					} finally {
+						if (source != null) {
+							this.resolver.release(source);
+						}
+					}
+				}
+				break;
+
+			case IN_CORE_FONTS:
+				if (qName.equals("letter-font")) {
+					// letter-font
+					String src = atts.getValue("src");
+					Source source = null;
+					try {
+						source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
+
+						Encoding pdfEncoding;
+						String encoding = atts.getValue("encoding");
+						if (encoding != null) {
+							pdfEncoding = (Encoding) this.nameToEncoding.get(encoding);
+						} else {
+							pdfEncoding = this.defaultEncoding;
+						}
+
+						this.fontSources = new PdfFontSourceWrapper[] { new PdfFontSourceWrapper(FontLoader
+								.readLetterType1Font(this.unicodeEncoding, pdfEncoding, source.getInputStream())) };
+					} catch (Exception e) {
+						LOG.log(Level.SEVERE, "Failed to load AFM file '" + src + "'.", e);
+						throw new SAXException(e);
+					} finally {
+						if (source != null) {
+							this.resolver.release(source);
+						}
+					}
+
+				} else if (qName.equals("symbol-font")) {
+					// symbol-font
+					String src = atts.getValue("src");
+					Source source = null, encodingSource = null;
+					try {
+						source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
+
+						String encodingSrc = atts.getValue("encoding-src");
+						encodingSource = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, encodingSrc));
+
+						this.fontSources = new PdfFontSourceWrapper[] { new PdfFontSourceWrapper(
+								FontLoader.readSymbolType1Font(source.getInputStream(), encodingSource)) };
+					} catch (Exception e) {
+						LOG.log(Level.SEVERE, "Failed to load AFM file '" + src + "'.", e);
+						throw new SAXException(e);
+					} finally {
+						if (source != null) {
+							this.resolver.release(source);
+						}
+						if (encodingSource != null) {
+							this.resolver.release(encodingSource);
+						}
+					}
+				}
+				break;
+
+			case IN_CMAPS:
+				if (qName.equals("cmap")) {
+					// <cmap>
+					String src = atts.getValue("src");
+					String javaEncoding = atts.getValue("java-encoding");
+					try {
+						Source source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, src));
+						CMap cmap = new CMap(source, javaEncoding);
+						this.nameToCMap.put(cmap.getEncoding(), cmap);
+					} catch (Exception e) {
+						LOG.log(Level.SEVERE, "Failed to load CMap file '" + src + "'.", e);
+						throw new SAXException(e);
+					}
+				}
+				break;
+
+			case IN_CID_FONTS:
+				if (qName.equals("cid-keyed-font")) {
+					String warraySrc = atts.getValue("warray");
+					Source source = null;
+					try {
+						source = this.resolver.resolve(URIHelper.resolve("UTF-8", this.base, warraySrc));
+
+						FontFace face = FontLoader.toFontFace(atts);
+						PDFFontSource[] sources = FontLoader.readCIDKeyedFont(source, face, this.nameToCMap);
+						this.fontSources = new PdfFontSourceWrapper[sources.length];
+						for (int i = 0; i < sources.length; ++i) {
+							this.fontSources[i] = new PdfFontSourceWrapper(sources[i]);
+						}
+					} catch (Exception e) {
+						LOG.log(Level.SEVERE, "Failed to load '" + source.getURI() + "'.", e);
+						throw new SAXException(e);
+					} finally {
+						if (source != null) {
+							this.resolver.release(source);
+						}
+					}
+				} else if (qName.equals("font-file")) {
+					String src = atts.getValue("src");
+					String types = atts.getValue("types");
+
+					try {
+						File ttfFile = this.toFile(src);
+						int index;
+						try {
+							index = Integer.parseInt(atts.getValue("index"));
+						} catch (Exception e) {
+							index = 0;
+						}
+
+						List<FontSource> list = new ArrayList<FontSource>();
+						FontFace face = FontLoader.toFontFace(atts);
+
+						if (types.indexOf("cid-keyed") != -1) {
+							FontLoader.readTTF(list, face, FontLoader.Type.CID_KEYED, ttfFile, index, this.nameToCMap);
+						}
+						if (types.indexOf("cid-identity") != -1) {
+							FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, index,
+									this.nameToCMap);
+						}
+						if (types.indexOf("embedded") != -1) {
+							FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, index, this.nameToCMap);
+						}
+						this.fontSources = new PdfFontSourceWrapper[list.size()];
+						for (int i = 0; i < list.size(); ++i) {
+							this.fontSources[i] = new PdfFontSourceWrapper((PDFFontSource) list.get(i));
+						}
+
+					} catch (Exception e) {
+						LOG.log(Level.WARNING, "Failed to get font info for '" + src + "'.", e);
+						this.fontSources = null;
+					}
+				} else if (qName.equals("font-dir")) {
+					String dir = atts.getValue("dir");
+					String types = atts.getValue("types");
+
+					File dirFile = this.toFile(dir);
+					if (LOG.isLoggable(Level.FINE)) {
+						LOG.fine("scan: " + dirFile);
+					}
+					File[] files = dirFile.listFiles();
+					if (files != null) {
+						FontFace face = FontLoader.toFontFace(atts);
+						for (int i = 0; i < files.length; ++i) {
+							File ttfFile = files[i];
+							if (ttfFile.isDirectory()) {
+								continue;
+							}
+							String name = ttfFile.getName().toLowerCase();
+							if (!name.endsWith(".ttf") && !name.endsWith(".ttc") && !name.endsWith(".otf")
+									&& !name.endsWith(".woff")) {
+								continue;
+							}
+							try {
+								List<FontSource> list = new ArrayList<FontSource>();
+
+								int numFonts = 1;
+								try (RandomAccessFile raf = new RandomAccessFile(ttfFile, "r");) {
+									byte[] tagBytes = new byte[4];
+									raf.readFully(tagBytes);
+									String tag = new String(tagBytes, "ISO-8859-1");
+									if ("ttcf".equals(tag)) {
+										// TTC
+										raf.skipBytes(4);
+										numFonts = raf.readInt();
+									}
+								}
+
+								for (int j = 0; j < numFonts; ++j) {
+									if (types.indexOf("cid-identity") != -1) {
+										FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, j,
+												this.nameToCMap);
+									}
+									if (types.indexOf("embedded") != -1) {
+										FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, j,
+												this.nameToCMap);
+									}
+								}
+								this.allFonts.addAll(list);
+								for (int j = 0; j < list.size(); ++j) {
+									FontLoader.add(new PdfFontSourceWrapper((PDFFontSource) list.get(j)),
+											this.nameToFonts);
+								}
+							} catch (Exception e) {
+								LOG.log(Level.WARNING, "Failed to get font info for '" + ttfFile + "'.", e);
+							}
+						}
+					}
+				} else if (qName.equals("system-font")) {
+					String src = atts.getValue("src");
+					String file = atts.getValue("file");
+					String dir = atts.getValue("dir");
+					String types = atts.getValue("types");
 
 					List<FontSource> list = new ArrayList<FontSource>();
 					FontFace face = FontLoader.toFontFace(atts);
 
-					if (types.indexOf("cid-keyed") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.Type.CID_KEYED, ttfFile, index, this.nameToCMap);
-					}
-					if (types.indexOf("cid-identity") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, index, this.nameToCMap);
-					}
-					if (types.indexOf("embedded") != -1) {
-						FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, index, this.nameToCMap);
-					}
-					this.fontSources = new PdfFontSourceWrapper[list.size()];
-					for (int i = 0; i < list.size(); ++i) {
-						this.fontSources[i] = new PdfFontSourceWrapper((PDFFontSource) list.get(i));
-					}
-
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "'" + src + "'のフォント情報の取得に失敗しました。", e);
-					this.fontSources = null;
-				}
-			} else if (qName.equals("font-dir")) {
-				String dir = atts.getValue("dir");
-				String types = atts.getValue("types");
-
-				File dirFile = this.toFile(dir);
-				if (LOG.isLoggable(Level.FINE)) {
-					LOG.fine("scan: " + dirFile);
-				}
-				File[] files = dirFile.listFiles();
-				if (files != null) {
-					FontFace face = FontLoader.toFontFace(atts);
-					for (int i = 0; i < files.length; ++i) {
-						File ttfFile = files[i];
-						if (ttfFile.isDirectory()) {
-							continue;
-						}
-						String name = ttfFile.getName().toLowerCase();
-						if (!name.endsWith(".ttf") && !name.endsWith(".ttc") && !name.endsWith(".otf")
-								&& !name.endsWith(".woff")) {
-							continue;
-						}
-						try {
-							List<FontSource> list = new ArrayList<FontSource>();
-
-							int numFonts = 1;
-							try (RandomAccessFile raf = new RandomAccessFile(ttfFile, "r");) {
-								byte[] tagBytes = new byte[4];
-								raf.readFully(tagBytes);
-								String tag = new String(tagBytes, "ISO-8859-1");
-								if ("ttcf".equals(tag)) {
-									// TTC
-									raf.skipBytes(4);
-									numFonts = raf.readInt();
+					try {
+						if (file != null) {
+							File theFile = this.toFile(file);
+							try (InputStream in = new FileInputStream(theFile)) {
+								java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in);
+								FontLoader.readSystemFont(face, list, types, font, this.nameToCMap);
+							}
+						} else if (dir != null) {
+							File theDir = this.toFile(dir);
+							File[] files = theDir.listFiles();
+							for (int i = 0; i < files.length; ++i) {
+								File theFile = files[i];
+								String name = theFile.getName().toLowerCase();
+								if (name.endsWith(".ttf") || name.endsWith(".ttc") || name.endsWith(".otf")
+										|| name.endsWith(".woff")) {
+									try (InputStream in = new FileInputStream(theFile)) {
+										java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in);
+										FontLoader.readSystemFont(face, list, types, font, this.nameToCMap);
+									}
 								}
 							}
-
-							for (int j = 0; j < numFonts; ++j) {
-								if (types.indexOf("cid-identity") != -1) {
-									FontLoader.readTTF(list, face, FontLoader.Type.CID_IDENTITY, ttfFile, j,
-											this.nameToCMap);
-								}
-								if (types.indexOf("embedded") != -1) {
-									FontLoader.readTTF(list, face, FontLoader.Type.EMBEDDED, ttfFile, j,
-											this.nameToCMap);
-								}
-							}
-							this.allFonts.addAll(list);
-							for (int j = 0; j < list.size(); ++j) {
-								FontLoader.add(new PdfFontSourceWrapper((PDFFontSource) list.get(j)), this.nameToFonts);
-							}
-						} catch (Exception e) {
-							LOG.log(Level.WARNING, "'" + ttfFile + "'のフォント情報の取得に失敗しました。", e);
-						}
-					}
-				}
-			} else if (qName.equals("system-font")) {
-				String src = atts.getValue("src");
-				String file = atts.getValue("file");
-				String dir = atts.getValue("dir");
-				String types = atts.getValue("types");
-
-				List<FontSource> list = new ArrayList<FontSource>();
-				FontFace face = FontLoader.toFontFace(atts);
-
-				try {
-					if (file != null) {
-						File theFile = this.toFile(file);
-						try (InputStream in = new FileInputStream(theFile)) {
-							java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in);
+						} else {
+							java.awt.Font font = java.awt.Font.decode(src);
 							FontLoader.readSystemFont(face, list, types, font, this.nameToCMap);
 						}
-					} else if (dir != null) {
-						File theDir = this.toFile(dir);
-						File[] files = theDir.listFiles();
+						this.fontSources = (PdfFontSourceWrapper[]) list.toArray(new PdfFontSourceWrapper[list.size()]);
+					} catch (Exception e) {
+						LOG.log(Level.WARNING, "Failed to get font info for '" + src + "'.", e);
+						this.fontSources = null;
+					}
+				} else if (qName.equals("all-system-fonts")) {
+					String types = atts.getValue("types");
+					String dir = atts.getValue("dir");
+
+					java.awt.Font[] fonts;
+					if (dir != null) {
+						File dirFile = this.toFile(dir);
+						File[] files = dirFile.listFiles();
+						List<java.awt.Font> fontList = new ArrayList<java.awt.Font>();
 						for (int i = 0; i < files.length; ++i) {
-							File theFile = files[i];
-							String name = theFile.getName().toLowerCase();
-							if (name.endsWith(".ttf") || name.endsWith(".ttc") || name.endsWith(".otf")
-									|| name.endsWith(".woff")) {
-								try (InputStream in = new FileInputStream(theFile)) {
-									java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in);
-									FontLoader.readSystemFont(face, list, types, font, this.nameToCMap);
+							try {
+								try (InputStream in = new FileInputStream(files[i])) {
+									fontList.add(java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in));
 								}
+							} catch (Exception e) {
+								LOG.log(Level.WARNING, "Failed to load font file.", e);
 							}
 						}
+						fonts = (java.awt.Font[]) fontList.toArray(new java.awt.Font[fontList.size()]);
 					} else {
-						java.awt.Font font = java.awt.Font.decode(src);
-						FontLoader.readSystemFont(face, list, types, font, this.nameToCMap);
+						fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
 					}
-					this.fontSources = (PdfFontSourceWrapper[]) list.toArray(new PdfFontSourceWrapper[list.size()]);
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "'" + src + "'のフォント情報の取得に失敗しました。", e);
-					this.fontSources = null;
-				}
-			} else if (qName.equals("all-system-fonts")) {
-				String types = atts.getValue("types");
-				String dir = atts.getValue("dir");
-
-				java.awt.Font[] fonts;
-				if (dir != null) {
-					File dirFile = this.toFile(dir);
-					File[] files = dirFile.listFiles();
-					List<java.awt.Font> fontList = new ArrayList<java.awt.Font>();
-					for (int i = 0; i < files.length; ++i) {
+					FontFace face = FontLoader.toFontFace(atts);
+					for (int i = 0; i < fonts.length; ++i) {
+						java.awt.Font font = fonts[i];
 						try {
-							try (InputStream in = new FileInputStream(files[i])) {
-								fontList.add(java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in));
+							if (types.indexOf("cid-keyed") != -1) {
+								PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
+										FontLoader.readSystemFont(face, FontLoader.Type.CID_KEYED, font,
+												this.nameToCMap));
+								this.allFonts.add(fontSource);
+								FontLoader.add(fontSource, this.nameToFonts);
+							}
+							if (types.indexOf("cid-identity") != -1) {
+								PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
+										FontLoader.readSystemFont(face,
+												FontLoader.Type.CID_IDENTITY, font, this.nameToCMap));
+								this.allFonts.add(fontSource);
+								FontLoader.add(fontSource, this.nameToFonts);
+							}
+							if (types.indexOf("embedded") != -1) {
+								PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
+										FontLoader.readSystemFont(face, FontLoader.Type.EMBEDDED, font,
+												this.nameToCMap));
+								this.allFonts.add(fontSource);
+								FontLoader.add(fontSource, this.nameToFonts);
 							}
 						} catch (Exception e) {
-							LOG.log(Level.WARNING, "フォントファイルを読み込めません", e);
+							LOG.log(Level.WARNING, "Failed to get font info for '" + font.getFontName() + "'.", e);
 						}
 					}
-					fonts = (java.awt.Font[]) fontList.toArray(new java.awt.Font[fontList.size()]);
-				} else {
-					fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
 				}
-				FontFace face = FontLoader.toFontFace(atts);
-				for (int i = 0; i < fonts.length; ++i) {
-					java.awt.Font font = fonts[i];
-					try {
-						if (types.indexOf("cid-keyed") != -1) {
-							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
-									FontLoader.readSystemFont(face, FontLoader.Type.CID_KEYED, font, this.nameToCMap));
-							this.allFonts.add(fontSource);
-							FontLoader.add(fontSource, this.nameToFonts);
-						}
-						if (types.indexOf("cid-identity") != -1) {
-							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(FontLoader.readSystemFont(face,
-									FontLoader.Type.CID_IDENTITY, font, this.nameToCMap));
-							this.allFonts.add(fontSource);
-							FontLoader.add(fontSource, this.nameToFonts);
-						}
-						if (types.indexOf("embedded") != -1) {
-							PdfFontSourceWrapper fontSource = new PdfFontSourceWrapper(
-									FontLoader.readSystemFont(face, FontLoader.Type.EMBEDDED, font, this.nameToCMap));
-							this.allFonts.add(fontSource);
-							FontLoader.add(fontSource, this.nameToFonts);
-						}
-					} catch (Exception e) {
-						LOG.log(Level.WARNING, "'" + font.getFontName() + "'のフォント情報の取得に失敗しました。", e);
-					}
+				break;
+
+			case IN_GENERIC_FONTS:
+				String genericFamily = lName;
+				String fontFamily = atts.getValue("font-family");
+
+				List<FontFamily> entries = new ArrayList<FontFamily>();
+				for (StringTokenizer i = new StringTokenizer(fontFamily, ","); i.hasMoreTokens();) {
+					FontFamily entry = new FontFamily(i.nextToken());
+					entries.add(entry);
 				}
-			}
-			break;
 
-		case IN_GENERIC_FONTS:
-			String genericFamily = lName;
-			String fontFamily = atts.getValue("font-family");
-
-			List<FontFamily> entries = new ArrayList<FontFamily>();
-			for (StringTokenizer i = new StringTokenizer(fontFamily, ","); i.hasMoreTokens();) {
-				FontFamily entry = new FontFamily(i.nextToken());
-				entries.add(entry);
-			}
-
-			FontFamilyList family = new FontFamilyList((FontFamily[]) entries.toArray(new FontFamily[entries.size()]));
-			this.genericToFamily.put(genericFamily, family);
-			break;
+				FontFamilyList family = new FontFamilyList(
+						(FontFamily[]) entries.toArray(new FontFamily[entries.size()]));
+				this.genericToFamily.put(genericFamily, family);
+				break;
 		}
 		if (this.fontSources != null) {
 			if (qName.equals("alias")) {
@@ -556,5 +562,3 @@ class PDFFontSourceManagerConfigurationHandler extends DefaultHandler {
 		}
 	}
 };
-
-

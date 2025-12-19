@@ -11,7 +11,7 @@ import net.zamasoft.pdfg2d.util.IntMapIterator;
 import net.zamasoft.pdfg2d.util.ShortList;
 
 /**
- * 等幅の一般フォントです。 このフォントはプラットフォームによって書体が変わります。
+ * A monospaced generic font. The typeface varies depending on the platform.
  * 
  * @author MIYABE Tatsuhiko
  * @version $Id: GenericType0FontFace.java,v 1.2 2005/06/06 04:42:24 harumanx

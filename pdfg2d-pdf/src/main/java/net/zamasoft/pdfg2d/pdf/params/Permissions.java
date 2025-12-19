@@ -1,12 +1,15 @@
 package net.zamasoft.pdfg2d.pdf.params;
 
+/**
+ * Base class for PDF permissions.
+ */
 public abstract class Permissions {
-	public static enum Type {
+	public enum Type {
 		R2(2), R3(3), R4(4);
 
 		public final int r;
 
-		private Type(int r) {
+		Type(final int r) {
 			this.r = r;
 		}
 	}

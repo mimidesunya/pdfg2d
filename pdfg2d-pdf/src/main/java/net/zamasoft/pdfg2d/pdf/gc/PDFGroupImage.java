@@ -11,7 +11,7 @@ import net.zamasoft.pdfg2d.pdf.PDFNamedGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 
 /**
- * オフスクリーン画像です。
+ * Offscreen image.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -26,19 +26,19 @@ public abstract class PDFGroupImage extends PDFNamedGraphicsOutput implements Im
 
 	protected int ocgFlags = 0;
 
-	protected PDFGroupImage(PDFWriter pdfWriter, OutputStream out, double width, double height, String name,
-			ObjectRef objectRef) throws IOException {
+	protected PDFGroupImage(final PDFWriter pdfWriter, final OutputStream out, final double width, final double height,
+			final String name, final ObjectRef objectRef) throws IOException {
 		super(pdfWriter, out, width, height);
 		this.name = name;
 		this.objectRef = objectRef;
 	}
 
-	public void setOCG(int ocgFlags) {
+	public void setOCG(final int ocgFlags) {
 		this.ocgFlags = ocgFlags;
 	}
 
-	public void drawTo(GC _gc) throws GraphicsException {
-		PDFGC gc = (PDFGC) _gc;
+	public void drawTo(final GC _gc) throws GraphicsException {
+		final PDFGC gc = (PDFGC) _gc;
 		gc.drawPDFImage(this.name, this.width, this.height);
 	}
 
@@ -58,7 +58,7 @@ public abstract class PDFGroupImage extends PDFNamedGraphicsOutput implements Im
 		return this.name;
 	}
 
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (o instanceof PDFGroupImage) {
 			return ((PDFGroupImage) o).name.equals(this.name);
 		}

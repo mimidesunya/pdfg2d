@@ -6,141 +6,160 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
+import net.zamasoft.pdfg2d.resolver.Source;
 
 /**
+ * Interface for writing PDF documents.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public interface PDFWriter extends Closeable {
 	/**
-	 * 最小ページ幅です。
+	 * Minimum page width.
 	 */
-	public static final double MIN_PAGE_WIDTH = 3;
+	double MIN_PAGE_WIDTH = 3;
+
 	/**
-	 * 最小ページ高さです。
+	 * Minimum page height.
 	 */
-	public static final double MIN_PAGE_HEIGHT = 3;
+	double MIN_PAGE_HEIGHT = 3;
+
 	/**
-	 * 最大ページ幅です。
+	 * Maximum page width.
 	 * <p>
-	 * PDFの実装限界であり、これより大きなページを生成するとAdobe Readerで真っ白なページが表示されてしまうため、制限をかけています。
+	 * Limitation due to PDF implementation limits; larger pages may appear blank in
+	 * Adobe Reader.
 	 * </p>
 	 */
-	public static final double MAX_PAGE_WIDTH = 14400;
+	double MAX_PAGE_WIDTH = 14400;
+
 	/**
-	 * 最大ページ高さです。
+	 * Maximum page height.
 	 * <p>
-	 * PDFの実装限界であり、これより大きなページを生成するとAdobe Readerで真っ白なページが表示されてしまうため、制限をかけています。
+	 * Limitation due to PDF implementation limits; larger pages may appear blank in
+	 * Adobe Reader.
 	 * </p>
 	 */
-	public static final double MAX_PAGE_HEIGHT = 14400;
+	double MAX_PAGE_HEIGHT = 14400;
 
-	public PDFParams getParams();
+	PDFParams getParams();
 
 	/**
-	 * グラフィックコンテキストへのテキスト描画のためのフォントマネージャを返します。
+	 * Returns the font manager for text drawing context.
 	 * 
-	 * @return
+	 * @return the font manager
 	 */
-	public FontManager getFontManager();
+	FontManager getFontManager();
 
 	/**
-	 * 画像を読み込みます。
+	 * Loads an image.
 	 * 
-	 * @param source
-	 * @return PDF画像情報。getNameで得られる名前はグラフック命令からの参照に利用可能です。
-	 * @throws IOException
+	 * @param source the image source
+	 * @return the PDF image information; the name can be used for referencing in
+	 *         graphics operations
+	 * @throws IOException in case of I/O error
 	 */
-	public Image loadImage(Source source) throws IOException;
+	Image loadImage(Source source) throws IOException;
 
 	/**
-	 * 画像を読み込みます。
+	 * Adds an image from a BufferedImage.
 	 * 
-	 * @param image
-	 * @return PDF画像情報。getNameで得られる名前はグラフック命令からの参照に利用可能です。
-	 * @throws IOException
+	 * @param image the buffered image
+	 * @return the PDF image information; the name can be used for referencing in
+	 *         graphics operations
+	 * @throws IOException in case of I/O error
 	 */
-	public Image addImage(BufferedImage image) throws IOException;
+	Image addImage(BufferedImage image) throws IOException;
 
 	/**
-	 * 添付ファイルを追加します。 パラメータのうち、nameとdescのいずれかは必要です。
+	 * Adds an attachment file. At least one of name or desc in attachment parameter
+	 * is required.
 	 * <p>
-	 * 返されたストリームを使って直ちにファイルの内容を出力し、ストリームを閉じてください。
+	 * The returned stream should be used to write the file content immediately and
+	 * then closed.
 	 * </p>
 	 * 
-	 * @param name       名前
-	 * @param attachment 添付ファイル
-	 * @return
-	 * @throws IOException
+	 * @param name       the name
+	 * @param attachment the attachment information
+	 * @return the output stream for attachment content
+	 * @throws IOException in case of I/O error
 	 */
-	public abstract OutputStream addAttachment(String name, Attachment attachment) throws IOException;
+	OutputStream addAttachment(String name, Attachment attachment) throws IOException;
 
 	/**
-	 * 拡張グラフィック状態を追加します。
+	 * Creates a special extended graphics state.
 	 * 
-	 * @return
-	 * @throws IOException
+	 * @return the output context for the graphics state
+	 * @throws IOException in case of I/O error
 	 */
-	public PDFNamedOutput createSpecialGraphicsState() throws IOException;
+	PDFNamedOutput createSpecialGraphicsState() throws IOException;
 
 	/**
-	 * 描画命令の組み合わせで作られる画像です。 透明化画像、アノテーション等に使います。
+	 * Creates a group image, used for transparent images, annotations, etc.
+	 * 
+	 * @param width  the width
+	 * @param height the height
+	 * @return the group image
+	 * @throws IOException in case of I/O error
 	 */
-	public PDFGroupImage createGroupImage(double width, double height) throws IOException;
+	PDFGroupImage createGroupImage(double width, double height) throws IOException;
 
 	/**
-	 * 繰り返しパターンを作成します。
+	 * Creates a tiling pattern.
 	 * <p>
-	 * このメソッドが返すPDFNamedGraphicsOutputは、パターンを書き出した後、必ずクローズしてください。
+	 * The returned PDFNamedGraphicsOutput must be closed after writing the pattern.
 	 * </p>
 	 * 
-	 * @param width
-	 * @param height
-	 * @return パターンの出力先。getNameで返される名前は、グラフィック命令からの参照に利用できます。
-	 * @throws IOException
+	 * @param width      pattern width
+	 * @param height     pattern height
+	 * @param pageHeight page height
+	 * @param at         transformation matrix
+	 * @return the pattern output context; the name can be used for referencing
+	 * @throws IOException in case of I/O error
 	 */
-	public PDFNamedGraphicsOutput createTilingPattern(double width, double height, double pageHeight,
-			AffineTransform at) throws IOException;
+	PDFNamedGraphicsOutput createTilingPattern(double width, double height, double pageHeight, AffineTransform at)
+			throws IOException;
 
 	/**
-	 * ぼかしパターンを作成します。
+	 * Creates a shading pattern.
 	 * <p>
-	 * このメソッドが返すPDFNamedOutputは、パターンを書き出した後、必ずクローズしてください。
+	 * The returned PDFNamedOutput must be closed after writing the pattern.
 	 * </p>
 	 * 
-	 * @param at TODO
-	 * @return パターンの出力先。getNameで返される名前は、グラフィック命令からの参照に利用できます。
-	 * @throws IOException
+	 * @param pageHeight page height
+	 * @param at         transformation matrix
+	 * @return the pattern output context; the name can be used for referencing
+	 * @throws IOException in case of I/O error
 	 */
-	public PDFNamedOutput createShadingPattern(double pageHeight, AffineTransform at) throws IOException;
+	PDFNamedOutput createShadingPattern(double pageHeight, AffineTransform at) throws IOException;
 
 	/**
-	 * ページを作成します。
+	 * Creates a new page.
 	 * <p>
-	 * このメソッドが返すPDFPageOutputは、ページの内容を書き出した後必ずクローズしてください。
+	 * The returned PDFPageOutput must be closed after writing the page content.
 	 * </p>
 	 * 
-	 * @param width
-	 * @param height
-	 * @return
-	 * @throws IOException
+	 * @param width  page width
+	 * @param height page height
+	 * @return the page output context
+	 * @throws IOException in case of I/O error
 	 */
-	public PDFPageOutput nextPage(double width, double height) throws IOException;
+	PDFPageOutput nextPage(double width, double height) throws IOException;
 
-	public Object getAttribute(Object key);
+	Object getAttribute(Object key);
 
-	public void putAttribute(Object key, Object value);
+	void putAttribute(Object key, Object value);
 
 	/**
-	 * PDFの構築を終えます。
+	 * Finishes building the PDF.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
-	public void close() throws IOException;
+	@Override
+	void close() throws IOException;
 }
-

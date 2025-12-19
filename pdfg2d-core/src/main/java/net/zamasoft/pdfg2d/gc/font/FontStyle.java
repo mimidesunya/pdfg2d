@@ -1,12 +1,6 @@
 package net.zamasoft.pdfg2d.gc.font;
 
 /**
- * フォントの属性です。
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
- */
-/**
  * Represents font style attributes.
  * 
  * @author MIYABE Tatsuhiko

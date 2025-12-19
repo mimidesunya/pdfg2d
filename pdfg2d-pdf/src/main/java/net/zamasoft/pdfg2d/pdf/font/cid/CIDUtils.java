@@ -111,37 +111,36 @@ public final class CIDUtils {
 	}
 
 	/**
-	 * WD, Wを出力します。
+	 * Writes the DW (default width) and W (width) arrays.
 	 */
 	public static void writeWArray(PDFOutput out, WArray warray) throws IOException {
 		out.writeName("DW");
 		out.writeInt(warray.getDefaultWidth());
 		out.lineBreak();
-		Width[] widths = warray.getWidths();
+		final var widths = warray.getWidths();
 		if (widths.length > 0) {
 			out.writeName("W");
 			out.startArray();
 			out.lineBreak();
-			for (int i = 0; i < widths.length; ++i) {
-				Width w = widths[i];
-				short[] shorts = w.getWidths();
+			for (final var w : widths) {
+				final var shorts = w.widths();
 				if (shorts.length == 1) {
-					out.writeInt(w.getFirstCode());
-					out.writeInt(w.getLastCode());
+					out.writeInt(w.firstCode());
+					out.writeInt(w.lastCode());
 					out.writeInt(shorts[0]);
 				} else {
-					if (shorts.length <= (w.getLastCode() - w.getFirstCode())) {
-						out.writeInt(w.getFirstCode());
+					if (shorts.length <= (w.lastCode() - w.firstCode())) {
+						out.writeInt(w.firstCode());
 						out.startArray();
 						for (int j = 0; j < shorts.length - 1; ++j) {
 							out.writeInt(shorts[j]);
 						}
 						out.endArray();
-						out.writeInt(w.getFirstCode() + (shorts.length - 1));
-						out.writeInt(w.getLastCode());
+						out.writeInt(w.firstCode() + (shorts.length - 1));
+						out.writeInt(w.lastCode());
 						out.writeInt(shorts[shorts.length - 1]);
 					} else {
-						out.writeInt(w.getFirstCode());
+						out.writeInt(w.firstCode());
 						out.startArray();
 						for (int j = 0; j < shorts.length; ++j) {
 							out.writeInt(shorts[j]);
@@ -156,7 +155,7 @@ public final class CIDUtils {
 	}
 
 	/**
-	 * WD2, W2を出力します。 TODO vx, vy
+	 * Writes the DW2 (default width 2) and W2 (width 2) arrays. TODO: vx, vy
 	 */
 	public static void writeWArray2(PDFOutput out, WArray warray) throws IOException {
 		out.writeName("DW2");
@@ -165,23 +164,22 @@ public final class CIDUtils {
 		out.writeInt(-warray.getDefaultWidth());
 		out.endArray();
 		out.lineBreak();
-		Width[] widths = warray.getWidths();
+		final var widths = warray.getWidths();
 		if (widths.length > 0) {
 			out.writeName("W2");
 			out.startArray();
 			out.lineBreak();
-			for (int i = 0; i < widths.length; ++i) {
-				Width w = widths[i];
-				short[] shorts = w.getWidths();
+			for (final var w : widths) {
+				final var shorts = w.widths();
 				if (shorts.length == 1) {
-					out.writeInt(w.getFirstCode());
-					out.writeInt(w.getLastCode());
+					out.writeInt(w.firstCode());
+					out.writeInt(w.lastCode());
 					out.writeInt(-shorts[0]);
 					out.writeInt(DEFAULT_H);
 					out.writeInt(DEFAULT_VERTICAL_ORIGIN);
 				} else {
-					if (shorts.length <= (w.getLastCode() - w.getFirstCode())) {
-						out.writeInt(w.getFirstCode());
+					if (shorts.length <= (w.lastCode() - w.firstCode())) {
+						out.writeInt(w.firstCode());
 						out.startArray();
 						for (int j = 0; j < shorts.length - 1; ++j) {
 							out.writeInt(-shorts[j]);
@@ -189,13 +187,13 @@ public final class CIDUtils {
 							out.writeInt(DEFAULT_VERTICAL_ORIGIN);
 						}
 						out.endArray();
-						out.writeInt(w.getFirstCode() + (shorts.length - 1));
-						out.writeInt(w.getLastCode());
+						out.writeInt(w.firstCode() + (shorts.length - 1));
+						out.writeInt(w.lastCode());
 						out.writeInt(-shorts[shorts.length - 1]);
 						out.writeInt(DEFAULT_H);
 						out.writeInt(DEFAULT_VERTICAL_ORIGIN);
 					} else {
-						out.writeInt(w.getFirstCode());
+						out.writeInt(w.firstCode());
 						out.startArray();
 						for (int j = 0; j < shorts.length; ++j) {
 							out.writeInt(-shorts[j]);
@@ -213,7 +211,7 @@ public final class CIDUtils {
 
 	public static void writeIdentityFont(PDFFragmentOutput out, XRef xref, CIDFontSource source, ObjectRef fontRef,
 			short[] w, short[] w2, int[] unicodeArray) throws IOException {
-		// 主フォント
+		// Main font
 		String fontName = source.getFontName();
 		out.startObject(fontRef);
 		out.startHash();
@@ -248,7 +246,7 @@ public final class CIDUtils {
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
-		// 拡張フォント
+		// Descendant font
 		out.startObject(xfontRef);
 		out.startHash();
 		out.writeName("Type");
@@ -291,7 +289,7 @@ public final class CIDUtils {
 		out.endHash();
 		out.endObject();
 
-		// フォント情報
+		// Font descriptor
 		out.startObject(fontDescRef);
 		out.startHash();
 		out.writeName("Type");
@@ -436,7 +434,7 @@ public final class CIDUtils {
 	}
 
 	/**
-	 * 埋め込みフォントを書き出します。
+	 * Writes an embedded font.
 	 * 
 	 * @param out
 	 * @param xref
@@ -445,15 +443,15 @@ public final class CIDUtils {
 	 * @param fontRef
 	 * @param w
 	 * @param w2
-	 * @param unicodeArray CIDからユニコードへのマッピング
+	 * @param unicodeArray mapping from CID to Unicode
 	 * @throws IOException
 	 */
 	public static void writeEmbeddedFont(PDFFragmentOutput out, XRef xref, CIDFontSource source, PDFEmbeddedFont font,
 			ObjectRef fontRef, short[] w, short[] w2, int[] unicodeArray) throws IOException {
-		// 埋め込み擬似タグ
+		// Embedded font subset tag
 		String subsetName;
 		{
-			int on = fontRef.objectNumber;
+			int on = fontRef.objectNumber();
 			char a = (char) ('A' + (on & 0xF));
 			char b = (char) ('A' + ((on >> 4) & 0xF));
 			char c = (char) ('A' + ((on >> 8) & 0xF));
@@ -463,7 +461,7 @@ public final class CIDUtils {
 			subsetName = "" + a + b + c + d + e + f + '+' + font.getPSName();
 		}
 
-		// 主フォント
+		// Main font
 		out.startObject(fontRef);
 		out.startHash();
 		out.writeName("Type");
@@ -497,7 +495,7 @@ public final class CIDUtils {
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
-		// 拡張フォント
+		// Descendant font
 		out.startObject(xfontRef);
 		out.startHash();
 		out.writeName("Type");
@@ -536,7 +534,7 @@ public final class CIDUtils {
 		out.endHash();
 		out.endObject();
 
-		// フォント情報
+		// Font descriptor
 		out.startObject(fontDescRef);
 		out.startHash();
 		out.writeName("Type");
@@ -584,7 +582,7 @@ public final class CIDUtils {
 		out.endObject();
 
 		// CIDSet
-		// 使用するCID
+		// CIDs being used
 		out.startObject(cidSetRef);
 		out.startHash();
 		try (OutputStream sout = out.startStreamFromHash(PDFFragmentOutput.Mode.BINARY)) {
@@ -603,7 +601,7 @@ public final class CIDUtils {
 		}
 		out.endObject();
 
-		// CFF埋め込み
+		// Embed CFF font data
 		out.startObject(fontFile3Ref);
 		out.startHash();
 		out.writeName("Subtype");

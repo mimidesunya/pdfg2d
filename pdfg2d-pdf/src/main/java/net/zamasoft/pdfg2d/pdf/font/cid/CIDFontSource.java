@@ -9,9 +9,9 @@ import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
  */
 public interface CIDFontSource extends PDFFontSource {
 	/**
-	 * PANOSE-1コードを返します。
+	 * Returns the PANOSE-1 classification code.
 	 * 
-	 * @return PANOSE-1コード。
+	 * @return the PANOSE-1 code
 	 */
 	public Panose getPanose();
 }

@@ -8,55 +8,61 @@ import java.io.OutputStream;
 import net.zamasoft.pdfg2d.pdf.annot.Annot;
 
 /**
+ * Output for PDF page content.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public abstract class PDFPageOutput extends PDFGraphicsOutput {
 	/**
+	 * Creates a new PDFPageOutput.
 	 * 
-	 * @param pdfWriter
-	 * @param out
-	 * @param width
-	 * @param height
-	 * @throws IOException
+	 * @param pdfWriter the creating PDFWriter
+	 * @param out       the output stream
+	 * @param width     page width
+	 * @param height    page height
+	 * @throws IOException in case of I/O error
 	 */
-	protected PDFPageOutput(PDFWriter pdfWriter, OutputStream out, double width, double height) throws IOException {
+	protected PDFPageOutput(final PDFWriter pdfWriter, final OutputStream out, final double width, final double height)
+			throws IOException {
 		super(pdfWriter, out, width, height);
 	}
 
 	/**
-	 * アノテーションを追加します。
+	 * Adds an annotation.
 	 * 
-	 * @param annot
-	 * @throws IOException
+	 * @param annot the annotation
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void addAnnotation(Annot annot) throws IOException;
 
 	/**
-	 * ドキュメントフラグメントを追加します。
+	 * Adds a document fragment.
 	 * 
-	 * @param id       文書中でユニークな名前。
-	 * @param location 場所。
-	 * @throws IOException
+	 * @param id       unique name in the document
+	 * @param location location
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void addFragment(String id, Point2D location) throws IOException;
 
 	/**
-	 * ブックマークの階層を開始します。
+	 * Starts a bookmark hierarchy.
 	 * <p>
-	 * startBookmarkに対するendBookmarkの数は合わせる必要はありません。 ドキュメント構築完了時に閉じてない階層は自動的に閉じられます。
+	 * The number of endBookmark calls does not need to match startBookmark.
+	 * Unclosed hierarchies are automatically closed when document construction is
+	 * complete.
 	 * </p>
 	 * 
-	 * @param title
-	 * @param location
-	 * @throws IOException
+	 * @param title    the title
+	 * @param location the location
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void startBookmark(String title, Point2D location) throws IOException;
 
 	/**
-	 * ブックマークの階層を終了します。
+	 * Ends a bookmark hierarchy.
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case of I/O error
 	 */
 	public abstract void endBookmark() throws IOException;
 

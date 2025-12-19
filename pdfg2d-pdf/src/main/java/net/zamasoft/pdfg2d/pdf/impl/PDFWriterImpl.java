@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,15 +27,14 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.xml.sax.helpers.AttributesImpl;
 
-import net.zamasoft.pdfg2d.resolver.Source;
-import net.zamasoft.pdfg2d.io.FragmentedOutput;
-import net.zamasoft.pdfg2d.io.util.FragmentOutputAdapter;
-import net.zamasoft.pdfg2d.io.util.PositionTrackingOutput;
 import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.FontStore;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
 import net.zamasoft.pdfg2d.gc.image.Image;
+import net.zamasoft.pdfg2d.io.FragmentedOutput;
+import net.zamasoft.pdfg2d.io.util.FragmentOutputAdapter;
+import net.zamasoft.pdfg2d.io.util.PositionTrackingOutput;
 import net.zamasoft.pdfg2d.pdf.Attachment;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
@@ -52,17 +52,16 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.params.V4EncryptionParams;
 import net.zamasoft.pdfg2d.pdf.params.ViewerPreferences;
 import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
+import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.util.NumberUtils;
 
 /**
- * PDFデータを出力します。
+ * Implementation of PDFWriter that outputs PDF data.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
 public class PDFWriterImpl implements PDFWriter, FontStore {
-	// private static final Log LOG = LogFactory.getLog(PDFWriterImpl.class
-	// .getName());
 
 	protected static final Random RND = new Random();
 
@@ -83,10 +82,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	private static final byte[] PDF17 = { '1', '.', '7' };
 
 	private static final byte[] XMP_PADDING = new byte[80];
-	{
-		for (int i = 0; i < 79; ++i) {
-			XMP_PADDING[i] = ' ';
-		}
+
+	static {
+		Arrays.fill(XMP_PADDING, (byte) ' ');
 		XMP_PADDING[79] = '\n';
 	}
 
@@ -96,69 +94,69 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private FontManagerImpl fontManager = null;
 
-	/** クロスリファレンステーブル。 */
+	/** XRef Table. */
 	protected final XRefImpl xref;
 
-	/** ユニークな断片IDを生成するため。 */
+	/** For generating unique fragment IDs. */
 	private int sequence = 0;
 
-	/** 暗号化。 */
+	/** Encryption. */
 	Encryption encryption = null;
 
-	/** ファイルID。 */
+	/** File ID. */
 	private final byte[][] fileid;
 
-	/** 主フロー。 */
+	/** Main flow. */
 	final PDFFragmentOutputImpl mainFlow;
 
-	/** カタログディクショナリフロー。 */
+	/** Catalog dictionary flow. */
 	final PDFFragmentOutputImpl catalogFlow;
 
-	/** XMPメタデータフロー。 */
+	/** XMP metadata flow. */
 	final PDFFragmentOutputImpl xmpmetaFlow;
 
 	/**
-	 * 各種オブジェクトフロー。
+	 * Object flows.
 	 */
 	final PDFFragmentOutputImpl objectsFlow;
 
 	final NameDictionaryFlow nameDict;
 
 	/**
-	 * ページから参照されるリソース。
+	 * Resources referenced from pages.
 	 */
 	final ResourceFlow pageResourceFlow;
 
 	final ObjectRef pageResourceRef;
 
 	/**
-	 * ページとXObjectの共通リソース。
+	 * Common resources for pages and XObjects.
 	 */
-	final Map<String, ObjectRef> nameToResourceRef = new HashMap<String, ObjectRef>();
+	final Map<String, ObjectRef> nameToResourceRef = new HashMap<>();
 
 	/**
-	 * リソースタイプとカウント。
+	 * Resource type and count.
 	 */
-	private final Map<String, Integer> typeToCount = new HashMap<String, Integer>();
+	private final Map<String, Integer> typeToCount = new HashMap<>();
 
-	private final Map<Object, Object> keyToValue = new HashMap<Object, Object>();
+	private final Map<Object, Object> keyToValue = new HashMap<>();
 
-	/** 各ページ。 */
+	/** Pages. */
 	private final PagesFlow pages;
 
-	/** アウトライン。 */
+	/** Outline. */
 	final OutlineFlow outline;
 
-	/** アンカー。 */
+	/** Anchor. */
 	final NameTreeFlow fragments;
 
-	/** 添付ファイル。 */
+	/** Attachments. */
 	private final NameTreeFlow embeddedFiles;
 
-	/** 画像。 */
+	/** Images. */
 	private final ImageFlow images;
 
-	/** フォント。 */
+	/** Fonts. */
 	private final FontFlow fonts;
 
 	private List<ObjectRef> ocgs = null;
@@ -181,7 +179,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		final var out = new FragmentOutputAdapter(this.builder, id);
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
-		// ヘッダ
+		// Header
 		final PDFParams.Version pdfVersion = this.params.getVersion();
 		this.mainFlow.write(HEADER);
 		switch (pdfVersion) {
@@ -201,7 +199,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			case V_PDFA1B:
 				this.mainFlow.write(PDF14);
 				this.mainFlow.lineBreak();
-				// PDF/A-1 6.1.2 バイナリと識別するためのマーカ
+				// PDF/A-1 6.1.2 Marker for binary identification
 				this.mainFlow.write('%');
 				for (int i = 0; i < 4; ++i) {
 					this.mainFlow.write(RND.nextInt(128) + 127);
@@ -224,7 +222,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 		this.mainFlow.lineBreak();
 
-		// ルート要素（カタログ）の開始
+		// Start root element (Catalog)
 		this.xref = new XRefImpl(this.mainFlow);
 
 		this.mainFlow.startHash();
@@ -233,7 +231,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow.writeName("Catalog");
 		this.mainFlow.lineBreak();
 
-		// バージョン
+		// Version
 		if (pdfVersion.v >= PDFParams.Version.V_1_4.v) {
 			this.mainFlow.writeName("Version");
 			switch (pdfVersion) {
@@ -260,13 +258,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.lineBreak();
 		}
 
-		// ページツリー
+		// Page Tree
 		this.mainFlow.writeName("Pages");
-		ObjectRef rootPageRef = this.xref.nextObjectRef();
+		final ObjectRef rootPageRef = this.xref.nextObjectRef();
 		this.mainFlow.writeObjectRef(rootPageRef);
 		this.mainFlow.lineBreak();
 
-		// XMPメタデータ
+		// XMP Metadata
 		ObjectRef xmpmetaRef = null;
 		if (params.getVersion().v >= PDFParams.Version.V_1_4.v) {
 			xmpmetaRef = this.xref.nextObjectRef();
@@ -286,63 +284,49 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.lineBreak();
 		}
 
-		// Tagged PDF
-		/*
-		 * if (params.getVersion() >= PdfParams.VERSION_1_4) {
-		 * this.mainFlow.writeName("MarkInfo"); this.mainFlow.startHash();
-		 * this.mainFlow.writeName("Marked"); this.mainFlow.writeBoolean(true);
-		 * this.mainFlow.endHash(); this.mainFlow.lineBreak();
-		 * 
-		 * this.mainFlow.writeName("StructTreeRoot"); this.mainFlow.startHash();
-		 * this.mainFlow.writeName("Type"); this.mainFlow.writeName("StructTreeRoot");
-		 * this.mainFlow.endHash(); this.mainFlow.lineBreak(); }
-		 */
-
-		// カタログ内部
+		// Inside Catalog
 		this.catalogFlow = this.mainFlow.forkFragment();
 
-		// ファイルID
+		// File ID
 		byte[] fileId = params.getFileId();
 		if (fileId == null) {
 			fileId = new byte[16];
-			synchronized (RND) {
-				RND.nextBytes(fileId);
-			}
+			RND.nextBytes(fileId);
 		}
 		this.fileid = new byte[][] { fileId, fileId };
 
-		// // カタログの終了
+		// End Catalog
 		this.mainFlow.endHash();
 		this.mainFlow.endObject();
 
-		// 暗号化
-		EncryptionParams encriptionParams = this.params.getEncription();
-		if (encriptionParams != null) {
+		// Encryption
+		final EncryptionParams encryptionParams = this.params.getEncryption();
+		if (encryptionParams != null) {
 			if (pdfVersion == PDFParams.Version.V_PDFA1B) {
-				throw new IllegalArgumentException("PDF/A-1では暗号化は使用できません。");
+				throw new IllegalArgumentException("Encryption cannot be used in PDF/A-1.");
 			}
-			EncryptionParams.Type encType = encriptionParams.getType();
+			final EncryptionParams.Type encType = encryptionParams.getType();
 			if (encType == EncryptionParams.Type.V2 && pdfVersion.v < PDFParams.Version.V_1_3.v) {
-				throw new IllegalArgumentException("V2暗号化はPDF 1.3以降で使用できます。");
+				throw new IllegalArgumentException("V2 encryption requires PDF 1.3 or later.");
 			}
 			if (encType == EncryptionParams.Type.V4) {
 				if (pdfVersion.v < PDFParams.Version.V_1_5.v) {
-					throw new IllegalArgumentException("V4暗号化はPDF 1.5以降で使用できます。");
+					throw new IllegalArgumentException("V4 encryption requires PDF 1.5 or later.");
 				}
-				if (((V4EncryptionParams) encriptionParams).getCFM() == V4EncryptionParams.CFM.AESV2) {
+				if (((V4EncryptionParams) encryptionParams).getCFM() == V4EncryptionParams.CFM.AESV2) {
 					if (pdfVersion.v < PDFParams.Version.V_1_6.v) {
-						throw new IllegalArgumentException("AESV2暗号化はPDF 1.6以降で使用できます。");
+						throw new IllegalArgumentException("AESV2 encryption requires PDF 1.6 or later.");
 					}
 				}
 			}
 
-			this.encryption = new Encryption(this.mainFlow, this.xref, this.fileid, encriptionParams);
+			this.encryption = new Encryption(this.mainFlow, this.xref, this.fileid, encryptionParams);
 		}
 
-		// ページツリー
+		// Page Tree
 		this.pages = new PagesFlow(this, rootPageRef);
 
-		// XMPメタデータ
+		// XMP Metadata
 		if (xmpmetaRef != null) {
 			this.xmpmetaFlow = this.mainFlow.forkFragment();
 			this.xmpmetaFlow.startObject(xmpmetaRef);
@@ -382,7 +366,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.writeString(iccName);
 			this.mainFlow.lineBreak();
 
-			ObjectRef profRef = this.xref.nextObjectRef();
+			final ObjectRef profRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("DestOutputProfile");
 			this.mainFlow.writeObjectRef(profRef);
 			this.mainFlow.lineBreak();
@@ -397,9 +381,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.writeInt(colors);
 			this.mainFlow.lineBreak();
 
-			try (OutputStream pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
-					InputStream in = PDFWriterImpl.class.getResourceAsStream(iccFile)) {
-				byte[] buff = this.mainFlow.getBuff();
+			try (final OutputStream pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
+					final InputStream in = PDFWriterImpl.class.getResourceAsStream(iccFile)) {
+				final byte[] buff = this.mainFlow.getBuff();
 				for (int len = in.read(buff); len != -1; len = in.read(buff)) {
 					pout.write(buff, 0, len);
 				}
@@ -407,50 +391,51 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.endObject();
 		}
 
-		// アウトライン情報
+		// Outline Info
 		if (this.params.isBookmarks()) {
 			this.outline = new OutlineFlow(this);
 		} else {
 			this.outline = null;
 		}
 
-		// // ネームディクショナリ
+		// Name Dictionary
 		this.nameDict = new NameDictionaryFlow(this);
 
-		// フラグメント
+		// Fragments
 		this.fragments = new NameTreeFlow(this, "Dests") {
-			protected void writeEntry(Object entry) throws IOException {
+			protected void writeEntry(final Object entry) throws IOException {
 				this.out.writeDestination((Destination) entry);
 			}
 		};
 
-		// 添付ファイル
+		// Attachments
 		if (pdfVersion.v >= PDFParams.Version.V_1_4.v && pdfVersion.v != PDFParams.Version.V_PDFA1B.v) {
 			this.embeddedFiles = new NameTreeFlow(this, "EmbeddedFiles") {
-				protected void writeEntry(Object entry) throws IOException {
+				protected void writeEntry(final Object entry) throws IOException {
 					this.out.startHash();
 
 					this.out.writeName("Type");
 					this.out.writeName("Filespec");
 					this.out.lineBreak();
 
-					Filespec spec = (Filespec) entry;
-					Attachment att = spec.attachment;
+					final var spec = (Filespec) entry;
+					final var att = spec.attachment();
 
 					this.out.writeName("F");
-					this.out.writeFileName(new String[] { spec.name }, PDFWriterImpl.this.params.getPlatformEncoding());
+					this.out.writeFileName(new String[] { spec.name() },
+							PDFWriterImpl.this.params.getPlatformEncoding());
 					this.out.lineBreak();
 
-					if (pdfVersion.v >= PDFParams.Version.V_1_7.v && att.description != null) {
+					if (pdfVersion.v >= PDFParams.Version.V_1_7.v && att.description() != null) {
 						this.out.writeName("UF");
-						this.out.writeUTF16(att.description);
+						this.out.writeUTF16(att.description());
 						this.out.lineBreak();
 					}
 
 					this.out.writeName("EF");
 					this.out.startHash();
 					this.out.writeName("F");
-					this.out.writeObjectRef(spec.ref);
+					this.out.writeObjectRef(spec.ref());
 					this.out.endHash();
 
 					this.out.endHash();
@@ -460,13 +445,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.embeddedFiles = null;
 		}
 
-		// ページリソース
+		// Page Resources
 		this.pageResourceRef = this.xref.nextObjectRef();
 		this.mainFlow.startObject(this.pageResourceRef);
 		this.pageResourceFlow = new ResourceFlow(this.mainFlow);
 		this.mainFlow.endObject();
 
-		// オブジェクト
+		// Objects
 		this.objectsFlow = this.mainFlow.forkFragment();
 		this.fonts = new FontFlow(this.nameToResourceRef, this.objectsFlow, this.xref);
 		this.images = new ImageFlow(this.nameToResourceRef, this.objectsFlow, this.xref, this.params);
@@ -484,11 +469,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return this.builder;
 	}
 
-	public Object getAttribute(Object key) {
+	public Object getAttribute(final Object key) {
 		return this.keyToValue.get(key);
 	}
 
-	public void putAttribute(Object key, Object value) {
+	public void putAttribute(final Object key, final Object value) {
 		this.keyToValue.put(key, value);
 	}
 
@@ -504,57 +489,58 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	}
 
 	protected ObjectRef nextOCG() {
-		ObjectRef ocgRef = this.xref.nextObjectRef();
+		final ObjectRef ocgRef = this.xref.nextObjectRef();
 		if (this.ocgs == null) {
-			this.ocgs = new ArrayList<ObjectRef>();
+			this.ocgs = new ArrayList<>();
 		}
 		this.ocgs.add(ocgRef);
 		return ocgRef;
 	}
 
 	/**
-	 * フォントの使用を宣言します。
+	 * Declares use of font.
 	 * 
-	 * @param source
-	 * @return グラフィック命令から参照可能なフォント名。
-	 * @throws IOException
+	 * @param source font source
+	 * @return font name usable in graphics operations
+	 * @throws IOException in case of I/O error
 	 */
-	public Font useFont(FontSource source) throws IOException {
+	public Font useFont(final FontSource source) throws IOException {
 		return this.fonts.useFont(source);
 	}
 
-	public Image loadImage(Source source) throws IOException {
+	public Image loadImage(final Source source) throws IOException {
 		return this.images.loadImage(source);
 	}
 
-	public Image addImage(BufferedImage image) throws IOException {
+	public Image addImage(final BufferedImage image) throws IOException {
 		return this.images.addImage(image);
 	}
 
 	/**
-	 * オブジェクトの名前を生成します。
+	 * Generates object name.
 	 * 
-	 * @param type
-	 * @param prefix
-	 * @param resourceRef
-	 * @return
-	 * @throws IOException
+	 * @param type        resource type
+	 * @param prefix      name prefix
+	 * @param resourceRef resource reference
+	 * @return generated name
+	 * @throws IOException in case of I/O error
 	 */
-	protected String addResource(String type, String prefix, ObjectRef resourceRef) throws IOException {
-		Integer num = (Integer) this.typeToCount.get(type);
+	protected String addResource(final String type, final String prefix, final ObjectRef resourceRef)
+			throws IOException {
+		Integer num = this.typeToCount.get(type);
 		if (num == null) {
 			num = NumberUtils.intValue(0);
 		} else {
 			num = NumberUtils.intValue(num.intValue() + 1);
 		}
 		this.typeToCount.put(type, num);
-		String name = prefix + num;
+		final String name = prefix + num;
 		this.nameToResourceRef.put(name, resourceRef);
 		return name;
 	}
 
 	public PDFNamedOutput createSpecialGraphicsState() throws IOException {
-		ObjectRef gsRef = this.xref.nextObjectRef();
+		final ObjectRef gsRef = this.xref.nextObjectRef();
 		final String name = this.addResource("ExtGState", "G", gsRef);
 		final PDFFragmentOutputImpl gsOut = this.objectsFlow;
 		gsOut.startObject(gsRef);
@@ -564,7 +550,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		gsOut.writeName("ExtGState");
 		gsOut.lineBreak();
 
-		PDFNamedOutput sgs = new PDFNamedOutput(gsOut, this.params.getPlatformEncoding()) {
+		final PDFNamedOutput sgs = new PDFNamedOutput(gsOut, this.params.getPlatformEncoding()) {
 			public String getName() {
 				return name;
 			}
@@ -578,15 +564,15 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return sgs;
 	}
 
-	public PDFGroupImage createGroupImage(double width, double height) throws IOException {
-		// グループ
+	public PDFGroupImage createGroupImage(final double width, final double height) throws IOException {
+		// Group
 		if (this.getParams().getVersion().v < PDFParams.Version.V_1_4.v) {
-			throw new UnsupportedOperationException("Form Type 1 Group feature requres PDF >= 1.4.");
+			throw new UnsupportedOperationException("Form Type 1 Group feature requires PDF >= 1.4.");
 		}
-		ObjectRef imageRef = this.xref.nextObjectRef();
-		String name = this.addResource("XObject", "T", imageRef);
+		final ObjectRef imageRef = this.xref.nextObjectRef();
+		final String name = this.addResource("XObject", "T", imageRef);
 
-		PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
 
 		objectsFlow.startObject(imageRef);
 		objectsFlow.startHash();
@@ -610,11 +596,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.endHash();
 
 		objectsFlow.writeName("Resources");
-		ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
+		final ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
 		objectsFlow.lineBreak();
 
-		// 変換を出力する際、
-		// ページ下部基点のパターンをページ上部基点にするためにY位置を調整しています。
+		// Adjusts Y position to convert bottom-left origin pattern to top-left origin
+		// when outputting transform.
 		objectsFlow.writeName("Matrix");
 		objectsFlow.startArray();
 		objectsFlow.writeReal(1 / width);
@@ -635,24 +621,24 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.endArray();
 		objectsFlow.lineBreak();
 
-		PDFFragmentOutput formFlow = objectsFlow.forkFragment();
-		PDFFragmentOutput groupFlow = objectsFlow.forkFragment();
-		OutputStream groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
+		final PDFFragmentOutput formFlow = objectsFlow.forkFragment();
+		final PDFFragmentOutput groupFlow = objectsFlow.forkFragment();
+		final OutputStream groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFGroupImageImpl(this, groupOut, groupFlow, newResourceFlow, width, height, name, imageRef,
 				formFlow);
 	}
 
-	public PDFNamedGraphicsOutput createTilingPattern(double width, double height, double pageHeight,
-			AffineTransform at) throws IOException {
+	public PDFNamedGraphicsOutput createTilingPattern(final double width, final double height, final double pageHeight,
+			final AffineTransform at) throws IOException {
 		assert at == null || at.getScaleX() != 0;
 		assert at == null || at.getScaleY() != 0;
-		// パターンオブジェクト
-		ObjectRef patternRef = this.xref.nextObjectRef();
-		String name = this.addResource("Pattern", "P", patternRef);
+		// Pattern Object
+		final ObjectRef patternRef = this.xref.nextObjectRef();
+		final String name = this.addResource("Pattern", "P", patternRef);
 
-		PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
 		objectsFlow.startObject(patternRef);
 		objectsFlow.startHash();
 
@@ -669,15 +655,15 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.lineBreak();
 
 		objectsFlow.writeName("Resources");
-		ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
+		final ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
 		objectsFlow.lineBreak();
 
 		objectsFlow.writeName("TilingType");
 		objectsFlow.writeInt(1);
 		objectsFlow.lineBreak();
 
-		// 変換を出力する際、
-		// ページ下部基点のパターンをページ上部基点にするためにY位置を調整しています。
+		// Adjusts Y position to convert bottom-left origin pattern to top-left origin
+		// when outputting transform.
 		objectsFlow.writeName("Matrix");
 		objectsFlow.startArray();
 		double scx, scy, shx, shy, tx, ty;
@@ -722,16 +708,16 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.writeReal(height);
 		objectsFlow.lineBreak();
 
-		PDFFragmentOutput patternFlow = objectsFlow.forkFragment();
-		OutputStream patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
+		final PDFFragmentOutput patternFlow = objectsFlow.forkFragment();
+		final OutputStream patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFNamedGraphicsOutputImpl(this, patternOut, patternFlow, newResourceFlow, width, height, name);
 	}
 
-	public PDFNamedOutput createShadingPattern(double pageHeight, AffineTransform at) throws IOException {
-		// シェーディングオブジェクト
-		ObjectRef patternRef = this.xref.nextObjectRef();
+	public PDFNamedOutput createShadingPattern(final double pageHeight, AffineTransform at) throws IOException {
+		// Shading Object
+		final ObjectRef patternRef = this.xref.nextObjectRef();
 		final String name = this.addResource("Pattern", "P", patternRef);
 
 		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
@@ -754,12 +740,12 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			at = new AffineTransform();
 		}
 		at.preConcatenate(new AffineTransform(1, 0, 0, -1, 0, pageHeight));
-		double scx = at.getScaleX();
-		double scy = at.getScaleY();
-		double shx = at.getShearX();
-		double shy = at.getShearY();
-		double tx = at.getTranslateX();
-		double ty = at.getTranslateY();
+		final double scx = at.getScaleX();
+		final double scy = at.getScaleY();
+		final double shx = at.getShearX();
+		final double shy = at.getShearY();
+		final double tx = at.getTranslateX();
+		final double ty = at.getTranslateY();
 		objectsFlow.writeReal(scx);
 		objectsFlow.writeReal(shy);
 		objectsFlow.writeReal(shx);
@@ -769,7 +755,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.endArray();
 		objectsFlow.lineBreak();
 
-		ObjectRef shadingRef = this.xref.nextObjectRef();
+		final ObjectRef shadingRef = this.xref.nextObjectRef();
 		objectsFlow.writeName("Shading");
 		objectsFlow.writeObjectRef(shadingRef);
 		objectsFlow.lineBreak();
@@ -792,28 +778,28 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		};
 	}
 
-	public OutputStream addAttachment(String name, Attachment attachment) throws IOException {
-		if (attachment.description == null && name == null) {
+	public OutputStream addAttachment(String name, final Attachment attachment) throws IOException {
+		if (attachment.description() == null && name == null) {
 			throw new NullPointerException();
 		}
 		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-			throw new UnsupportedOperationException("ファイルの添付は PDF 1.4 以降で使用できます。");
+			throw new UnsupportedOperationException("File attachment requires PDF 1.4 or later.");
 		}
 		if (this.params.getVersion() == PDFParams.Version.V_PDFA1B) {
-			throw new UnsupportedOperationException("ファイルの添付は PDF/A では利用できません。");
+			throw new UnsupportedOperationException("File attachment cannot be used in PDF/A.");
 		}
 		if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
-			throw new UnsupportedOperationException("ファイルの添付は PDF/X では利用できません。");
+			throw new UnsupportedOperationException("File attachment cannot be used in PDF/X.");
 		}
 
-		String desc = attachment.description;
+		String desc = attachment.description();
 		if (desc == null) {
 			desc = name;
 		} else if (name == null) {
 			name = desc;
 		}
 
-		ObjectRef fileRef = this.xref.nextObjectRef();
+		final ObjectRef fileRef = this.xref.nextObjectRef();
 
 		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
 		objectsFlow.startObject(fileRef);
@@ -823,20 +809,20 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.writeName("EmbeddedFile");
 		objectsFlow.lineBreak();
 
-		if (attachment.mimeType != null) {
+		if (attachment.mimeType() != null) {
 			objectsFlow.writeName("Subtype");
-			objectsFlow.writeName(attachment.mimeType);
+			objectsFlow.writeName(attachment.mimeType());
 			objectsFlow.lineBreak();
 		}
 
-		Filespec filespac = new Filespec(attachment, name, fileRef);
-		this.embeddedFiles.addEntry(desc, filespac);
+		final Filespec filespec = new Filespec(attachment, name, fileRef);
+		this.embeddedFiles.addEntry(desc, filespec);
 
 		final PDFFragmentOutputImpl paramsFlow = objectsFlow.forkFragment();
 		try {
 			final MessageDigest md5 = MessageDigest.getInstance("md5");
 
-			OutputStream out = objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
+			final OutputStream out = objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
 			return new FilterOutputStream(out) {
 				private int size = 0;
 
@@ -883,40 +869,29 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 	}
 
-	/**
-	 * ページを作成します。
-	 * <p>
-	 * このメソッドが返すPDFPageOutputは、ページの内容を書き出した後必ずクローズしてください。
-	 * </p>
-	 * 
-	 * @param width
-	 * @param height
-	 * @return
-	 * @throws IOException
-	 */
-	public PDFPageOutput nextPage(double width, double height) throws IOException {
+	public PDFPageOutput nextPage(final double width, final double height) throws IOException {
 		return this.pages.createPage(width, height);
 	}
 
 	public void close() throws IOException {
 		try {
-			// メタ情報
-			PDFMetaInfo info = this.params.getMetaInfo();
+			// Meta Info
+			final PDFMetaInfo info = this.params.getMetaInfo();
 
-			String author = info.getAuthor();
-			String creator = info.getCreator();
-			String producer = info.getProducer();
+			final String author = info.getAuthor();
+			final String creator = info.getCreator();
+			final String producer = info.getProducer();
 			String title = info.getTitle();
-			String subject = info.getSubject();
-			String keywords = info.getKeywords();
-			TimeZone zone = TimeZone.getDefault();
+			final String subject = info.getSubject();
+			final String keywords = info.getKeywords();
+			final TimeZone zone = TimeZone.getDefault();
 			long create = info.getCreationDate();
 			if (create == -1L) {
 				create = System.currentTimeMillis();
 			}
 			long modify = info.getModDate();
 
-			ObjectRef infoRef = this.xref.nextObjectRef();
+			final ObjectRef infoRef = this.xref.nextObjectRef();
 			this.objectsFlow.startObject(infoRef);
 			this.objectsFlow.startHash();
 
@@ -983,7 +958,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.objectsFlow.endHash();
 			this.objectsFlow.endObject();
 
-			// XMLメタデータ
+			// XML Metadata
 			if (this.xmpmetaFlow != null) {
 				this.xmpmetaFlow.startHash();
 
@@ -995,26 +970,26 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.xmpmetaFlow.writeName("XML");
 				this.xmpmetaFlow.lineBreak();
 
-				try (OutputStream xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW)) {
+				try (final OutputStream xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW)) {
 					xout.write("<?xpacket begin='".getBytes("UTF-8"));
 					xout.write("\u00EF\u00BB\u00BF".getBytes("ISO-8859-1"));
 					xout.write("' id='W5M0MpCehiHzreSzNTczkc9d'?>\n".getBytes("UTF-8"));
-					TransformerHandler handler = ((SAXTransformerFactory) SAXTransformerFactory.newInstance())
+					final TransformerHandler handler = ((SAXTransformerFactory) SAXTransformerFactory.newInstance())
 							.newTransformerHandler();
 					handler.setResult(new StreamResult(xout));
-					Transformer t = handler.getTransformer();
+					final Transformer t = handler.getTransformer();
 					t.setOutputProperty(OutputKeys.METHOD, "xml");
 					t.setOutputProperty(OutputKeys.INDENT, "yes");
 					t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 					t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
-					AttributesImpl attsi = new AttributesImpl();
-					String xURI = "adobe:ns:meta/";
-					String rdfURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-					String pdfaidURI = "http://www.aiim.org/pdfa/ns/id/";
-					String pdfURI = "http://ns.adobe.com/pdf/1.3/";
-					String dcURI = "http://purl.org/dc/elements/1.1/";
-					String xmpURI = "http://ns.adobe.com/xap/1.0/";
+					final AttributesImpl attsi = new AttributesImpl();
+					final String xURI = "adobe:ns:meta/";
+					final String rdfURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+					final String pdfaidURI = "http://www.aiim.org/pdfa/ns/id/";
+					final String pdfURI = "http://ns.adobe.com/pdf/1.3/";
+					final String dcURI = "http://purl.org/dc/elements/1.1/";
+					final String xmpURI = "http://ns.adobe.com/xap/1.0/";
 
 					handler.startDocument();
 					attsi.addAttribute("", "x", "xmlns:x", "CDATA", xURI);
@@ -1063,7 +1038,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					handler.startElement(rdfURI, "Description", "rdf:Description", attsi);
 					attsi.clear();
 
-					String format = "application/pdf";
+					final String format = "application/pdf";
 					handler.startElement(dcURI, "format", "dc:format", attsi);
 					handler.characters(format.toCharArray(), 0, format.length());
 					handler.endElement(dcURI, "format", "dc:format");
@@ -1079,14 +1054,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 						handler.endElement(rdfURI, "Alt", "rdf:Alt");
 						handler.endElement(dcURI, "title", "dc:title");
 					}
-					/*
-					 * if (subject != null) { handler.startElement(dcURI, "subject", "dc:subject",
-					 * attsi); handler.startElement(rdfURI, "Bag", "rdf:Bag", attsi);
-					 * handler.startElement(rdfURI, "li", "rdf:li", attsi);
-					 * handler.characters(subject.toCharArray(), 0, subject.length());
-					 * handler.endElement(rdfURI, "li", "rdf:li"); handler.endElement(rdfURI, "Bag",
-					 * "rdf:Bag"); handler.endElement(dcURI, "subject", "dc:subject"); }
-					 */
+
 					if (author != null) {
 						handler.startElement(dcURI, "creator", "dc:creator", attsi);
 						handler.startElement(rdfURI, "Seq", "rdf:Seq", attsi);
@@ -1109,7 +1077,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 						handler.characters(creator.toCharArray(), 0, creator.length());
 						handler.endElement(xmpURI, "CreatorTool", "xmp:CreatorTool");
 					}
-					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+					final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 					handler.startElement(xmpURI, "CreateDate", "xmp:CreateDate", attsi);
 					String createStr = dateFormat.format(new Date(create));
 					createStr = createStr.substring(0, createStr.length() - 2) + ':'
@@ -1130,7 +1098,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					handler.endElement(xURI, "xmpmeta", "x:xmpmeta");
 
 					handler.endDocument();
-					// XMP (p33) 2-4KBの余白
+					// XMP (p33) 2-4KB padding
 					for (int i = 0; i < 26; ++i) {
 						xout.write(XMP_PADDING);
 					}
@@ -1141,29 +1109,28 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.xmpmetaFlow.endObject();
 			}
 
-			// // カタログ
-			// ページ情報
+			// Catalog - Page Info
 			this.pages.close();
 
-			// アウトライン
+			// Outline
 			if (this.outline != null) {
 				this.outline.close();
 			}
 
-			// アンカー
+			// Anchor
 			this.fragments.close();
 
-			// 添付ファイル
+			// Attachments
 			if (this.embeddedFiles != null) {
 				this.embeddedFiles.close();
 			}
 
-			// ネームディクショナリ
+			// Name Dictionary
 			this.nameDict.close();
 
 			// OCGs
 			if (this.ocgs != null) {
-				ObjectRef ref = this.xref.nextObjectRef();
+				final ObjectRef ref = this.xref.nextObjectRef();
 				this.catalogFlow.writeName("OCProperties");
 				this.catalogFlow.writeObjectRef(ref);
 
@@ -1172,7 +1139,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
 				for (int i = 0; i < this.ocgs.size(); ++i) {
-					ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1182,7 +1149,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("ON");
 				this.objectsFlow.startArray();
 				for (int i = 0; i < this.ocgs.size(); ++i) {
-					ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1195,7 +1162,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
 				for (int i = 0; i < this.ocgs.size(); ++i) {
-					ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1211,7 +1178,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
 				for (int i = 0; i < this.ocgs.size(); ++i) {
-					ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1229,7 +1196,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			}
 
 			// ViewerPreferences
-			ViewerPreferences vp = this.params.getViewerPreferences();
+			final ViewerPreferences vp = this.params.getViewerPreferences();
 			if (vp != null) {
 				this.catalogFlow.writeName("ViewerPreferences");
 				this.catalogFlow.startHash();
@@ -1266,7 +1233,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.isDisplayDocTitle()) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのDisplayDocTitleは PDF 1.4 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference DisplayDocTitle requires PDF 1.4 or later.");
 					}
 					this.catalogFlow.writeName("DisplayDocTitle");
 					this.catalogFlow.writeBoolean(true);
@@ -1296,7 +1264,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getDirection() != ViewerPreferences.Direction.L2R) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのDirectionは PDF 1.3 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference Direction requires PDF 1.3 or later.");
 					}
 					this.catalogFlow.writeName("Direction");
 					switch (vp.getDirection()) {
@@ -1314,7 +1283,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getViewArea() != ViewerPreferences.AreaBox.CROP) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのViewAreaは PDF 1.4 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference ViewArea requires PDF 1.4 or later.");
 					}
 					this.catalogFlow.writeName("ViewArea");
 					this.writeArea(vp.getViewArea());
@@ -1323,7 +1293,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getViewClip() != ViewerPreferences.AreaBox.CROP) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのViewClipは PDF 1.4 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference ViewClip requires PDF 1.4 or later.");
 					}
 					this.catalogFlow.writeName("ViewClip");
 					this.writeArea(vp.getViewClip());
@@ -1332,7 +1303,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getPrintArea() != ViewerPreferences.AreaBox.CROP) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのPrintAreaは PDF 1.4 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference PrintArea requires PDF 1.4 or later.");
 					}
 					this.catalogFlow.writeName("PrintArea");
 					this.writeArea(vp.getPrintArea());
@@ -1341,7 +1313,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getPrintClip() != ViewerPreferences.AreaBox.CROP) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのPrintClipは PDF 1.4 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference PrintClip requires PDF 1.4 or later.");
 					}
 					this.catalogFlow.writeName("PrintClip");
 					this.writeArea(vp.getPrintClip());
@@ -1350,7 +1323,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getPrintScaling() != ViewerPreferences.PrintScaling.APP_DEFAULT) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_6.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのPrintScalingは PDF 1.6 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference PrintScaling requires PDF 1.6 or later.");
 					}
 					this.catalogFlow.writeName("PrintScaling");
 					switch (vp.getPrintScaling()) {
@@ -1368,7 +1342,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				if (vp.getDuplex() != ViewerPreferences.Duplex.NONE) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのDuplexは PDF 1.7 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference Duplex requires PDF 1.7 or later.");
 					}
 					this.catalogFlow.writeName("Duplex");
 					switch (vp.getDuplex()) {
@@ -1392,17 +1367,18 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				if (vp.getPickTrayByPDFSize()) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
-								"ViewerPreferenceのPickTrayByPDFSizeは PDF 1.7 以降で使用できます。");
+								"ViewerPreference PickTrayByPDFSize requires PDF 1.7 or later.");
 					}
 					this.catalogFlow.writeName("PickTrayByPDFSize");
 					this.catalogFlow.writeBoolean(true);
 					this.catalogFlow.lineBreak();
 				}
 
-				int[] printPageRange = vp.getPrintPageRange();
+				final int[] printPageRange = vp.getPrintPageRange();
 				if (printPageRange != null) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのPrintPageRangeは PDF 1.7 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference PrintPageRange requires PDF 1.7 or later.");
 					}
 					this.catalogFlow.writeName("PrintPageRange");
 					this.catalogFlow.startArray();
@@ -1413,10 +1389,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				int numCopies = vp.getNumCopies();
+				final int numCopies = vp.getNumCopies();
 				if (numCopies > 0) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
-						throw new UnsupportedOperationException("ViewerPreferenceのNumCopiesは PDF 1.7 以降で使用できます。");
+						throw new UnsupportedOperationException(
+								"ViewerPreference NumCopies requires PDF 1.7 or later.");
 					}
 					this.catalogFlow.writeName("NumCopies");
 					this.catalogFlow.writeInt(numCopies);
@@ -1428,8 +1405,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.catalogFlow.lineBreak();
 			}
 
-			// 文書を開いた時の動作
-			Action action = this.params.getOpenAction();
+			// Open Action
+			final Action action = this.params.getOpenAction();
 			if (action != null) {
 				this.catalogFlow.writeName("OpenAction");
 				this.catalogFlow.startHash();
@@ -1438,15 +1415,15 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.catalogFlow.lineBreak();
 			}
 
-			// カタログ
+			// Catalog
 			this.catalogFlow.close();
 
-			// リソース
+			// Resources
 			this.fonts.close();
 			this.pageResourceFlow.close();
 			this.objectsFlow.close();
 
-			// クロスリファレンス
+			// XRef
 			this.xref.close(this.builder.getPositionInfo(), infoRef, this.fileid, this.encryption);
 
 			this.mainFlow.close();
@@ -1458,7 +1435,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 	}
 
-	private void writeArea(ViewerPreferences.AreaBox area) throws IOException {
+	private void writeArea(final ViewerPreferences.AreaBox area) throws IOException {
 		switch (area) {
 			case MEDIA:
 				this.catalogFlow.writeName("MediaBox");
