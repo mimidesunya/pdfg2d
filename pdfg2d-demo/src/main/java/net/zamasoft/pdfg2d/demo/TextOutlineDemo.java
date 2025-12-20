@@ -11,7 +11,7 @@ import java.io.FileOutputStream;
 import javax.swing.JFrame;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFace;
@@ -56,7 +56,7 @@ public class TextOutlineDemo {
 
 			try (final var out = new BufferedOutputStream(
 					new FileOutputStream(new File(DemoUtils.getOutputDir(), "text-stroke.pdf")))) {
-				final var builder = new StreamSequentialOutput(out);
+				final var builder = new StreamFragmentedOutput(out);
 				final var pdf = new PDFWriterImpl(builder, params);
 
 				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
@@ -85,7 +85,7 @@ public class TextOutlineDemo {
 		}
 	}
 
-	private static void draw(GC gc) {
+	private static void draw(final GC gc) {
 		{
 			gc.begin();
 			gc.transform(AffineTransform.getTranslateInstance(250, 0));

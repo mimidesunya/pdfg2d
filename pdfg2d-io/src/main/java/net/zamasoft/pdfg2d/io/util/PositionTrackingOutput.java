@@ -7,51 +7,103 @@ import java.util.List;
 import net.zamasoft.pdfg2d.io.FragmentedOutput;
 
 /**
- * Wrapper for FragmentedOutput that adds position tracking support for
- * implementations
- * that don't support it natively.
+ * A wrapper that adds position tracking support to any FragmentedOutput.
+ * <p>
+ * Use this class to wrap implementations that don't support position info
+ * natively. It maintains its own linked list of fragments to calculate
+ * positions when {@link #getPositionInfo()} is called.
+ * </p>
+ * <p>
+ * After wrapping, {@link #supportsPositionInfo()} will return true.
+ * </p>
  * 
  * @author MIYABE Tatsuhiko
  * @version $Id: RandomBuilderPositionSupport.java 656 2011-09-03 15:42:28Z
  *          miyabe $
  */
 public class PositionTrackingOutput extends FragmentedOutputWrapper {
+	/** Debug flag for logging fragment statistics. */
 	private static final boolean DEBUG = false;
 
+	/** List of all fragment info indexed by ID. */
 	private final List<FragmentInfo> fragments = new ArrayList<>();
 
+	/** Linked list pointers for fragment ordering. */
 	private FragmentInfo first = null, last = null;
 
+	/**
+	 * Internal class to track fragment ordering and size.
+	 */
 	private static class FragmentInfo {
+		/** Fragment ID. */
 		public final int id;
 
+		/** Previous and next fragments in the linked list. */
 		public FragmentInfo prev = null, next = null;
 
+		/** Total byte length of this fragment. */
 		public long fragmentLength = 0;
 
+		/**
+		 * Creates a new fragment info.
+		 * 
+		 * @param id fragment ID.
+		 */
 		public FragmentInfo(final int id) {
 			this.id = id;
 		}
 	}
 
+	/**
+	 * Creates a new position tracking wrapper.
+	 * <p>
+	 * The wrapped builder should not already support position info;
+	 * this is verified with an assertion.
+	 * </p>
+	 * 
+	 * @param builder the FragmentedOutput to wrap.
+	 */
 	public PositionTrackingOutput(final FragmentedOutput builder) {
 		super(builder);
 		assert !builder.supportsPositionInfo();
 	}
 
+	/**
+	 * Returns the next fragment ID.
+	 * 
+	 * @return next available ID.
+	 */
 	protected int nextId() {
 		return this.fragments.size();
 	}
 
+	/**
+	 * Retrieves fragment info by ID.
+	 * 
+	 * @param id fragment ID.
+	 * @return fragment info.
+	 */
 	protected FragmentInfo getFragment(final int id) {
 		return this.fragments.get(id);
 	}
 
+	/**
+	 * Stores fragment info.
+	 * 
+	 * @param id       fragment ID.
+	 * @param fragment the fragment info to store.
+	 */
 	protected void putFragment(final int id, final FragmentInfo fragment) {
 		assert (id == this.fragments.size());
 		this.fragments.add(fragment);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Calculates positions by traversing the fragment linked list.
+	 * </p>
+	 */
 	@Override
 	public PositionInfo getPositionInfo() {
 		final long[] idToPosition = new long[this.fragments.size()];
@@ -65,11 +117,22 @@ public class PositionTrackingOutput extends FragmentedOutputWrapper {
 		return id -> idToPosition[id];
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return always true after wrapping.
+	 */
 	@Override
 	public boolean supportsPositionInfo() {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Creates a new fragment and appends it to the tracking list.
+	 * </p>
+	 */
 	@Override
 	public void addFragment() throws IOException {
 		final int id = this.nextId();
@@ -85,12 +148,19 @@ public class PositionTrackingOutput extends FragmentedOutputWrapper {
 		super.addFragment();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Creates a new fragment and inserts it before the anchor in the tracking list.
+	 * </p>
+	 */
 	@Override
 	public void insertFragmentBefore(final int anchorId) throws IOException {
 		final int id = this.nextId();
 		final var anchor = this.getFragment(anchorId);
 		final var fragment = new FragmentInfo(id);
 		this.putFragment(id, fragment);
+		// Insert into tracking linked list
 		fragment.prev = anchor.prev;
 		fragment.next = anchor;
 		if (anchor.prev != null) {
@@ -103,6 +173,12 @@ public class PositionTrackingOutput extends FragmentedOutputWrapper {
 		super.insertFragmentBefore(anchorId);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Writes data to the wrapped output and updates the fragment length.
+	 * </p>
+	 */
 	@Override
 	public void write(final int id, final byte[] b, final int off, final int len) throws IOException {
 		final var fragment = this.getFragment(id);
@@ -110,11 +186,18 @@ public class PositionTrackingOutput extends FragmentedOutputWrapper {
 		super.write(id, b, off, len);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public void finishFragment(final int id) throws IOException {
 		super.finishFragment(id);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Clears tracking data and closes the wrapped output.
+	 * </p>
+	 */
 	@Override
 	public void close() throws IOException {
 		try {
@@ -122,6 +205,7 @@ public class PositionTrackingOutput extends FragmentedOutputWrapper {
 				final int total = this.fragments.size();
 				System.out.println(total + " fragments were generated.");
 			}
+			// Clear tracking data
 			this.first = null;
 			this.last = null;
 			this.fragments.clear();

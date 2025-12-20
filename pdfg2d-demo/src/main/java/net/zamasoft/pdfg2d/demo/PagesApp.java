@@ -2,10 +2,12 @@ package net.zamasoft.pdfg2d.demo;
 
 import java.awt.Font;
 import java.io.File;
+import java.io.IOException;
 
-import net.zamasoft.pdfg2d.io.impl.FileSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.FileFragmentedOutput;
 import net.zamasoft.pdfg2d.PDFGraphics2D;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 
 /**
@@ -17,9 +19,10 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
  * @author MIYABE Tatsuhiko
  */
 public class PagesApp {
-	public static void main(final String[] args) throws Exception {
+	public static void main(final String[] args) throws IOException {
 		try (final var pdf = new PDFWriterImpl(
-				new FileSequentialOutput(new File(DemoUtils.getOutputDir(), "pages.pdf")))) {
+				new FileFragmentedOutput(new File(DemoUtils.getOutputDir(), "pages.pdf")),
+				new PDFParams())) {
 			try (final var g2d = new PDFGraphics2D(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 					PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 				g2d.setFont(new Font(Font.SERIF, Font.PLAIN, 38));

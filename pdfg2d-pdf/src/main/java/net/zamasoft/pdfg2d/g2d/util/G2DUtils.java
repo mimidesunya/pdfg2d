@@ -50,6 +50,8 @@ import net.zamasoft.pdfg2d.gc.paint.RGBColor;
 import net.zamasoft.pdfg2d.gc.paint.RadialGradient;
 
 /**
+ * Utilities for converting between AWT and internal graphics objects.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -60,6 +62,12 @@ public final class G2DUtils {
 		// unused
 	}
 
+	/**
+	 * Converts AWT Paint to internal Paint.
+	 * 
+	 * @param paint AWT Paint
+	 * @return Internal Paint
+	 */
 	public static Paint fromAwtPaint(java.awt.Paint paint) {
 		if (paint instanceof java.awt.Color) {
 			return fromAwtColor((java.awt.Color) paint);
@@ -119,6 +127,12 @@ public final class G2DUtils {
 		return null;
 	}
 
+	/**
+	 * Converts internal LinearGradient to AWT Paint.
+	 * 
+	 * @param gradient Internal LinearGradient
+	 * @return AWT Paint
+	 */
 	public static java.awt.Paint toAwtPaint(LinearGradient gradient) {
 		double[] fs = gradient.fractions();
 		float[] fractions = new float[fs.length];
@@ -135,6 +149,12 @@ public final class G2DUtils {
 				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.transform());
 	}
 
+	/**
+	 * Converts internal RadialGradient to AWT Paint.
+	 * 
+	 * @param gradient Internal RadialGradient
+	 * @return AWT Paint
+	 */
 	public static java.awt.Paint toAwtPaint(RadialGradient gradient) {
 		double[] fs = gradient.fractions();
 		float[] fractions = new float[fs.length];
@@ -151,6 +171,12 @@ public final class G2DUtils {
 				MultipleGradientPaint.NO_CYCLE, MultipleGradientPaint.SRGB, gradient.transform());
 	}
 
+	/**
+	 * Converts AWT Color to internal Color.
+	 * 
+	 * @param color AWT Color
+	 * @return Internal Color
+	 */
 	public static Color fromAwtColor(java.awt.Color color) {
 		float r = (short) color.getRed() / 255f;
 		float g = (short) color.getGreen() / 255f;
@@ -162,10 +188,23 @@ public final class G2DUtils {
 		return RGBAColor.create(r, g, b, a);
 	}
 
+	/**
+	 * Converts internal Color to AWT Color.
+	 * 
+	 * @param color Internal Color
+	 * @return AWT Color
+	 */
 	public static java.awt.Color toAwtColor(Color color) {
 		return new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 
+	/**
+	 * Converts internal Pattern to AWT Paint.
+	 * 
+	 * @param pattern Internal Pattern
+	 * @param gc      Graphics Context
+	 * @return AWT Paint
+	 */
 	public static java.awt.Paint toAwtPaint(Pattern pattern, GC gc) {
 		Image image = pattern.getImage();
 		double width = image.getWidth();
@@ -181,10 +220,26 @@ public final class G2DUtils {
 		return new TexturePaint(bimage, new Rectangle2D.Double(0, 0, width, height));
 	}
 
+	/**
+	 * Draws a BufferedImage with specified dimensions.
+	 * 
+	 * @param g     Graphics2D context
+	 * @param image Image to draw
+	 * @param x     X coordinate
+	 * @param y     Y coordinate
+	 * @param w     Width
+	 * @param h     Height
+	 */
 	public static void drawImage(Graphics2D g, BufferedImage image, double x, double y, double w, double h) {
 		g.drawImage(image, new AffineTransform(w / image.getWidth(), 0, 0, h / image.getHeight(), x, y), null);
 	}
 
+	/**
+	 * Converts internal FontFamily to AWT font family name.
+	 * 
+	 * @param ffe Internal FontFamily
+	 * @return AWT font family name
+	 */
 	public static final String toAwtFamilyName(FontFamily ffe) {
 		switch (ffe.getGenericFamily()) {
 			case CURSIVE:
@@ -206,6 +261,12 @@ public final class G2DUtils {
 
 	}
 
+	/**
+	 * Converts FontStyle to an array of AWT Fonts.
+	 * 
+	 * @param fontStyle FontStyle
+	 * @return Array of AWT Fonts
+	 */
 	public static final Font[] toFonts(FontStyle fontStyle) {
 		Map<TextAttribute, Object> atts = new HashMap<TextAttribute, Object>();
 		setFontAttributes(atts, fontStyle);
@@ -217,6 +278,12 @@ public final class G2DUtils {
 		return fonts;
 	}
 
+	/**
+	 * Sets AWT TextAttributes based on FontStyle.
+	 * 
+	 * @param atts      Map to store attributes
+	 * @param fontStyle From FontStyle
+	 */
 	public static final void setFontAttributes(Map<TextAttribute, Object> atts, FontStyle fontStyle) {
 		atts.put(TextAttribute.SIZE, Float.valueOf((float) fontStyle.getSize()));
 
@@ -284,16 +351,36 @@ public final class G2DUtils {
 		}
 	}
 
+	/**
+	 * Checks if a font is available in the local graphics environment.
+	 * 
+	 * @param fontName Font name to check
+	 * @return True if available
+	 */
 	public static synchronized boolean isAvailable(String fontName) {
 		buildNormNameToAWTName();
 		return normNameToAWTName.containsKey(FontUtils.normalizeName(fontName));
 	}
 
+	/**
+	 * Gets the AWT font name for a normalized font name.
+	 * 
+	 * @param fontName Normalized font name
+	 * @return AWT font name
+	 */
 	public static synchronized String toAwtFontName(String fontName) {
 		buildNormNameToAWTName();
 		return (String) normNameToAWTName.get(FontUtils.normalizeName(fontName));
 	}
 
+	/**
+	 * Loads a BufferedImage from an ImageInputStream.
+	 * 
+	 * @param reader  ImageReader
+	 * @param imageIn ImageInputStream
+	 * @return Loaded BufferedImage
+	 * @throws IOException If an I/O error occurs
+	 */
 	public static BufferedImage loadImage(ImageReader reader, ImageInputStream imageIn) throws IOException {
 		try {
 			String type = reader.getFormatName();
@@ -364,6 +451,12 @@ public final class G2DUtils {
 		}
 	}
 
+	/**
+	 * Decodes internal line cap to LineCap enum.
+	 *
+	 * @param lineCap Line cap value
+	 * @return LineCap enum
+	 */
 	public static LineCap decodeLineCap(final short lineCap) {
 		switch (lineCap) {
 			case 0:
@@ -377,6 +470,12 @@ public final class G2DUtils {
 		}
 	}
 
+	/**
+	 * Decodes internal line join to LineJoin enum.
+	 *
+	 * @param lineJoin Line join value
+	 * @return LineJoin enum
+	 */
 	public static LineJoin decodeLineJoin(final short lineJoin) {
 		switch (lineJoin) {
 			case 0:

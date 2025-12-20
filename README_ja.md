@@ -1,15 +1,15 @@
 # pdfg2d
 
-[日本語 (Japanese)](README_ja.md)
+[English](README.md)
 
-## What is this?
-pdfg2d is a high-performance PDF generator for Java, providing a `java.awt.Graphics2D` implementation that outputs to PDF.
+## 概要
+pdfg2dは、Javaの `java.awt.Graphics2D` APIを使用してPDFを出力するための高性能なライブラリです。
 
-## Requirements
-* Java 21 or later
+## 必要要件
+* Java 21 以降
 
-## Installation
-pdfg2d is available on the Maven Central Repository.
+## インストール
+pdfg2dはMaven Central Repositoryから入手可能です。
 
 ### Maven
 ```xml
@@ -25,47 +25,47 @@ pdfg2d is available on the Maven Central Repository.
 implementation("io.github.mimidesunya:pdfg2d-pdf:1.2.0")
 ```
 
-To include SVG and Emoji support:
+SVGおよび絵文字サポートを含める場合:
 ```kotlin
 implementation("io.github.mimidesunya:pdfg2d-svg:1.2.0")
 ```
 
-## Features
-* **Java 21 Support**: Leverages modern Java features.
-* **PDF Versions**: Supports PDF 1.2 to 1.7, PDF/A-1b, and PDF/X-1a.
-* **Advanced Functionality**:
-    * Bookmarks, Permissions, Viewer Preferences, Meta Information.
-    * Encryption: Arcfour (RC4) and AES.
-    * Color Modes: RGB, Gray, CMYK.
-    * File Attachments, Hyperlinks, Open JavaScript Actions.
-* **Graphics Capabilities**:
-    * Full `java.awt.Graphics2D` bridge.
-    * Group Images, Tiling Patterns, Shading Patterns.
-    * [SVG Images support](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/SVGTigerApp.java).
-    * [Emoji support](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/EmojiApp.java).
-* **Compression**:
-    * PDF: Deflate, Deflate + Ascii85.
-    * Images: Deflate, JPEG, JPEG2000.
-* **Fonts**:
-    * Core 14 Fonts.
-    * CID-Keyed Fonts (Chinese, Japanese, Korean, HK/Taiwanese).
-    * Embedded Fonts (TrueType, OpenType/CFF, WOFF).
+## 機能一覧
+* **Java 21 サポート**: 最新のJava機能を利用しています。
+* **対応PDFバージョン**: PDF 1.2 から 1.7、PDF/A-1b、PDF/X-1aに対応。
+* **高度な機能**:
+    * しおり、権限設定、ビューア設定、文書情報設定。
+    * 暗号化: Arcfour (RC4) および AES。
+    * カラーモード: RGB, Gray, CMYK。
+    * ファイル添付、ハイパーリンク、Open JavaScriptアクション。
+* **グラフィックス機能**:
+    * `java.awt.Graphics2D` との完全な互換性。
+    * グループイメージ、タイリングパターン、シェーディングパターン。
+    * [SVG画像サポート](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/SVGTigerApp.java)。
+    * [絵文字サポート](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/EmojiApp.java)。
+* **圧縮**:
+    * PDF: Deflate, Deflate + Ascii85。
+    * 画像: Deflate, JPEG, JPEG2000。
+* **フォント**:
+    * Standard 14 Fonts (Core 14 Fonts)。
+    * CID-Keyed Fonts (中国語、日本語、韓国語、香港/台湾)。
+    * 埋め込みフォント (TrueType, OpenType/CFF, WOFF)。
 
-## Building from Source
-This project uses Gradle.
+## ソースコードからのビルド
+このプロジェクトはGradleを使用しています。
 
-To build the project:
+プロジェクトをビルドするには:
 ```bash
 ./gradlew build
 ```
 
-To build with Emoji fonts (which takes longer):
+絵文字フォントを含めてビルドするには（時間がかかります）:
 ```bash
 ./gradlew build -PincludeEmojiFonts=true
 ```
 
-## Example
-[Full Example Source](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/DrawApp.java)
+## サンプルコード
+[完全なソースコード](https://github.com/mimidesunya/pdfg2d/blob/main/pdfg2d-demo/src/main/java/net/zamasoft/pdfg2d/demo/DrawApp.java)
 
 ```java
 import java.awt.BasicStroke;
@@ -80,22 +80,27 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
 public class DrawApp {
     public static void main(String[] args) throws Exception {
         try (PDFGraphics2D g2d = new PDFGraphics2D(new File("out/draw.pdf"))) {
+            // 背景を白で塗りつぶし
             g2d.setColor(Color.WHITE);
             g2d.fill(new Rectangle2D.Double(0, 0, PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
                     PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));
 
+            // 赤い四角形を描画
             g2d.setColor(Color.RED);
             g2d.fill(new Rectangle2D.Double(PDFUtils.mmToPt(51), 0, PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM - 51),
                     PDFUtils.mmToPt(154)));
 
+            // 青い四角形を描画
             g2d.setColor(Color.BLUE);
             g2d.fill(new Rectangle2D.Double(0, PDFUtils.mmToPt(154), PDFUtils.mmToPt(51),
                     PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM) - 154));
 
+            // 黄色い四角形を描画
             g2d.setColor(Color.YELLOW);
             g2d.fill(new Rectangle2D.Double(PDFUtils.mmToPt(187), PDFUtils.mmToPt(182), PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM - 187),
                     PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM) - 182));
             
+            // 線の描画
             g2d.setStroke(new BasicStroke((float)PDFUtils.mmToPt(7)));
             g2d.setColor(Color.BLACK);
             g2d.draw(new Line2D.Double(PDFUtils.mmToPt(51), 0, PDFUtils.mmToPt(51), PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));
@@ -110,5 +115,5 @@ public class DrawApp {
 }
 ```
 
-## License
+## ライセンス
 [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt)

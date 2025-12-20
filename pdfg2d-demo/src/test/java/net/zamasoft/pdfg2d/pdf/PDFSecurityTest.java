@@ -1,4 +1,4 @@
-package net.zamasoft.pdfg2d.demo;
+package net.zamasoft.pdfg2d.pdf;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,7 +7,7 @@ import org.apache.pdfbox.Loader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.params.V2EncryptionParams; // 128-bit RC4 (V2)
@@ -37,7 +37,7 @@ public class PDFSecurityTest {
         params.setEncryption(encParams);
 
         try (final var out = new FileOutputStream(tempFile)) {
-            final var builder = new StreamSequentialOutput(out);
+            final var builder = new StreamFragmentedOutput(out);
             final var pdf = new PDFWriterImpl(builder, params);
             try (final var page = pdf.nextPage(595, 842)) {
                 // content

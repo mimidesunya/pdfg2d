@@ -1,4 +1,4 @@
-package net.zamasoft.pdfg2d.demo;
+package net.zamasoft.pdfg2d.pdf;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams.Version;
@@ -26,7 +26,7 @@ public class PDFVersionTest {
         params.setVersion(version);
 
         try (final var out = new FileOutputStream(tempFile)) {
-            final var builder = new StreamSequentialOutput(out);
+            final var builder = new StreamFragmentedOutput(out);
             final var pdf = new PDFWriterImpl(builder, params);
             try (final var page = pdf.nextPage(595, 842)) {
                 // Empty page is enough to check version header

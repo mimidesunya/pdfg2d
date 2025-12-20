@@ -16,7 +16,7 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.w3c.dom.Document;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -43,7 +43,7 @@ public class SVGRenderingDemo {
 
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "svg.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			final var userAgent = new UserAgentAdapter();

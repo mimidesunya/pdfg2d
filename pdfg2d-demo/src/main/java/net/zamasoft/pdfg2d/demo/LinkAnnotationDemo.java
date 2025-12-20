@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.annot.LinkAnnot;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -35,7 +35,7 @@ public class LinkAnnotationDemo {
 
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "annotation.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			try (final var page = pdf.nextPage(width, height);

@@ -1,0 +1,144 @@
+package net.zamasoft.pdfg2d.pdf;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.awt.Color;
+import java.io.File;
+import java.io.FileOutputStream;
+
+import org.apache.pdfbox.Loader;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
+import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
+import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams.ColorMode;
+import net.zamasoft.pdfg2d.pdf.utils.GraphicsOperatorInspector;
+
+/**
+ * Tests for PDF Color Modes: RGB, Gray, and CMYK.
+ */
+public class PDFColorModeTest {
+
+    @TempDir
+    File tempDir;
+
+    @Test
+    public void testColorModeRGB() throws Exception {
+        final var file = new File(tempDir, "color_mode_rgb.pdf");
+        final var params = new PDFParams();
+        params.setColorMode(ColorMode.PRESERVE); // Used for RGB
+
+        try (final var out = new FileOutputStream(file)) {
+            final var builder = new StreamFragmentedOutput(out);
+            final var pdf = new PDFWriterImpl(builder, params);
+            try (final var gc = new PDFGC(pdf.nextPage(595, 842))) {
+                final var g = new BridgeGraphics2D(gc);
+                g.setColor(Color.RED);
+                g.fillRect(100, 100, 100, 100);
+            }
+            pdf.close();
+            builder.close();
+        }
+
+        try (final var doc = Loader.loadPDF(file)) {
+            final var inspector = new GraphicsOperatorInspector(doc.getPage(0));
+            inspector.run();
+            final var commands = inspector.getCommands();
+
+            // Check for red fill
+            // In RGB, red is (1.0, 0.0, 0.0) -> requires 3 components
+            boolean found = commands.stream().anyMatch(cmd -> {
+                if (cmd.currentColor != null && cmd.currentColor.length == 3) {
+                    return Math.abs(cmd.currentColor[0] - 1.0f) < 0.01f &&
+                            Math.abs(cmd.currentColor[1] - 0.0f) < 0.01f &&
+                            Math.abs(cmd.currentColor[2] - 0.0f) < 0.01f;
+                }
+                return false;
+            });
+            assertTrue(found, "Should contain RGB Red (1, 0, 0) drawing operation");
+        }
+    }
+
+    @Test
+    public void testColorModeGray() throws Exception {
+        final var file = new File(tempDir, "color_mode_gray.pdf");
+        final var params = new PDFParams();
+        params.setColorMode(ColorMode.GRAY);
+
+        try (final var out = new FileOutputStream(file)) {
+            final var builder = new StreamFragmentedOutput(out);
+            final var pdf = new PDFWriterImpl(builder, params);
+            try (final var gc = new PDFGC(pdf.nextPage(595, 842))) {
+                final var g = new BridgeGraphics2D(gc);
+                g.setColor(Color.RED); // Should be converted to gray
+                g.fillRect(100, 100, 100, 100);
+            }
+            pdf.close();
+            builder.close();
+        }
+
+        try (final var doc = Loader.loadPDF(file)) {
+            final var inspector = new GraphicsOperatorInspector(doc.getPage(0));
+            inspector.run();
+            final var commands = inspector.getCommands();
+
+            // Check for gray fill
+            // Red converted to grayscale: 0.299*R + 0.587*G + 0.114*B = 0.299
+            // Color space should have 1 component
+            boolean found = commands.stream().anyMatch(cmd -> {
+                // System.out.println("Gray cmd: " +
+                // java.util.Arrays.toString(cmd.currentColor));
+                if (cmd.currentColor != null && cmd.currentColor.length == 1) {
+                    return Math.abs(cmd.currentColor[0] - 0.299f) < 0.05f;
+                }
+                return false;
+            });
+            assertTrue(found, "Should contain Grayscale equivalent of Red (approx 0.3) drawing operation");
+        }
+    }
+
+    @Test
+    public void testColorModeCMYK() throws Exception {
+        final var file = new File(tempDir, "color_mode_cmyk.pdf");
+        final var params = new PDFParams();
+        params.setColorMode(ColorMode.CMYK);
+
+        try (final var out = new FileOutputStream(file)) {
+            final var builder = new StreamFragmentedOutput(out);
+            final var pdf = new PDFWriterImpl(builder, params);
+            try (final var gc = new PDFGC(pdf.nextPage(595, 842))) {
+                final var g = new BridgeGraphics2D(gc);
+                g.setColor(Color.RED); // Should be converted to CMYK
+                g.fillRect(100, 100, 100, 100);
+            }
+            pdf.close();
+            builder.close();
+        }
+
+        try (final var doc = Loader.loadPDF(file)) {
+            final var inspector = new GraphicsOperatorInspector(doc.getPage(0));
+            inspector.run();
+            final var commands = inspector.getCommands();
+
+            // Check for CMYK fill
+            // Red (255, 0, 0) -> Cyan=0, Magenta=1, Yellow=1, Black=0
+            // Color space should have 4 components
+            boolean found = commands.stream().anyMatch(cmd -> {
+                // System.out.println("CMYK cmd: " +
+                // java.util.Arrays.toString(cmd.currentColor));
+                if (cmd.currentColor != null && cmd.currentColor.length == 4) {
+                    return Math.abs(cmd.currentColor[0] - 0.0f) < 0.01f && // C
+                            Math.abs(cmd.currentColor[1] - 1.0f) < 0.01f && // M
+                            Math.abs(cmd.currentColor[2] - 1.0f) < 0.01f && // Y
+                            Math.abs(cmd.currentColor[3] - 0.0f) < 0.01f; // K
+                }
+                return false;
+            });
+            assertTrue(found, "Should contain CMYK equivalent of Red (0, 1, 1, 0) drawing operation");
+        }
+    }
+}

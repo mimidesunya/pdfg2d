@@ -5,7 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.action.JavaScriptAction;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -31,12 +31,16 @@ public class OpenActionDemo {
 		final var js = new JavaScriptAction("this.print();");
 		params.setOpenAction(js);
 
+		// final var width = 300.0;
+		// final var height = 300.0;
+		// Note: width and height are effectively final in original code.
+		// Just ensuring logical consistency if any change needed.
 		final var width = 300.0;
 		final var height = 300.0;
 
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "open-action.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			try (final var gc = new PDFGC(pdf.nextPage(width, height))) {

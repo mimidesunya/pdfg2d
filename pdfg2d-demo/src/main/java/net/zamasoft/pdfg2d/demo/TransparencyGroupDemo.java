@@ -2,7 +2,6 @@ package net.zamasoft.pdfg2d.demo;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -11,10 +10,9 @@ import java.io.FileOutputStream;
 
 import javax.swing.JFrame;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
-import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
@@ -23,11 +21,10 @@ import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * Demonstrates the use of Transparency Groups.
+ * Demonstrates transparency groups in PDF.
  * <p>
- * This demo creates a group image context, draws shapes into it with
- * transparency,
- * and then renders the group into the PDF page.
+ * Creates nested group images with transparency effects
+ * and renders them onto the PDF page.
  * </p>
  * 
  * @author MIYABE Tatsuhiko
@@ -41,9 +38,10 @@ public class TransparencyGroupDemo {
 		final var width = 300.0;
 		final var height = 300.0;
 
+		// Create PDF with transparency groups
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "group-image.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			try (final var page = pdf.nextPage(width, height);
@@ -51,6 +49,7 @@ public class TransparencyGroupDemo {
 				draw(gc);
 			}
 
+			// Display in Swing frame for comparison
 			final var frame = new JFrame("Graphics") {
 				private static final long serialVersionUID = 1L;
 
@@ -71,48 +70,58 @@ public class TransparencyGroupDemo {
 		}
 	}
 
-	private static void draw(GC gc) {
+	/**
+	 * Draws nested transparency groups.
+	 * 
+	 * @param gc graphics context
+	 */
+	private static void draw(final GC gc) {
 		gc.transform(AffineTransform.getRotateInstance(.1f));
 		gc.setLineWidth(10);
+
+		// Draw base rectangle
 		{
 			gc.setFillPaint(RGBColor.create(0, 1.0f, 0));
 			gc.setStrokePaint(RGBColor.create(0, 1.0f, 1.0f));
-			Shape shape = new Rectangle2D.Double(50, 50, 100, 100);
+			final var shape = new Rectangle2D.Double(50, 50, 100, 100);
 			gc.fillDraw(shape);
 		}
 
 		Image gi1;
 		{
-			GroupImageGC gc2 = gc.createGroupImage(300f, 300f);
+			// Create first group image
+			final var gc2 = gc.createGroupImage(300f, 300f);
 			{
 				gc2.setFillPaint(RGBColor.create(0, 0, 1.0f));
 				gc2.setStrokePaint(RGBColor.create(1.0f, 0, 0));
-				Shape shape = new Rectangle2D.Double(100, 100, 100, 100);
+				final var shape = new Rectangle2D.Double(100, 100, 100, 100);
 				gc2.fillDraw(shape);
 			}
 			{
 				gc2.setFillPaint(RGBColor.create(1.0f, 0, 0));
 				gc2.setStrokePaint(RGBColor.create(0, 0, 1.0f));
-				Shape shape = new Rectangle2D.Double(130, 130, 100, 100);
+				final var shape = new Rectangle2D.Double(130, 130, 100, 100);
 				gc2.fillDraw(shape);
 			}
 
 			{
-				GroupImageGC gc3 = gc2.createGroupImage(300f, 300f);
+				// Create nested group image
+				final var gc3 = gc2.createGroupImage(300f, 300f);
 				{
 					gc3.setFillPaint(RGBColor.create(1.0f, 0, 1.0f));
 					gc3.setStrokePaint(RGBColor.create(1.0f, 1.0f, 0));
-					Shape shape = new Rectangle2D.Double(70, 70, 100, 100);
+					final var shape = new Rectangle2D.Double(70, 70, 100, 100);
 					gc3.fillDraw(shape);
 				}
 				gi1 = gc3.finish();
 				gc2.setFillAlpha(.5f);
 				gc2.drawImage(gi1);
 			}
-			Image gi = gc2.finish();
+			final var gi = gc2.finish();
 			gc.setFillAlpha(.5f);
 			gc.drawImage(gi);
 
+			// Draw nested group again without transparency
 			gc.transform(AffineTransform.getTranslateInstance(100, 0));
 			gc.setFillAlpha(1);
 			gc.drawImage(gi1);

@@ -1,4 +1,4 @@
-package net.zamasoft.pdfg2d.demo;
+package net.zamasoft.pdfg2d.pdf;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,9 +10,9 @@ import java.io.FileOutputStream;
 import org.apache.pdfbox.Loader;
 import org.junit.jupiter.api.Test;
 
-import net.zamasoft.pdfg2d.demo.utils.GraphicsOperatorInspector;
+import net.zamasoft.pdfg2d.pdf.utils.GraphicsOperatorInspector;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
@@ -26,7 +26,7 @@ public class GraphicsDrawingTest {
 
         // 1. Generate PDF with specific shapes
         try (final var out = new FileOutputStream(tempFile)) {
-            final var builder = new StreamSequentialOutput(out);
+            final var builder = new StreamFragmentedOutput(out);
             final var pdf = new PDFWriterImpl(builder, new PDFParams());
 
             try (final var gc = new PDFGC(pdf.nextPage(400, 400))) {

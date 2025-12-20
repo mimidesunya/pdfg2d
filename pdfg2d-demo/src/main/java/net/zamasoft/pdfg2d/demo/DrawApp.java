@@ -20,8 +20,8 @@ import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
  * @author MIYABE Tatsuhiko
  */
 public class DrawApp {
-	public static void main(String[] args) throws Exception {
-		try (PDFGraphics2D g2d = new PDFGraphics2D(new File(DemoUtils.getOutputDir(), "draw.pdf"))) {
+	public static void main(final String[] args) throws Exception {
+		try (final var g2d = new PDFGraphics2D(new File(DemoUtils.getOutputDir(), "draw.pdf"))) {
 			g2d.setColor(Color.WHITE);
 			g2d.fill(new Rectangle2D.Double(0, 0, PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 					PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)));

@@ -5,16 +5,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import net.zamasoft.pdfg2d.resolver.protocol.file.FileSource;
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * Demonstrates how to load and draw a raster image (JPEG) into a PDF.
+ * Demonstrates embedding a raster image (JPEG) into a PDF.
  * <p>
- * This demo loads a JPEG file from resources and draws it onto the PDF page.
+ * This demo loads an image file and draws it onto a PDF page.
  * </p>
  * 
  * @author MIYABE Tatsuhiko
@@ -27,11 +27,13 @@ public class RasterImageDemo {
 		final var width = 300.0;
 		final var height = 300.0;
 
+		// Create PDF output stream
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "image.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
+			// Create a page and draw the image
 			try (final var page = pdf.nextPage(width, height);
 					final var gc = new PDFGC(page)) {
 				final var image = pdf.loadImage(new FileSource(DemoUtils.getResourceFile("xxx.jpg")));

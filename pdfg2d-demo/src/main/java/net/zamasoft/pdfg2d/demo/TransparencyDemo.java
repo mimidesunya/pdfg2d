@@ -11,11 +11,11 @@ import java.io.FileOutputStream;
 
 import javax.swing.JFrame;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
 import net.zamasoft.pdfg2d.g2d.gc.G2DGC;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.paint.RGBAColor;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
@@ -40,7 +40,7 @@ public class TransparencyDemo {
 
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "alpha.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final var pdf = new PDFWriterImpl(builder, params);
 
 			try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
@@ -67,7 +67,7 @@ public class TransparencyDemo {
 		}
 	}
 
-	private static void draw(GC gc) {
+	private static void draw(final GC gc) {
 		gc.transform(AffineTransform.getTranslateInstance(100, 0));
 		gc.transform(AffineTransform.getRotateInstance(.1f));
 		gc.setLineWidth(10);

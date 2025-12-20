@@ -14,8 +14,8 @@ import net.zamasoft.pdfg2d.PDFGraphics2D;
  * @author MIYABE Tatsuhiko
  */
 public class EmojiApp {
-	public static void main(String[] args) throws Exception {
-		try (PDFGraphics2D g2d = new PDFGraphics2D(new File(DemoUtils.getOutputDir(), "emoji.pdf"))) {
+	public static void main(final String[] args) throws Exception {
+		try (final var g2d = new PDFGraphics2D(new File(DemoUtils.getOutputDir(), "emoji.pdf"))) {
 			g2d.setFont(new Font("emoji", Font.PLAIN, 38));
 			g2d.drawString("\u26A1\uD83D\uDE01", 10, 140);
 		}

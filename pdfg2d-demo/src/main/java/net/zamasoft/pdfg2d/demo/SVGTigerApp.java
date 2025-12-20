@@ -1,7 +1,7 @@
 package net.zamasoft.pdfg2d.demo;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URI;
 
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGOMSVGElement;
@@ -11,10 +11,12 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.svg.SVGDocument;
 
-import net.zamasoft.pdfg2d.io.impl.FileSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.FileFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
+import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.pdf.util.PDFUtils;
+import net.zamasoft.pdfg2d.svg.SVGBridgeGraphics2D;
 import net.zamasoft.pdfg2d.svg.SVGImage;
 
 /**
@@ -33,7 +35,7 @@ public class SVGTigerApp {
 		final var parser = XMLResourceDescriptor.getXMLParserClassName();
 		final var f = new SAXSVGDocumentFactory(parser);
 		final SVGDocument doc;
-		try (final var in = new URL(url).openStream()) {
+		try (final var in = URI.create(url).toURL().openStream()) {
 			doc = f.createSVGDocument(url, in);
 		}
 		final var root = (SVGOMSVGElement) doc.getDocumentElement();
@@ -47,7 +49,7 @@ public class SVGTigerApp {
 		final var image = new SVGImage(gvtRoot, dim.getWidth(), dim.getHeight());
 
 		try (final var pdf = new PDFWriterImpl(
-				new FileSequentialOutput(new File(DemoUtils.getOutputDir(), "svg-tiger.pdf")));
+				new FileFragmentedOutput(new File(DemoUtils.getOutputDir(), "svg-tiger.pdf")));
 				final var gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),
 						PDFUtils.mmToPt(PDFUtils.PAPER_A4_HEIGHT_MM)))) {
 			gc.drawImage(image);

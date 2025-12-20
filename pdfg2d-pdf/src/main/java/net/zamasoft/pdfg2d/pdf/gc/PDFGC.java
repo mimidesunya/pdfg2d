@@ -413,6 +413,7 @@ public class PDFGC implements GC, Closeable {
 		this.out = out;
 		this.patterns = patterns;
 		this.pdfVersion = this.out.getPdfWriter().getParams().getVersion();
+		this.stack.add(new GraphicsState(this));
 	}
 
 	public PDFGC(PDFGraphicsOutput out) {

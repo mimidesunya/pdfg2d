@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
-import net.zamasoft.pdfg2d.io.impl.FileSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.FileFragmentedOutput;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
 import net.zamasoft.pdfg2d.pdf.PDFPageOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
@@ -18,7 +18,7 @@ public class PDFGraphics2D extends BridgeGraphics2D implements Closeable {
 	@SuppressWarnings("resource")
 	public PDFGraphics2D(final File file, final double width, final double height, final PDFParams params)
 			throws IOException {
-		super(new PDFGC(new PDFWriterImpl(new FileSequentialOutput(file), params).nextPage(width, height)));
+		super(new PDFGC(new PDFWriterImpl(new FileFragmentedOutput(file), params).nextPage(width, height)));
 		this.fileOut = true;
 	}
 

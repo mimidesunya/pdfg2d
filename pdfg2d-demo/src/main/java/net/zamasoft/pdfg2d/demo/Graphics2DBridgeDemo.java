@@ -15,7 +15,7 @@ import java.text.AttributedString;
 
 import javax.swing.JFrame;
 
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
@@ -25,11 +25,10 @@ import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * Demonstrates the usage of {@link BridgeGraphics2D}.
+ * Demonstrates the {@link BridgeGraphics2D} adapter.
  * <p>
- * This class provides a bridge between standard Java Graphics2D API and PDF
- * generation,
- * allowing standard AWT drawing commands to result in PDF content.
+ * Bridges standard Java Graphics2D API to PDF output,
+ * allowing AWT drawing commands to generate PDF content.
  * </p>
  * 
  * @author MIYABE Tatsuhiko
@@ -43,18 +42,21 @@ public class Graphics2DBridgeDemo {
 		final var y = 100;
 
 		final var params = new PDFParams();
+
+		// Create multi-page PDF using BridgeGraphics2D
 		try (final var out = new BufferedOutputStream(
 				new FileOutputStream(new File(DemoUtils.getOutputDir(), "graphics2-d.pdf")))) {
-			final var builder = new StreamSequentialOutput(out);
+			final var builder = new StreamFragmentedOutput(out);
 			final PDFWriter pdf = new PDFWriterImpl(builder, params);
 
 			{
-				// First page
+				// First page: clipping and shapes
 				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
 					final var g = new BridgeGraphics2D(gc);
 					draw1(g);
 				}
 
+				// Display in Swing frame
 				final var frame = new JFrame("Graphics") {
 					private static final long serialVersionUID = 1L;
 
@@ -71,7 +73,7 @@ public class Graphics2DBridgeDemo {
 			}
 
 			{
-				// Second page
+				// Second page: text rendering
 				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
 					final var g = new BridgeGraphics2D(gc);
 					draw2(g);
@@ -97,8 +99,11 @@ public class Graphics2DBridgeDemo {
 		}
 	}
 
-	private static void draw1(Graphics2D g) {
-		// Clip
+	/**
+	 * Draws shapes with clipping and transparency.
+	 */
+	private static void draw1(final Graphics2D g) {
+		// Create complex clip path
 		final var path = new GeneralPath();
 		path.moveTo(150, 0);
 		path.lineTo(20, 225);
@@ -117,30 +122,35 @@ public class Graphics2DBridgeDemo {
 		path.closePath();
 		g.clip(path);
 
-		// Draw shapes
+		// Draw shapes with dashed stroke
 		g.setColor(Color.BLUE);
 		g.setStroke(new BasicStroke(10, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[] { 10, 10 }, 0));
 		g.drawOval(10, 10, 280, 280);
+
+		// Draw semi-transparent rectangle
 		g.setColor(Color.RED);
 		final var comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 		g.setComposite(comp);
 		g.drawRect(20, 20, 260, 260);
 	}
 
-	private static void draw2(Graphics2D g) {
+	/**
+	 * Draws styled text with attributes.
+	 */
+	private static void draw2(final Graphics2D g) {
 		g.setFont(new Font("SansSerif", Font.PLAIN, 12));
 
 		final var fm = g.getFontMetrics();
 		System.out.println(fm.stringWidth("abc"));
 
-		// Horizontal writing
+		// Horizontal text with mixed attributes
 		final var text = new AttributedString("盗人を捕らえてみれば我が子なり\n斬りたくもあり斬りたくもなし");
 		text.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD, 0, 2);
 		text.addAttribute(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE, 3, 7);
 		text.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD, 16, 23);
 		g.drawString(text.getIterator(), 0, 12);
 
-		// Vertical writing
+		// Vertical text layout
 		text.addAttribute(TextUtils.WRITING_MODE, FontStyle.Direction.TB, 0, 30);
 		g.drawString(text.getIterator(), 300 - 6, 0);
 	}

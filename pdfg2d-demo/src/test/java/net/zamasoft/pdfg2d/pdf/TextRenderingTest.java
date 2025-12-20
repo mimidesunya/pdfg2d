@@ -1,4 +1,4 @@
-package net.zamasoft.pdfg2d.demo;
+package net.zamasoft.pdfg2d.pdf;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.apache.pdfbox.Loader;
 import org.junit.jupiter.api.Test;
 
-import net.zamasoft.pdfg2d.demo.utils.TextInspector;
+import net.zamasoft.pdfg2d.pdf.utils.TextInspector;
 import net.zamasoft.pdfg2d.g2d.gc.BridgeGraphics2D;
-import net.zamasoft.pdfg2d.io.impl.StreamSequentialOutput;
+import net.zamasoft.pdfg2d.io.impl.StreamFragmentedOutput;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.impl.PDFWriterImpl;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
@@ -29,7 +29,7 @@ public class TextRenderingTest {
 
         // 1. Generate PDF with text
         try (final var out = new FileOutputStream(tempFile)) {
-            final var builder = new StreamSequentialOutput(out);
+            final var builder = new StreamFragmentedOutput(out);
             final var pdf = new PDFWriterImpl(builder, new PDFParams());
 
             try (final var gc = new PDFGC(pdf.nextPage(400, 400))) {
