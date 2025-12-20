@@ -5,56 +5,49 @@ import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.image.Image;
 
 /**
+ * Represents a PDF image resource.
+ * 
+ * @param name   The PDF resource name.
+ * @param width  The image width.
+ * @param height The image height.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
-
-public class PDFImage implements Image {
-	private final String name;
-
-	private final double width;
-
-	private final double height;
-
-	public PDFImage(String name, double width, double height) {
-		this.name = name;
-		this.width = width;
-		this.height = height;
-	}
-
-	public void drawTo(GC _gc) throws GraphicsException {
-		PDFGC gc = (PDFGC) _gc;
-		gc.drawPDFImage(this.name, this.width, this.height);
-	}
-
+public record PDFImage(String name, double width, double height) implements Image {
+	@Override
 	public double getWidth() {
 		return this.width;
 	}
 
+	@Override
 	public double getHeight() {
 		return this.height;
 	}
 
+	@Override
+	public void drawTo(final GC gc) throws GraphicsException {
+		if (gc instanceof PDFGC pdfgc) {
+			pdfgc.drawPDFImage(this.name, this.width, this.height);
+		}
+	}
+
+	@Override
 	public String getAltString() {
 		return null;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
+	@Override
 	public String toString() {
 		return this.name;
 	}
 
-	public boolean equals(Object o) {
-		if (o instanceof PDFImage) {
-			return ((PDFImage) o).name.equals(this.name);
-		}
-		return false;
-	}
-
-	public int hashCode() {
-		return this.name.hashCode();
+	/**
+	 * Returns the image resource name.
+	 * 
+	 * @return The name.
+	 */
+	public String getName() {
+		return this.name();
 	}
 }

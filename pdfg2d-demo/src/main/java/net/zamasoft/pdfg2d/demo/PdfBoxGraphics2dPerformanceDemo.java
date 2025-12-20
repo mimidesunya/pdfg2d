@@ -44,58 +44,54 @@ public class PdfBoxGraphics2dPerformanceDemo {
             System.out.println("Using existing file " + file.getAbsolutePath());
         }
 
-        measureZamasoftPDFGraphics2D(file);
-        System.out.println("--------------------------------------------------");
         measureRototorPdfBoxGraphics2D(file);
+        System.out.println("--------------------------------------------------");
+        measureZamasoftPDFGraphics2D(file);
     }
 
     private static void measureRototorPdfBoxGraphics2D(final File file) throws IOException {
         System.out.println("Measuring de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D...");
         final var outFile = new File(DemoUtils.getOutputDir(), "performance-test-rototor.pdf");
 
-        try (final var sourceDoc = Loader.loadPDF(file);
-                final var destDoc = new PDDocument()) {
-
+        try (final var sourceDoc = Loader.loadPDF(file)) {
             final var renderer = new PDFRenderer(sourceDoc);
             final int pageCount = sourceDoc.getNumberOfPages();
-
             System.out.println("Starting rendering of " + pageCount + " pages...");
             final long startTime = System.currentTimeMillis();
 
-            for (int i = 0; i < pageCount; i++) {
-                final var sourcePage = sourceDoc.getPage(i);
-                final var mediaBox = sourcePage.getMediaBox();
+            try (final var destDoc = new PDDocument()) {
 
-                // Create graphics
-                final var g2d = new PdfBoxGraphics2D(destDoc, mediaBox.getWidth(), mediaBox.getHeight());
+                for (int i = 0; i < pageCount; i++) {
+                    final var sourcePage = sourceDoc.getPage(i);
+                    final var mediaBox = sourcePage.getMediaBox();
 
-                // Render source to graphics
-                // Note: renderPageToGraphics renders the page content to the Graphics2D.
-                // Since PdfBoxGraphics2D is a vector graphics context, this effectively
-                // re-records the PDF drawing commands.
-                renderer.renderPageToGraphics(i, g2d);
-                g2d.dispose();
+                    // Create graphics
+                    final var g2d = new PdfBoxGraphics2D(destDoc, mediaBox.getWidth(), mediaBox.getHeight());
 
-                // Create form object from the recorded graphics
-                final var xFormObject = g2d.getXFormObject();
+                    // Render source to graphics
+                    renderer.renderPageToGraphics(i, g2d);
+                    g2d.dispose();
 
-                // Create destination page with the same size
-                final var destPage = new PDPage(mediaBox);
-                destDoc.addPage(destPage);
+                    // Create form object from the recorded graphics
+                    final var xFormObject = g2d.getXFormObject();
 
-                // Draw the form object onto the destination page
-                try (final var contentStream = new PDPageContentStream(destDoc, destPage)) {
-                    contentStream.drawForm(xFormObject);
+                    // Create destination page with the same size
+                    final var destPage = new PDPage(mediaBox);
+                    destDoc.addPage(destPage);
+
+                    // Draw the form object onto the destination page
+                    try (final var contentStream = new PDPageContentStream(destDoc, destPage)) {
+                        contentStream.drawForm(xFormObject);
+                    }
+
+                    System.out.print("\rRototor Rendered page " + (i + 1) + "/" + pageCount);
                 }
+                System.out.println(); // Newline after progress
 
-                System.out.print("\rRototor Rendered page " + (i + 1) + "/" + pageCount);
+                destDoc.save(outFile);
             }
-            System.out.println(); // Newline after progress
-
             final long endTime = System.currentTimeMillis();
             final long duration = endTime - startTime;
-
-            destDoc.save(outFile);
 
             System.out.println("Completed in " + duration + "ms");
             System.out.println("Output saved to " + outFile.getAbsolutePath());
@@ -108,53 +104,43 @@ public class PdfBoxGraphics2dPerformanceDemo {
 
         try (final var sourceDoc = Loader.loadPDF(file)) {
             final var params = new PDFParams();
+            final int pageCount = sourceDoc.getNumberOfPages();
+            System.out.println("Starting rendering of " + pageCount + " pages...");
+            final long startTime = System.currentTimeMillis();
 
-            final var config = new AbstractTempFileOutput.Config(
-                    2 * 1024 * 1024, // fragmentBufferSize: 16MB
-                    512 * 1024 * 1024, // totalBufferSize: 512MB
-                    2 * 1024 * 1024, // threshold: 16MB
-                    8192 // segmentSize: 16MB
-            );
+            try {
+                try (final var pdfWriter = new PDFWriterImpl(
+                        new FileFragmentedOutput(outFile), params)) {
+                    final var renderer = new PDFRenderer(sourceDoc);
 
-            try (final var pdfWriter = new PDFWriterImpl(new FileFragmentedOutput(outFile, config), params)) {
-                final var renderer = new PDFRenderer(sourceDoc);
-                final int pageCount = sourceDoc.getNumberOfPages();
+                    for (int i = 0; i < pageCount; i++) {
+                        final var sourcePage = sourceDoc.getPage(i);
+                        final var mediaBox = sourcePage.getMediaBox();
 
-                System.out.println("Starting rendering of " + pageCount + " pages...");
-                final long startTime = System.currentTimeMillis();
+                        // Create graphics for the new page
+                        try (final var g2d = new PDFGraphics2D(
+                                pdfWriter.nextPage(mediaBox.getWidth(), mediaBox.getHeight()))) {
+                            // Render source to graphics
+                            renderer.renderPageToGraphics(i, g2d);
+                        }
 
-                for (int i = 0; i < pageCount; i++) {
-                    final var sourcePage = sourceDoc.getPage(i);
-                    final var mediaBox = sourcePage.getMediaBox();
-
-                    // Create graphics for the new page
-                    try (final var g2d = new PDFGraphics2D(
-                            pdfWriter.nextPage(mediaBox.getWidth(), mediaBox.getHeight()))) {
-                        // Render source to graphics
-                        renderer.renderPageToGraphics(i, g2d);
+                        System.out.print("\rZamasoft Rendered page " + (i + 1) + "/" + pageCount);
                     }
-
-                    System.out.print("\rZamasoft Rendered page " + (i + 1) + "/" + pageCount);
+                    System.out.println(); // Newline after progress
                 }
-                System.out.println(); // Newline after progress
-
-                final long endTime = System.currentTimeMillis();
-                final long duration = endTime - startTime;
-
-                System.out.println("Completed in " + duration + "ms");
-                System.out.println("Output saved to " + outFile.getAbsolutePath());
             } catch (Exception e) {
-                // PDFWriterImpl throws Exception on close but it's AutoCloseable as well with
-                // strict exceptions?
-                // Actually PDFWriterImpl throws Exception on close() because PDFWriter
-                // interface extends AutoCloseable but throws Exception.
-                // We wrap IOExceptions or handle them.
-                if (e instanceof IOException) {
-                    throw (IOException) e;
+                if (e instanceof IOException ioe) {
+                    throw ioe;
                 } else {
                     throw new IOException(e);
                 }
             }
+
+            final long endTime = System.currentTimeMillis();
+            final long duration = endTime - startTime;
+
+            System.out.println("Completed in " + duration + "ms");
+            System.out.println("Output saved to " + outFile.getAbsolutePath());
         }
     }
 }

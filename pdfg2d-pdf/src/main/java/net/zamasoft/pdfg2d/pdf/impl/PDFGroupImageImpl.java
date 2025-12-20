@@ -2,7 +2,6 @@ package net.zamasoft.pdfg2d.pdf.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
@@ -10,7 +9,9 @@ import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
- * Offscreen image.
+ * Implementation of an offscreen group image (Form XObject).
+ * This class handles resource management and Optional Content Group (OCG)
+ * features for group-based PDF content.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -33,32 +34,30 @@ public class PDFGroupImageImpl extends PDFGroupImage {
 	}
 
 	public void useResource(final String type, final String name) throws IOException {
-		final ResourceFlow resourceFlow = this.resourceFlow;
-		if (resourceFlow.contains(name)) {
+		if (this.resourceFlow.contains(name)) {
 			return;
 		}
-		@SuppressWarnings("resource")
-		final Map<String, ObjectRef> nameToResourceRef = this.getPDFWriterImpl().nameToResourceRef;
-
-		final ObjectRef objectRef = nameToResourceRef.get(name);
-		resourceFlow.put(type, name, objectRef);
+		final var nameToResourceRef = this.getPDFWriterImpl().nameToResourceRef;
+		final var objectRef = nameToResourceRef.get(name);
+		this.resourceFlow.put(type, name, objectRef);
 	}
 
 	public void close() throws IOException {
 		if (this.ocgFlags != 0) {
-			final PDFWriterImpl pdfWriter = this.getPDFWriterImpl();
+			final var pdfWriter = this.getPDFWriterImpl();
 			if (pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_5.v) {
 				throw new UnsupportedOperationException("OCG feature requires PDF >= 1.5.");
 			}
 
-			// intent
+			// Add Optional Content reference to the Form Dictionary
 			this.formFlow.writeName("OC");
-			final ObjectRef ocgRef = pdfWriter.nextOCG();
+			final var ocgRef = pdfWriter.nextOCG();
 			this.formFlow.writeObjectRef(ocgRef);
 			this.formFlow.lineBreak();
 			this.formFlow.close();
 
-			final PDFFragmentOutputImpl objectsFlow = pdfWriter.objectsFlow;
+			// Define the Optional Content Group object
+			final var objectsFlow = pdfWriter.objectsFlow;
 			objectsFlow.startObject(ocgRef);
 			objectsFlow.startHash();
 			objectsFlow.writeName("Type");
@@ -67,18 +66,21 @@ public class PDFGroupImageImpl extends PDFGroupImage {
 			objectsFlow.writeText("WATERMARK");
 			objectsFlow.writeName("Usage");
 			objectsFlow.startHash();
+
 			objectsFlow.writeName("View");
 			objectsFlow.startHash();
 			objectsFlow.writeName("ViewState");
-			objectsFlow.writeName(((this.ocgFlags & VIEW_OFF) != 0) ? "OFF" : "ON");
+			objectsFlow.writeName((this.ocgFlags & VIEW_OFF) != 0 ? "OFF" : "ON");
 			objectsFlow.endHash();
+
 			objectsFlow.writeName("Print");
 			objectsFlow.startHash();
 			objectsFlow.writeName("PrintState");
-			objectsFlow.writeName(((this.ocgFlags & PRINT_OFF) != 0) ? "OFF" : "ON");
+			objectsFlow.writeName((this.ocgFlags & PRINT_OFF) != 0 ? "OFF" : "ON");
 			objectsFlow.endHash();
-			objectsFlow.endHash();
-			objectsFlow.endHash();
+
+			objectsFlow.endHash(); // End Usage
+			objectsFlow.endHash(); // End OCG
 			objectsFlow.endObject();
 		}
 

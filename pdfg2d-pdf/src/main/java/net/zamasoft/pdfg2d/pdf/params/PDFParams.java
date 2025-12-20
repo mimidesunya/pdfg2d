@@ -64,6 +64,12 @@ public class PDFParams {
 	private int maxImageWidth = 0;
 	private int maxImageHeight = 0;
 
+	/**
+	 * Precision for real numbers (decimal places).
+	 * Default is 2.
+	 */
+	private int precision = 2;
+
 	private byte[] fileId = null;
 
 	private PDFMetaInfo metaInfo = new PDFMetaInfo();
@@ -294,5 +300,23 @@ public class PDFParams {
 	 */
 	public ViewerPreferences getViewerPreferences() {
 		return this.viewerPreferences;
+	}
+
+	/**
+	 * Returns the precision for real numbers.
+	 * 
+	 * @return the precision
+	 */
+	public int getPrecision() {
+		return this.precision;
+	}
+
+	/**
+	 * Sets the precision for real numbers.
+	 * 
+	 * @param precision the precision
+	 */
+	public void setPrecision(final int precision) {
+		this.precision = precision;
 	}
 }

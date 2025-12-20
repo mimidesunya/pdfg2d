@@ -8,11 +8,12 @@ import net.zamasoft.pdfg2d.gc.paint.CMYKColor;
 import net.zamasoft.pdfg2d.gc.paint.Color;
 import net.zamasoft.pdfg2d.gc.paint.Color.Type;
 import net.zamasoft.pdfg2d.gc.paint.RGBColor;
-import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 import net.zamasoft.pdfg2d.util.ColorUtils;
 
 /**
- * Output for PDF graphics operations.
+ * Base output class for PDF graphics operations like path drawing, color
+ * setting,
+ * and transformations.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -22,9 +23,11 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 
 	protected final PDFWriter pdfWriter;
 
-	public PDFGraphicsOutput(final PDFWriter pdfWriter, final OutputStream out, final double width, final double height)
-			throws IOException {
+	public PDFGraphicsOutput(final PDFWriter pdfWriter, final OutputStream out, final double width,
+			final double height) throws IOException {
 		super(out, pdfWriter.getParams().getPlatformEncoding());
+		final var params = pdfWriter.getParams();
+		this.setPrecision(params.getPrecision());
 		this.width = width;
 		this.height = height;
 		this.pdfWriter = pdfWriter;
@@ -50,11 +53,11 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	public abstract void useResource(String type, String name) throws IOException;
 
 	/**
-	 * Writes coordinates.
+	 * Writes coordinates relative to the bottom-left origin of PDF.
 	 * 
-	 * @param x x coordinate
-	 * @param y y coordinate
-	 * @throws IOException in case of I/O error
+	 * @param x X coordinate (top-left origin)
+	 * @param y Y coordinate (top-left origin)
+	 * @throws IOException If an I/O error occurs
 	 */
 	public void writePosition(final double x, final double y) throws IOException {
 		this.writeReal(x);
@@ -62,13 +65,13 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	}
 
 	/**
-	 * Writes a Rectangle type.
+	 * Writes a rectangle specified by two points.
 	 * 
-	 * @param x1 x1 coordinate
-	 * @param y1 y1 coordinate
-	 * @param x2 x2 coordinate
-	 * @param y2 y2 coordinate
-	 * @throws IOException in case of I/O error
+	 * @param x1 X1 coordinate
+	 * @param y1 Y1 coordinate
+	 * @param x2 X2 coordinate
+	 * @param y2 Y2 coordinate
+	 * @throws IOException If an I/O error occurs
 	 */
 	public void writeRectangle(final double x1, final double y1, final double x2, final double y2) throws IOException {
 		this.startArray();
@@ -78,16 +81,14 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	}
 
 	/**
-	 * Writes a rectangle in x, y, width, height format.
-	 * <p>
-	 * <strong>Unlike Rectangle type, this is not enclosed in an array.</strong>
-	 * </p>
+	 * Writes a rectangle in 're' (rectangle) operator format: x, y, width, height.
+	 * Note: PDF 're' operator uses bottom-left origin.
 	 * 
-	 * @param x      x coordinate
-	 * @param y      y coordinate
-	 * @param width  width
-	 * @param height height
-	 * @throws IOException in case of I/O error
+	 * @param x      X coordinate (top-left origin)
+	 * @param y      Y coordinate (top-left origin)
+	 * @param width  Rectangle width
+	 * @param height Rectangle height
+	 * @throws IOException If an I/O error occurs
 	 */
 	public void writeRect(final double x, final double y, final double width, final double height) throws IOException {
 		this.writePosition(x, y + height);
@@ -96,16 +97,18 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	}
 
 	/**
-	 * Writes an affine transform matrix.
+	 * Writes an affine transformation matrix in PDF 'cm' operator format.
 	 * 
-	 * @param at the transform
-	 * @throws IOException in case of I/O error
+	 * @param at The affine transform to write
+	 * @throws IOException If an I/O error occurs
 	 */
 	public void writeTransform(final AffineTransform at) throws IOException {
+		// Convert top-left origin to bottom-left origin
 		final var tpdf = new AffineTransform(1, 0, 0, -1, 0, this.height);
 		final var iat = new AffineTransform(at);
 		iat.preConcatenate(tpdf);
 		iat.concatenate(tpdf);
+
 		this.writeReal(iat.getScaleX());
 		this.writeReal(iat.getShearY());
 		this.writeReal(iat.getShearX());
@@ -115,92 +118,74 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	}
 
 	/**
-	 * Writes fill color.
+	 * Writes the fill color (non-stroking color).
 	 * 
-	 * @param color the color
-	 * @throws IOException in case of I/O error
+	 * @param color The color to set
+	 * @throws IOException If an I/O error occurs
 	 */
-	public void writeFillColor(Color color) throws IOException {
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
-			if (color.getColorType() != Type.GRAY) {
-				color = ColorUtils.toGray(color);
-			}
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
-			if (color.getColorType() != Type.CMYK) {
-				color = ColorUtils.toCMYK(color);
-			}
-		}
-		switch (color.getColorType()) {
-			case GRAY:
-				this.writeReal(color.getComponent(0));
+	public void writeFillColor(final Color color) throws IOException {
+		final var params = this.pdfWriter.getParams();
+		final var processedColor = switch (params.getColorMode()) {
+			case GRAY -> (color.getColorType() != Type.GRAY) ? ColorUtils.toGray(color) : color;
+			case CMYK -> (color.getColorType() != Type.CMYK) ? ColorUtils.toCMYK(color) : color;
+			default -> color;
+		};
+
+		switch (processedColor.getColorType()) {
+			case GRAY -> {
+				this.writeReal(processedColor.getComponent(0));
 				this.writeOperator("g");
-				break;
-			case RGB:
-			case RGBA:
-				this.writeReal(color.getComponent(RGBColor.R));
-				this.writeReal(color.getComponent(RGBColor.G));
-				this.writeReal(color.getComponent(RGBColor.B));
+			}
+			case RGB, RGBA -> {
+				this.writeReal(processedColor.getComponent(RGBColor.R));
+				this.writeReal(processedColor.getComponent(RGBColor.G));
+				this.writeReal(processedColor.getComponent(RGBColor.B));
 				this.writeOperator("rg");
-				break;
-			case CMYK:
-				final float c = color.getComponent(CMYKColor.C);
-				final float m = color.getComponent(CMYKColor.M);
-				final float y = color.getComponent(CMYKColor.Y);
-				final float k = color.getComponent(CMYKColor.K);
-				this.writeReal(c);
-				this.writeReal(m);
-				this.writeReal(y);
-				this.writeReal(k);
+			}
+			case CMYK -> {
+				this.writeReal(processedColor.getComponent(CMYKColor.C));
+				this.writeReal(processedColor.getComponent(CMYKColor.M));
+				this.writeReal(processedColor.getComponent(CMYKColor.Y));
+				this.writeReal(processedColor.getComponent(CMYKColor.K));
 				this.writeOperator("k");
-				break;
-			default:
-				throw new IllegalStateException();
+			}
+			default -> throw new IllegalStateException("Unsupported color type: " + processedColor.getColorType());
 		}
 	}
 
 	/**
-	 * Writes stroke color.
+	 * Writes the stroke color.
 	 * 
-	 * @param color the color
-	 * @throws IOException in case of I/O error
+	 * @param color The color to set
+	 * @throws IOException If an I/O error occurs
 	 */
-	public void writeStrokeColor(Color color) throws IOException {
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
-			// Gray color mode
-			if (color.getColorType() != Type.GRAY) {
-				color = ColorUtils.toGray(color);
-			}
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
-			// CMYK color mode
-			if (color.getColorType() != Type.CMYK) {
-				color = ColorUtils.toCMYK(color);
-			}
-		}
-		switch (color.getColorType()) {
-			case GRAY:
-				this.writeReal(color.getComponent(0));
+	public void writeStrokeColor(final Color color) throws IOException {
+		final var params = this.pdfWriter.getParams();
+		final var processedColor = switch (params.getColorMode()) {
+			case GRAY -> (color.getColorType() != Type.GRAY) ? ColorUtils.toGray(color) : color;
+			case CMYK -> (color.getColorType() != Type.CMYK) ? ColorUtils.toCMYK(color) : color;
+			default -> color;
+		};
+
+		switch (processedColor.getColorType()) {
+			case GRAY -> {
+				this.writeReal(processedColor.getComponent(0));
 				this.writeOperator("G");
-				break;
-			case RGB:
-			case RGBA:
-				this.writeReal(color.getComponent(RGBColor.R));
-				this.writeReal(color.getComponent(RGBColor.G));
-				this.writeReal(color.getComponent(RGBColor.B));
+			}
+			case RGB, RGBA -> {
+				this.writeReal(processedColor.getComponent(RGBColor.R));
+				this.writeReal(processedColor.getComponent(RGBColor.G));
+				this.writeReal(processedColor.getComponent(RGBColor.B));
 				this.writeOperator("RG");
-				break;
-			case CMYK:
-				final float c = color.getComponent(CMYKColor.C);
-				final float m = color.getComponent(CMYKColor.M);
-				final float y = color.getComponent(CMYKColor.Y);
-				final float k = color.getComponent(CMYKColor.K);
-				this.writeReal(c);
-				this.writeReal(m);
-				this.writeReal(y);
-				this.writeReal(k);
+			}
+			case CMYK -> {
+				this.writeReal(processedColor.getComponent(CMYKColor.C));
+				this.writeReal(processedColor.getComponent(CMYKColor.M));
+				this.writeReal(processedColor.getComponent(CMYKColor.Y));
+				this.writeReal(processedColor.getComponent(CMYKColor.K));
 				this.writeOperator("K");
-				break;
-			default:
-				throw new IllegalStateException();
+			}
+			default -> throw new IllegalStateException("Unsupported color type: " + processedColor.getColorType());
 		}
 	}
 }

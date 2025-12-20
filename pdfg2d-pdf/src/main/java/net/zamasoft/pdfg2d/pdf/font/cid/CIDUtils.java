@@ -243,6 +243,7 @@ public final class CIDUtils {
 
 		out.startObject(toUnicodeRef);
 		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.Mode.ASCII), "ISO-8859-1");
+		pout.setPrecision(out.getPrecision());
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 
@@ -492,6 +493,7 @@ public final class CIDUtils {
 
 		out.startObject(toUnicodeRef);
 		PDFOutput pout = new PDFOutput(out.startStream(PDFFragmentOutput.Mode.ASCII), "ISO-8859-1");
+		pout.setPrecision(out.getPrecision());
 		CIDUtils.writeIdentityToUnicode(pout, unicodeArray);
 		out.endObject();
 

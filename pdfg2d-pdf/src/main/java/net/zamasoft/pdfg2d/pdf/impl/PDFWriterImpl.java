@@ -4,14 +4,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +17,7 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
 import org.xml.sax.helpers.AttributesImpl;
@@ -38,7 +33,6 @@ import net.zamasoft.pdfg2d.io.util.PositionTrackingOutput;
 import net.zamasoft.pdfg2d.pdf.Attachment;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
-import net.zamasoft.pdfg2d.pdf.PDFMetaInfo;
 import net.zamasoft.pdfg2d.pdf.PDFNamedGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFNamedOutput;
 import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
@@ -53,10 +47,13 @@ import net.zamasoft.pdfg2d.pdf.params.V4EncryptionParams;
 import net.zamasoft.pdfg2d.pdf.params.ViewerPreferences;
 import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
 import net.zamasoft.pdfg2d.resolver.Source;
-import net.zamasoft.pdfg2d.util.NumberUtils;
 
 /**
- * Implementation of PDFWriter that outputs PDF data.
+ * Core implementation of {@link PDFWriter} that handles the assembly of PDF
+ * document structure.
+ * This class manages the PDF Catalog, Page Tree, XRef table, encryption, and
+ * various
+ * resource flows (fonts, images, etc.).
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -81,10 +78,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private static final byte[] PDF17 = { '1', '.', '7' };
 
-	private static final byte[] XMP_PADDING = new byte[80];
+	private static final byte[] XMP_PADDING;
 
 	static {
-		Arrays.fill(XMP_PADDING, (byte) ' ');
+		XMP_PADDING = new byte[80];
+		java.util.Arrays.fill(XMP_PADDING, (byte) ' ');
 		XMP_PADDING[79] = '\n';
 	}
 
@@ -156,69 +154,38 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	/** Images. */
 	private final ImageFlow images;
 
-	/** Fonts. */
 	private final FontFlow fonts;
 
 	private List<ObjectRef> ocgs = null;
 
-	public PDFWriterImpl(final FragmentedOutput builder, PDFParams params) throws IOException {
-		assert builder != null;
-		if (builder.supportsPositionInfo()) {
-			this.builder = builder;
-		} else {
-			this.builder = new PositionTrackingOutput(builder);
-		}
+	public PDFWriterImpl(final FragmentedOutput builder, final PDFParams params) throws IOException {
+		this.params = (params != null) ? params : new PDFParams();
+		this.builder = builder.supportsPositionInfo() ? builder : new PositionTrackingOutput(builder);
 
-		if (params == null) {
-			params = new PDFParams();
-		}
-		this.params = params;
-
-		final int id = this.nextId();
+		final var id = this.nextId();
 		this.builder.addFragment();
 		final var out = new FragmentOutputAdapter(this.builder, id);
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
 		// Header
-		final PDFParams.Version pdfVersion = this.params.getVersion();
+		final var pdfVersion = this.params.getVersion();
 		this.mainFlow.write(HEADER);
 		switch (pdfVersion) {
-			case V_1_2:
-				this.mainFlow.write(PDF12);
-				break;
-
-			case V_1_3:
-				this.mainFlow.write(PDF13);
-				break;
-
-			case V_1_4:
-			case V_PDFX1A:
-				this.mainFlow.write(PDF14);
-				break;
-
-			case V_PDFA1B:
+			case V_1_2 -> this.mainFlow.write(PDF12);
+			case V_1_3 -> this.mainFlow.write(PDF13);
+			case V_1_4, V_PDFX1A -> this.mainFlow.write(PDF14);
+			case V_PDFA1B -> {
 				this.mainFlow.write(PDF14);
 				this.mainFlow.lineBreak();
-				// PDF/A-1 6.1.2 Marker for binary identification
+				// PDF/A-1 binary identification
 				this.mainFlow.write('%');
-				for (int i = 0; i < 4; ++i) {
+				for (var i = 0; i < 4; ++i) {
 					this.mainFlow.write(RND.nextInt(128) + 127);
 				}
-				break;
-
-			case V_1_5:
-				this.mainFlow.write(PDF15);
-				break;
-
-			case V_1_6:
-				this.mainFlow.write(PDF16);
-				break;
-
-			case V_1_7:
-				this.mainFlow.write(PDF17);
-				break;
-			default:
-				throw new IllegalStateException();
+			}
+			case V_1_5 -> this.mainFlow.write(PDF15);
+			case V_1_6 -> this.mainFlow.write(PDF16);
+			case V_1_7 -> this.mainFlow.write(PDF17);
 		}
 		this.mainFlow.lineBreak();
 
@@ -260,13 +227,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		// Page Tree
 		this.mainFlow.writeName("Pages");
-		final ObjectRef rootPageRef = this.xref.nextObjectRef();
+		final var rootPageRef = this.xref.nextObjectRef();
 		this.mainFlow.writeObjectRef(rootPageRef);
 		this.mainFlow.lineBreak();
 
 		// XMP Metadata
-		ObjectRef xmpmetaRef = null;
-		if (params.getVersion().v >= PDFParams.Version.V_1_4.v) {
+		var xmpmetaRef = (ObjectRef) null;
+		if (this.params.getVersion().v >= PDFParams.Version.V_1_4.v) {
 			xmpmetaRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("Metadata");
 			this.mainFlow.writeObjectRef(xmpmetaRef);
@@ -274,8 +241,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 
 		// OutputIntents
-		ObjectRef outputIntentRef = null;
-		if (params.getVersion().v >= PDFParams.Version.V_1_4.v) {
+		var outputIntentRef = (ObjectRef) null;
+		if (this.params.getVersion().v >= PDFParams.Version.V_1_4.v) {
 			outputIntentRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("OutputIntents");
 			this.mainFlow.startArray();
@@ -288,7 +255,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.catalogFlow = this.mainFlow.forkFragment();
 
 		// File ID
-		byte[] fileId = params.getFileId();
+		var fileId = this.params.getFileId();
 		if (fileId == null) {
 			fileId = new byte[16];
 			RND.nextBytes(fileId);
@@ -300,23 +267,21 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow.endObject();
 
 		// Encryption
-		final EncryptionParams encryptionParams = this.params.getEncryption();
+		final var encryptionParams = this.params.getEncryption();
 		if (encryptionParams != null) {
 			if (pdfVersion == PDFParams.Version.V_PDFA1B) {
 				throw new IllegalArgumentException("Encryption cannot be used in PDF/A-1.");
 			}
-			final EncryptionParams.Type encType = encryptionParams.getType();
+			final var encType = encryptionParams.getType();
 			if (encType == EncryptionParams.Type.V2 && pdfVersion.v < PDFParams.Version.V_1_3.v) {
 				throw new IllegalArgumentException("V2 encryption requires PDF 1.3 or later.");
 			}
-			if (encType == EncryptionParams.Type.V4) {
+			if (encryptionParams instanceof final V4EncryptionParams v4Params) {
 				if (pdfVersion.v < PDFParams.Version.V_1_5.v) {
 					throw new IllegalArgumentException("V4 encryption requires PDF 1.5 or later.");
 				}
-				if (((V4EncryptionParams) encryptionParams).getCFM() == V4EncryptionParams.CFM.AESV2) {
-					if (pdfVersion.v < PDFParams.Version.V_1_6.v) {
-						throw new IllegalArgumentException("AESV2 encryption requires PDF 1.6 or later.");
-					}
+				if (v4Params.getCFM() == V4EncryptionParams.CFM.AESV2 && pdfVersion.v < PDFParams.Version.V_1_6.v) {
+					throw new IllegalArgumentException("AESV2 encryption requires PDF 1.6 or later.");
 				}
 			}
 
@@ -343,11 +308,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.lineBreak();
 
 			this.mainFlow.writeName("S");
-			if (params.getVersion() == PDFParams.Version.V_PDFA1B) {
-				this.mainFlow.writeName("GTS_PDFA1");
-			} else {
-				this.mainFlow.writeName("GTS_PDFX");
-			}
+			this.mainFlow.writeName(pdfVersion == PDFParams.Version.V_PDFA1B ? "GTS_PDFA1" : "GTS_PDFX");
 			this.mainFlow.lineBreak();
 
 			String iccName, iccFile;
@@ -366,7 +327,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.writeString(iccName);
 			this.mainFlow.lineBreak();
 
-			final ObjectRef profRef = this.xref.nextObjectRef();
+			final var profRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("DestOutputProfile");
 			this.mainFlow.writeObjectRef(profRef);
 			this.mainFlow.lineBreak();
@@ -381,9 +342,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.mainFlow.writeInt(colors);
 			this.mainFlow.lineBreak();
 
-			try (final OutputStream pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
-					final InputStream in = PDFWriterImpl.class.getResourceAsStream(iccFile)) {
-				final byte[] buff = this.mainFlow.getBuff();
+			try (final var pout = this.mainFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
+					final var in = PDFWriterImpl.class.getResourceAsStream(iccFile)) {
+				final var buff = this.mainFlow.getBuff();
 				for (int len = in.read(buff); len != -1; len = in.read(buff)) {
 					pout.write(buff, 0, len);
 				}
@@ -411,9 +372,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		// Attachments
 		if (pdfVersion.v >= PDFParams.Version.V_1_4.v && pdfVersion.v != PDFParams.Version.V_PDFA1B.v) {
 			this.embeddedFiles = new NameTreeFlow(this, "EmbeddedFiles") {
+				@Override
 				protected void writeEntry(final Object entry) throws IOException {
 					this.out.startHash();
-
 					this.out.writeName("Type");
 					this.out.writeName("Filespec");
 					this.out.lineBreak();
@@ -497,13 +458,6 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return ocgRef;
 	}
 
-	/**
-	 * Declares use of font.
-	 * 
-	 * @param source font source
-	 * @return font name usable in graphics operations
-	 * @throws IOException in case of I/O error
-	 */
 	public Font useFont(final FontSource source) throws IOException {
 		return this.fonts.useFont(source);
 	}
@@ -516,33 +470,19 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		return this.images.addImage(image);
 	}
 
-	/**
-	 * Generates object name.
-	 * 
-	 * @param type        resource type
-	 * @param prefix      name prefix
-	 * @param resourceRef resource reference
-	 * @return generated name
-	 * @throws IOException in case of I/O error
-	 */
 	protected String addResource(final String type, final String prefix, final ObjectRef resourceRef)
 			throws IOException {
-		Integer num = this.typeToCount.get(type);
-		if (num == null) {
-			num = NumberUtils.intValue(0);
-		} else {
-			num = NumberUtils.intValue(num.intValue() + 1);
-		}
-		this.typeToCount.put(type, num);
-		final String name = prefix + num;
+		final var num = this.typeToCount.getOrDefault(type, 0);
+		this.typeToCount.put(type, num + 1);
+		final var name = prefix + num;
 		this.nameToResourceRef.put(name, resourceRef);
 		return name;
 	}
 
 	public PDFNamedOutput createSpecialGraphicsState() throws IOException {
-		final ObjectRef gsRef = this.xref.nextObjectRef();
-		final String name = this.addResource("ExtGState", "G", gsRef);
-		final PDFFragmentOutputImpl gsOut = this.objectsFlow;
+		final var gsRef = this.xref.nextObjectRef();
+		final var name = this.addResource("ExtGState", "G", gsRef);
+		final var gsOut = this.objectsFlow;
 		gsOut.startObject(gsRef);
 		gsOut.startHash();
 
@@ -550,29 +490,33 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		gsOut.writeName("ExtGState");
 		gsOut.lineBreak();
 
-		final PDFNamedOutput sgs = new PDFNamedOutput(gsOut, this.params.getPlatformEncoding()) {
+		return new PDFNamedOutput(gsOut, this.params.getPlatformEncoding()) {
+			{
+				this.setPrecision(PDFWriterImpl.this.params.getPrecision());
+			}
+
+			@Override
 			public String getName() {
 				return name;
 			}
 
+			@Override
 			public void close() throws IOException {
 				this.flush();
 				gsOut.endHash();
 				gsOut.endObject();
 			}
 		};
-		return sgs;
 	}
 
 	public PDFGroupImage createGroupImage(final double width, final double height) throws IOException {
-		// Group
-		if (this.getParams().getVersion().v < PDFParams.Version.V_1_4.v) {
+		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("Form Type 1 Group feature requires PDF >= 1.4.");
 		}
-		final ObjectRef imageRef = this.xref.nextObjectRef();
-		final String name = this.addResource("XObject", "T", imageRef);
+		final var imageRef = this.xref.nextObjectRef();
+		final var name = this.addResource("XObject", "T", imageRef);
 
-		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final var objectsFlow = this.objectsFlow;
 
 		objectsFlow.startObject(imageRef);
 		objectsFlow.startHash();
@@ -596,17 +540,17 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.endHash();
 
 		objectsFlow.writeName("Resources");
-		final ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
+		final var newResourceFlow = new ResourceFlow(objectsFlow);
 		objectsFlow.lineBreak();
 
-		// Adjusts Y position to convert bottom-left origin pattern to top-left origin
-		// when outputting transform.
+		// Convert coordinate system from PDF default (bottom-left) to user default
+		// (top-left)
 		objectsFlow.writeName("Matrix");
 		objectsFlow.startArray();
-		objectsFlow.writeReal(1 / width);
+		objectsFlow.writeReal(1.0 / width);
 		objectsFlow.writeReal(0);
 		objectsFlow.writeReal(0);
-		objectsFlow.writeReal(1 / height);
+		objectsFlow.writeReal(1.0 / height);
 		objectsFlow.writeReal(0);
 		objectsFlow.writeReal(0);
 		objectsFlow.endArray();
@@ -621,9 +565,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.endArray();
 		objectsFlow.lineBreak();
 
-		final PDFFragmentOutput formFlow = objectsFlow.forkFragment();
-		final PDFFragmentOutput groupFlow = objectsFlow.forkFragment();
-		final OutputStream groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
+		final var formFlow = objectsFlow.forkFragment();
+		final var groupFlow = objectsFlow.forkFragment();
+		final var groupOut = groupFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFGroupImageImpl(this, groupOut, groupFlow, newResourceFlow, width, height, name, imageRef,
@@ -632,13 +576,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	public PDFNamedGraphicsOutput createTilingPattern(final double width, final double height, final double pageHeight,
 			final AffineTransform at) throws IOException {
-		assert at == null || at.getScaleX() != 0;
-		assert at == null || at.getScaleY() != 0;
 		// Pattern Object
-		final ObjectRef patternRef = this.xref.nextObjectRef();
-		final String name = this.addResource("Pattern", "P", patternRef);
+		final var patternRef = this.xref.nextObjectRef();
+		final var name = this.addResource("Pattern", "P", patternRef);
 
-		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final var objectsFlow = this.objectsFlow;
 		objectsFlow.startObject(patternRef);
 		objectsFlow.startHash();
 
@@ -655,39 +597,32 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.lineBreak();
 
 		objectsFlow.writeName("Resources");
-		final ResourceFlow newResourceFlow = new ResourceFlow(objectsFlow);
+		final var newResourceFlow = new ResourceFlow(objectsFlow);
 		objectsFlow.lineBreak();
 
 		objectsFlow.writeName("TilingType");
 		objectsFlow.writeInt(1);
 		objectsFlow.lineBreak();
 
-		// Adjusts Y position to convert bottom-left origin pattern to top-left origin
-		// when outputting transform.
+		// Convert coordinate system from PDF default (bottom-left) to user default
+		// (top-left)
 		objectsFlow.writeName("Matrix");
 		objectsFlow.startArray();
-		double scx, scy, shx, shy, tx, ty;
+
+		final var flatMatrix = new double[6];
 		if (at != null) {
-			scx = at.getScaleX();
-			scy = at.getScaleY();
-			shx = at.getShearX();
-			shy = at.getShearY();
-			tx = at.getTranslateX();
-			ty = at.getTranslateY();
+			at.getMatrix(flatMatrix);
 		} else {
-			scx = 1;
-			scy = 1;
-			shx = 0;
-			shy = 0;
-			tx = 0;
-			ty = 0;
+			flatMatrix[0] = 1.0; // scx
+			flatMatrix[3] = 1.0; // scy
 		}
-		objectsFlow.writeReal(scx);
-		objectsFlow.writeReal(shy);
-		objectsFlow.writeReal(shx);
-		objectsFlow.writeReal(scy);
-		objectsFlow.writeReal(tx);
-		objectsFlow.writeReal(-ty + pageHeight % (height * scy));
+		objectsFlow.writeReal(flatMatrix[0]); // scx
+		objectsFlow.writeReal(flatMatrix[1]); // shy
+		objectsFlow.writeReal(flatMatrix[2]); // shx
+		objectsFlow.writeReal(flatMatrix[3]); // scy
+		objectsFlow.writeReal(flatMatrix[4]); // tx
+		// Adjust Y position for tiling
+		objectsFlow.writeReal(-flatMatrix[5] + pageHeight % (height * flatMatrix[3]));
 		objectsFlow.endArray();
 		objectsFlow.lineBreak();
 
@@ -708,19 +643,18 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		objectsFlow.writeReal(height);
 		objectsFlow.lineBreak();
 
-		final PDFFragmentOutput patternFlow = objectsFlow.forkFragment();
-		final OutputStream patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
+		final var patternFlow = objectsFlow.forkFragment();
+		final var patternOut = patternFlow.startStreamFromHash(PDFFragmentOutput.Mode.ASCII);
 		objectsFlow.endObject();
 
 		return new PDFNamedGraphicsOutputImpl(this, patternOut, patternFlow, newResourceFlow, width, height, name);
 	}
 
-	public PDFNamedOutput createShadingPattern(final double pageHeight, AffineTransform at) throws IOException {
-		// Shading Object
-		final ObjectRef patternRef = this.xref.nextObjectRef();
-		final String name = this.addResource("Pattern", "P", patternRef);
+	public PDFNamedOutput createShadingPattern(final double pageHeight, final AffineTransform at) throws IOException {
+		final var patternRef = this.xref.nextObjectRef();
+		final var name = this.addResource("Pattern", "P", patternRef);
 
-		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final var objectsFlow = this.objectsFlow;
 		objectsFlow.startObject(patternRef);
 		objectsFlow.startHash();
 
@@ -734,28 +668,20 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		objectsFlow.writeName("Matrix");
 		objectsFlow.startArray();
-		if (at != null) {
-			at = new AffineTransform(at);
-		} else {
-			at = new AffineTransform();
-		}
-		at.preConcatenate(new AffineTransform(1, 0, 0, -1, 0, pageHeight));
-		final double scx = at.getScaleX();
-		final double scy = at.getScaleY();
-		final double shx = at.getShearX();
-		final double shy = at.getShearY();
-		final double tx = at.getTranslateX();
-		final double ty = at.getTranslateY();
-		objectsFlow.writeReal(scx);
-		objectsFlow.writeReal(shy);
-		objectsFlow.writeReal(shx);
-		objectsFlow.writeReal(scy);
-		objectsFlow.writeReal(tx);
-		objectsFlow.writeReal(ty);
+		final var transform = (at != null) ? new AffineTransform(at) : new AffineTransform();
+		transform.preConcatenate(new AffineTransform(1, 0, 0, -1, 0, pageHeight));
+		final var flatMatrix = new double[6];
+		transform.getMatrix(flatMatrix);
+		objectsFlow.writeReal(flatMatrix[0]); // scx
+		objectsFlow.writeReal(flatMatrix[1]); // shy
+		objectsFlow.writeReal(flatMatrix[2]); // shx
+		objectsFlow.writeReal(flatMatrix[3]); // scy
+		objectsFlow.writeReal(flatMatrix[4]); // tx
+		objectsFlow.writeReal(flatMatrix[5]); // ty
 		objectsFlow.endArray();
 		objectsFlow.lineBreak();
 
-		final ObjectRef shadingRef = this.xref.nextObjectRef();
+		final var shadingRef = this.xref.nextObjectRef();
 		objectsFlow.writeName("Shading");
 		objectsFlow.writeObjectRef(shadingRef);
 		objectsFlow.lineBreak();
@@ -765,11 +691,17 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		objectsFlow.startObject(shadingRef);
 		objectsFlow.startHash();
-		return new PDFNamedOutput(objectsFlow, this.getParams().getPlatformEncoding()) {
+		return new PDFNamedOutput(objectsFlow, this.params.getPlatformEncoding()) {
+			{
+				this.setPrecision(PDFWriterImpl.this.params.getPrecision());
+			}
+
+			@Override
 			public String getName() {
 				return name;
 			}
 
+			@Override
 			public void close() throws IOException {
 				this.flush();
 				objectsFlow.endHash();
@@ -778,9 +710,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		};
 	}
 
-	public OutputStream addAttachment(String name, final Attachment attachment) throws IOException {
-		if (attachment.description() == null && name == null) {
-			throw new NullPointerException();
+	public OutputStream addAttachment(final String filename, final Attachment attachment) throws IOException {
+		if (attachment.description() == null && filename == null) {
+			throw new NullPointerException("Both description and filename cannot be null.");
 		}
 		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("File attachment requires PDF 1.4 or later.");
@@ -792,16 +724,16 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			throw new UnsupportedOperationException("File attachment cannot be used in PDF/X.");
 		}
 
-		String desc = attachment.description();
+		var desc = attachment.description();
+		var name = filename;
 		if (desc == null) {
 			desc = name;
 		} else if (name == null) {
 			name = desc;
 		}
 
-		final ObjectRef fileRef = this.xref.nextObjectRef();
-
-		final PDFFragmentOutputImpl objectsFlow = this.objectsFlow;
+		final var fileRef = this.xref.nextObjectRef();
+		final var objectsFlow = this.objectsFlow;
 		objectsFlow.startObject(fileRef);
 		objectsFlow.startHash();
 
@@ -815,14 +747,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			objectsFlow.lineBreak();
 		}
 
-		final Filespec filespec = new Filespec(attachment, name, fileRef);
+		final var filespec = new Filespec(attachment, name, fileRef);
 		this.embeddedFiles.addEntry(desc, filespec);
 
-		final PDFFragmentOutputImpl paramsFlow = objectsFlow.forkFragment();
+		final var paramsFlow = objectsFlow.forkFragment();
 		try {
-			final MessageDigest md5 = MessageDigest.getInstance("md5");
-
-			final OutputStream out = objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
+			final var md5 = MessageDigest.getInstance("MD5");
+			final var out = objectsFlow.startStreamFromHash(PDFFragmentOutput.Mode.BINARY);
 			return new FilterOutputStream(out) {
 				private int size = 0;
 
@@ -876,27 +807,27 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	public void close() throws IOException {
 		try {
 			// Meta Info
-			final PDFMetaInfo info = this.params.getMetaInfo();
+			final var info = this.params.getMetaInfo();
 
-			final String author = info.getAuthor();
-			final String creator = info.getCreator();
-			final String producer = info.getProducer();
-			String title = info.getTitle();
-			final String subject = info.getSubject();
-			final String keywords = info.getKeywords();
-			final TimeZone zone = TimeZone.getDefault();
-			long create = info.getCreationDate();
+			final var author = info.getAuthor();
+			final var creator = info.getCreator();
+			final var producer = info.getProducer();
+			var title = info.getTitle();
+			final var subject = info.getSubject();
+			final var keywords = info.getKeywords();
+			final var zone = TimeZone.getDefault();
+			var create = info.getCreationDate();
 			if (create == -1L) {
 				create = System.currentTimeMillis();
 			}
-			long modify = info.getModDate();
+			var modify = info.getModDate();
 
-			final ObjectRef infoRef = this.xref.nextObjectRef();
+			final var infoRef = this.xref.nextObjectRef();
 			this.objectsFlow.startObject(infoRef);
 			this.objectsFlow.startHash();
 
 			if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
-				if (title == null || title.length() == 0) {
+				if (title == null || title.isEmpty()) {
 					title = "Untitled";
 				}
 				this.objectsFlow.writeName("GTS_PDFXVersion");
@@ -970,26 +901,26 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.xmpmetaFlow.writeName("XML");
 				this.xmpmetaFlow.lineBreak();
 
-				try (final OutputStream xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW)) {
-					xout.write("<?xpacket begin='".getBytes("UTF-8"));
-					xout.write("\u00EF\u00BB\u00BF".getBytes("ISO-8859-1"));
-					xout.write("' id='W5M0MpCehiHzreSzNTczkc9d'?>\n".getBytes("UTF-8"));
-					final TransformerHandler handler = ((SAXTransformerFactory) SAXTransformerFactory.newInstance())
+				try (final var xout = this.xmpmetaFlow.startStreamFromHash(PDFFragmentOutput.Mode.RAW)) {
+					xout.write("<?xpacket begin='".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+					xout.write(new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF });
+					xout.write("' id='W5M0MpCehiHzreSzNTczkc9d'?>\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+					final var handler = ((SAXTransformerFactory) SAXTransformerFactory.newInstance())
 							.newTransformerHandler();
 					handler.setResult(new StreamResult(xout));
-					final Transformer t = handler.getTransformer();
+					final var t = handler.getTransformer();
 					t.setOutputProperty(OutputKeys.METHOD, "xml");
 					t.setOutputProperty(OutputKeys.INDENT, "yes");
 					t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 					t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
-					final AttributesImpl attsi = new AttributesImpl();
-					final String xURI = "adobe:ns:meta/";
-					final String rdfURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-					final String pdfaidURI = "http://www.aiim.org/pdfa/ns/id/";
-					final String pdfURI = "http://ns.adobe.com/pdf/1.3/";
-					final String dcURI = "http://purl.org/dc/elements/1.1/";
-					final String xmpURI = "http://ns.adobe.com/xap/1.0/";
+					final var attsi = new AttributesImpl();
+					final var xURI = "adobe:ns:meta/";
+					final var rdfURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+					final var pdfaidURI = "http://www.aiim.org/pdfa/ns/id/";
+					final var pdfURI = "http://ns.adobe.com/pdf/1.3/";
+					final var dcURI = "http://purl.org/dc/elements/1.1/";
+					final var xmpURI = "http://ns.adobe.com/xap/1.0/";
 
 					handler.startDocument();
 					attsi.addAttribute("", "x", "xmlns:x", "CDATA", xURI);
@@ -1077,18 +1008,14 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 						handler.characters(creator.toCharArray(), 0, creator.length());
 						handler.endElement(xmpURI, "CreatorTool", "xmp:CreatorTool");
 					}
-					final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+					final var dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 					handler.startElement(xmpURI, "CreateDate", "xmp:CreateDate", attsi);
-					String createStr = dateFormat.format(new Date(create));
-					createStr = createStr.substring(0, createStr.length() - 2) + ':'
-							+ createStr.substring(createStr.length() - 2);
+					final var createStr = dateFormat.format(new Date(create));
 					handler.characters(createStr.toCharArray(), 0, createStr.length());
 					handler.endElement(xmpURI, "CreateDate", "xmp:CreateDate");
 					if (modify != -1L) {
 						handler.startElement(xmpURI, "ModifyDate", "xmp:ModifyDate", attsi);
-						String modifyStr = dateFormat.format(new Date(modify));
-						modifyStr = modifyStr.substring(0, modifyStr.length() - 2) + ':'
-								+ modifyStr.substring(modifyStr.length() - 2);
+						final var modifyStr = dateFormat.format(new Date(modify));
 						handler.characters(modifyStr.toCharArray(), 0, modifyStr.length());
 						handler.endElement(xmpURI, "ModifyDate", "xmp:ModifyDate");
 					}
@@ -1099,10 +1026,10 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 					handler.endDocument();
 					// XMP (p33) 2-4KB padding
-					for (int i = 0; i < 26; ++i) {
+					for (var i = 0; i < 26; ++i) {
 						xout.write(XMP_PADDING);
 					}
-					xout.write("<?xpacket end='w'?>\n".getBytes("UTF-8"));
+					xout.write("<?xpacket end='w'?>\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -1138,8 +1065,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.startHash();
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
-				for (int i = 0; i < this.ocgs.size(); ++i) {
-					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+				for (final var ocgRef : this.ocgs) {
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1148,8 +1074,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.startHash();
 				this.objectsFlow.writeName("ON");
 				this.objectsFlow.startArray();
-				for (int i = 0; i < this.ocgs.size(); ++i) {
-					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+				for (final var ocgRef : this.ocgs) {
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1161,8 +1086,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("View");
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
-				for (int i = 0; i < this.ocgs.size(); ++i) {
-					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+				for (final var ocgRef : this.ocgs) {
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1177,8 +1101,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				this.objectsFlow.writeName("Print");
 				this.objectsFlow.writeName("OCGs");
 				this.objectsFlow.startArray();
-				for (int i = 0; i < this.ocgs.size(); ++i) {
-					final ObjectRef ocgRef = (ObjectRef) this.ocgs.get(i);
+				for (final var ocgRef : this.ocgs) {
 					this.objectsFlow.writeObjectRef(ocgRef);
 				}
 				this.objectsFlow.endArray();
@@ -1244,20 +1167,10 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				if (vp.getNonFullScreenPageMode() != ViewerPreferences.NonFullScreenPageMode.NONE) {
 					this.catalogFlow.writeName("NonFullScreenPageMode");
 					switch (vp.getNonFullScreenPageMode()) {
-						case OUTLINES:
-							this.catalogFlow.writeName("UseOutlines");
-							break;
-						case THUMBS:
-							this.catalogFlow.writeName("UseThumbs");
-							break;
-						case OC:
-							this.catalogFlow.writeName("UseOC");
-							break;
-						case NONE:
-							// this.catalogFlow.writeName("UseNone");
-							// break;
-						default:
-							throw new IllegalStateException();
+						case OUTLINES -> this.catalogFlow.writeName("UseOutlines");
+						case THUMBS -> this.catalogFlow.writeName("UseThumbs");
+						case OC -> this.catalogFlow.writeName("UseOC");
+						case NONE -> this.catalogFlow.writeName("UseNone");
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1268,15 +1181,10 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 								"ViewerPreference Direction requires PDF 1.3 or later.");
 					}
 					this.catalogFlow.writeName("Direction");
-					switch (vp.getDirection()) {
-						case R2L:
-							this.catalogFlow.writeName("R2L");
-							break;
-						case L2R:
-							// this.catalogFlow.writeName("L2R");
-							// break;
-						default:
-							throw new IllegalStateException();
+					if (vp.getDirection() == ViewerPreferences.Direction.R2L) {
+						this.catalogFlow.writeName("R2L");
+					} else {
+						this.catalogFlow.writeName("L2R");
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1327,16 +1235,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 								"ViewerPreference PrintScaling requires PDF 1.6 or later.");
 					}
 					this.catalogFlow.writeName("PrintScaling");
-					switch (vp.getPrintScaling()) {
-						case NONE:
-							this.catalogFlow.writeName("None");
-							break;
-						case APP_DEFAULT:
-							// this.catalogFlow.writeName("AppDefault");
-							// break;
-						default:
-							throw new IllegalStateException();
-					}
+					this.catalogFlow.writeName(
+							vp.getPrintScaling() == ViewerPreferences.PrintScaling.NONE ? "None" : "AppDefault");
 					this.catalogFlow.lineBreak();
 				}
 
@@ -1347,19 +1247,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					}
 					this.catalogFlow.writeName("Duplex");
 					switch (vp.getDuplex()) {
-						case SIMPLEX:
-							this.catalogFlow.writeName("Simplex");
-							break;
-						case FLIP_SHORT_EDGE:
-							this.catalogFlow.writeName("DuplexFlipShortEdge");
-							break;
-						case FLIP_LONG_EDGE:
-							this.catalogFlow.writeName("DuplexFlipLongEdge");
-							break;
-						case NONE:
-							// break;
-						default:
-							throw new IllegalStateException();
+						case SIMPLEX -> this.catalogFlow.writeName("Simplex");
+						case FLIP_SHORT_EDGE -> this.catalogFlow.writeName("DuplexFlipShortEdge");
+						case FLIP_LONG_EDGE -> this.catalogFlow.writeName("DuplexFlipLongEdge");
+						default -> {
+						}
 					}
 					this.catalogFlow.lineBreak();
 				}
@@ -1374,7 +1266,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					this.catalogFlow.lineBreak();
 				}
 
-				final int[] printPageRange = vp.getPrintPageRange();
+				final var printPageRange = vp.getPrintPageRange();
 				if (printPageRange != null) {
 					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
@@ -1382,8 +1274,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					}
 					this.catalogFlow.writeName("PrintPageRange");
 					this.catalogFlow.startArray();
-					for (int i = 0; i < printPageRange.length; ++i) {
-						this.catalogFlow.writeInt(printPageRange[i]);
+					for (final var range : printPageRange) {
+						this.catalogFlow.writeInt(range);
 					}
 					this.catalogFlow.endArray();
 					this.catalogFlow.lineBreak();
@@ -1437,23 +1329,12 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	private void writeArea(final ViewerPreferences.AreaBox area) throws IOException {
 		switch (area) {
-			case MEDIA:
-				this.catalogFlow.writeName("MediaBox");
-				break;
-			case CROP:
-				// this.catalogFlow.writeName("CropBox");
-				break;
-			case BLEED:
-				this.catalogFlow.writeName("BleedBox");
-				break;
-			case TRIM:
-				this.catalogFlow.writeName("TrimBox");
-				break;
-			case ART:
-				this.catalogFlow.writeName("ArtBox");
-				break;
-			default:
-				throw new IllegalStateException();
+			case MEDIA -> this.catalogFlow.writeName("MediaBox");
+			case BLEED -> this.catalogFlow.writeName("BleedBox");
+			case TRIM -> this.catalogFlow.writeName("TrimBox");
+			case ART -> this.catalogFlow.writeName("ArtBox");
+			case CROP -> {
+			}
 		}
 	}
 }

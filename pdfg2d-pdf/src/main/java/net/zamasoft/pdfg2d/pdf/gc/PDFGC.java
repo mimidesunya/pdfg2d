@@ -11,12 +11,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.zamasoft.pdfg2d.font.BBox;
 import net.zamasoft.pdfg2d.font.DrawableFont;
-import net.zamasoft.pdfg2d.font.Font;
 import net.zamasoft.pdfg2d.font.FontMetricsImpl;
 import net.zamasoft.pdfg2d.font.FontSource;
 import net.zamasoft.pdfg2d.font.ImageFont;
@@ -24,11 +23,8 @@ import net.zamasoft.pdfg2d.font.ShapedFont;
 import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.GraphicsException;
 import net.zamasoft.pdfg2d.gc.font.FontManager;
-import net.zamasoft.pdfg2d.gc.font.FontPolicyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle;
-import net.zamasoft.pdfg2d.gc.font.FontStyle.Direction;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
-import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
 import net.zamasoft.pdfg2d.gc.font.util.FontUtils;
 import net.zamasoft.pdfg2d.gc.image.GroupImageGC;
 import net.zamasoft.pdfg2d.gc.image.Image;
@@ -42,8 +38,6 @@ import net.zamasoft.pdfg2d.gc.paint.RadialGradient;
 import net.zamasoft.pdfg2d.gc.paint.RGBAColor;
 import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.PDFGraphicsOutput;
-import net.zamasoft.pdfg2d.pdf.PDFNamedGraphicsOutput;
-import net.zamasoft.pdfg2d.pdf.PDFNamedOutput;
 import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 import net.zamasoft.pdfg2d.pdf.font.PDFFont;
@@ -147,10 +141,8 @@ import net.zamasoft.pdfg2d.util.ColorUtils;
  */
 
 /**
- * PDF Graphics Context.
- * 
- * @author MIYABE Tatsuhiko
- * @since 1.0
+ * PDF Graphics Context implementation.
+ * Translates GC operations into PDF operators.
  */
 public class PDFGC implements GC, Closeable {
 	private static final Logger LOG = Logger.getLogger(PDFGC.class.getName());
@@ -159,58 +151,108 @@ public class PDFGC implements GC, Closeable {
 
 	protected final PDFGraphicsOutput out;
 
-	/**
-	 * Object for saving the configured graphics state.
-	 * 
-	 * @author MIYABE Tatsuhiko
-	 * @since 1.0
-	 */
-	static class GraphicsState {
-		public XGraphicsState gstate = null;
+	private static final double ONE_THIRD = 1.0 / 3.0;
+	private static final double TWO_THIRD = 2.0 / 3.0;
 
-		public final double lineWidth;
+	private record ExtGStateKey(float strokeAlpha, float fillAlpha, byte strokeOverprint, byte fillOverprint) {
+	}
 
-		public final LineCap lineCap;
-
-		public final LineJoin lineJoin;
-
-		public final double[] linePattern;
-
-		public final Paint strokePaint;
-
-		public final Paint fillPaint;
-
-		public final TextMode textMode;
-
-		public final float strokeAlpha;
-
-		public final float fillAlpha;
-
-		public final byte strokeOverprint;
-
-		public final byte fillOverprint;
-
-		public final AffineTransform actualTransform;
-
-		public GraphicsState(PDFGC gc) {
-			this.lineWidth = gc.lineWidth;
-			this.lineCap = gc.lineCap;
-			this.lineJoin = gc.lineJoin;
-			this.linePattern = gc.linePattern;
-			this.strokePaint = gc.strokePaint;
-			this.fillPaint = gc.fillPaint;
-			this.textMode = gc.textMode;
-			this.strokeAlpha = gc.strokeAlpha;
-			this.fillAlpha = gc.fillAlpha;
-			this.strokeOverprint = gc.strokeOverprint;
-			this.fillOverprint = gc.fillOverprint;
-			this.actualTransform = gc.actualTransform;
-			if (this.actualTransform != null) {
-				gc.actualTransform = new AffineTransform(this.actualTransform);
+	private record ShadingKey(double pageHeight, AffineTransform transform, Paint paint) {
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (!(o instanceof ShadingKey other))
+				return false;
+			if (Double.compare(pageHeight, other.pageHeight) != 0)
+				return false;
+			if (!Objects.equals(transform, other.transform))
+				return false;
+			if (paint == other.paint)
+				return true;
+			if (paint == null || other.paint == null)
+				return false;
+			if (paint.getClass() != other.paint.getClass())
+				return false;
+			if (paint instanceof LinearGradient lg1 && other.paint instanceof LinearGradient lg2) {
+				return Double.compare(lg1.x1(), lg2.x1()) == 0 &&
+						Double.compare(lg1.y1(), lg2.y1()) == 0 &&
+						Double.compare(lg1.x2(), lg2.x2()) == 0 &&
+						Double.compare(lg1.y2(), lg2.y2()) == 0 &&
+						Arrays.equals(lg1.colors(), lg2.colors()) &&
+						Arrays.equals(lg1.fractions(), lg2.fractions());
 			}
+			if (paint instanceof RadialGradient rg1 && other.paint instanceof RadialGradient rg2) {
+				return Double.compare(rg1.cx(), rg2.cx()) == 0 &&
+						Double.compare(rg1.cy(), rg2.cy()) == 0 &&
+						Double.compare(rg1.radius(), rg2.radius()) == 0 &&
+						Double.compare(rg1.fx(), rg2.fx()) == 0 &&
+						Double.compare(rg1.fy(), rg2.fy()) == 0 &&
+						Arrays.equals(rg1.colors(), rg2.colors()) &&
+						Arrays.equals(rg1.fractions(), rg2.fractions());
+			}
+			return paint.equals(other.paint);
 		}
 
-		public void restore(PDFGC gc) {
+		@Override
+		public int hashCode() {
+			int result = Objects.hash(pageHeight, transform);
+			if (paint instanceof LinearGradient lg) {
+				result = 31 * result + Objects.hash(lg.x1(), lg.y1(), lg.x2(), lg.y2());
+				result = 31 * result + Arrays.hashCode(lg.colors());
+				result = 31 * result + Arrays.hashCode(lg.fractions());
+			} else if (paint instanceof RadialGradient rg) {
+				result = 31 * result + Objects.hash(rg.cx(), rg.cy(), rg.radius(), rg.fx(), rg.fy());
+				result = 31 * result + Arrays.hashCode(rg.colors());
+				result = 31 * result + Arrays.hashCode(rg.fractions());
+			} else {
+				result = 31 * result + Objects.hashCode(paint);
+			}
+			return result;
+		}
+	}
+
+	/**
+	 * Snapshot of the graphics state for gsave/grestore operations.
+	 */
+	record GraphicsState(
+			XGraphicsState gstate,
+			double lineWidth,
+			LineCap lineCap,
+			LineJoin lineJoin,
+			double[] linePattern,
+			Paint strokePaint,
+			Paint fillPaint,
+			TextMode textMode,
+			float strokeAlpha,
+			float fillAlpha,
+			byte strokeOverprint,
+			byte fillOverprint,
+			AffineTransform actualTransform) {
+
+		GraphicsState(final PDFGC gc) {
+			this(
+					null,
+					gc.lineWidth,
+					gc.lineCap,
+					gc.lineJoin,
+					gc.linePattern,
+					gc.strokePaint,
+					gc.fillPaint,
+					gc.textMode,
+					gc.strokeAlpha,
+					gc.fillAlpha,
+					gc.strokeOverprint,
+					gc.fillOverprint,
+					gc.actualTransform != null ? new AffineTransform(gc.actualTransform) : null);
+		}
+
+		/**
+		 * Restores this state back to the specified GC.
+		 *
+		 * @param gc The target graphics context.
+		 */
+		void restore(final PDFGC gc) {
 			gc.lineWidth = this.lineWidth;
 			gc.lineCap = this.lineCap;
 			gc.lineJoin = this.lineJoin;
@@ -224,55 +266,61 @@ public class PDFGC implements GC, Closeable {
 			gc.fillOverprint = this.fillOverprint;
 			gc.actualTransform = this.actualTransform;
 		}
+
+		GraphicsState withXState(final XGraphicsState xState) {
+			return new GraphicsState(
+					xState, lineWidth, lineCap, lineJoin, linePattern, strokePaint, fillPaint,
+					textMode, strokeAlpha, fillAlpha, strokeOverprint, fillOverprint,
+					actualTransform);
+		}
+
+		GraphicsState withoutXState() {
+			return new GraphicsState(
+					null, lineWidth, lineCap, lineJoin, linePattern, strokePaint, fillPaint,
+					textMode, strokeAlpha, fillAlpha, strokeOverprint, fillOverprint,
+					actualTransform);
+		}
 	}
 
 	/**
-	 * Object for saving the current PDF graphics state.
-	 * 
-	 * @author MIYABE Tatsuhiko
-	 * @since 1.0
+	 * Represents the current PDF graphics environment.
 	 */
-	static class XGraphicsState {
-		public final double lineWidth;
+	record XGraphicsState(
+			double lineWidth,
+			LineCap lineCap,
+			LineJoin lineJoin,
+			double[] linePattern,
+			Paint strokePaint,
+			Paint fillPaint,
+			float fillAlpha,
+			float strokeAlpha,
+			byte fillOverprint,
+			byte strokeOverprint,
+			double letterSpacing,
+			TextMode textMode) {
 
-		public final LineCap lineCap;
-
-		public final LineJoin lineJoin;
-
-		public final double[] linePattern;
-
-		public final Paint strokePaint;
-
-		public final Paint fillPaint;
-
-		public final float fillAlpha;
-
-		public final float strokeAlpha;
-
-		public final byte fillOverprint;
-
-		public final byte strokeOverprint;
-
-		public final double letterSpacing;
-
-		public final TextMode textMode;
-
-		public XGraphicsState(PDFGC gc) {
-			this.lineWidth = gc.xlineWidth;
-			this.lineCap = gc.xlineCap;
-			this.lineJoin = gc.xlineJoin;
-			this.linePattern = gc.xlinePattern;
-			this.strokePaint = gc.xstrokePaint;
-			this.fillPaint = gc.xfillPaint;
-			this.letterSpacing = gc.xletterSpacing;
-			this.textMode = gc.xtextMode;
-			this.fillAlpha = gc.xfillAlpha;
-			this.strokeAlpha = gc.xstrokeAlpha;
-			this.fillOverprint = gc.xfillOverprint;
-			this.strokeOverprint = gc.xstrokeOverprint;
+		XGraphicsState(final PDFGC gc) {
+			this(
+					gc.xlineWidth,
+					gc.xlineCap,
+					gc.xlineJoin,
+					gc.xlinePattern,
+					gc.xstrokePaint,
+					gc.xfillPaint,
+					gc.xfillAlpha,
+					gc.xstrokeAlpha,
+					gc.xfillOverprint,
+					gc.xstrokeOverprint,
+					gc.xletterSpacing,
+					gc.xtextMode);
 		}
 
-		public void restore(PDFGC gc) {
+		/**
+		 * Restores the PDF environment state back to the GC.
+		 *
+		 * @param gc The target graphics context.
+		 */
+		void restore(final PDFGC gc) {
 			gc.xlineWidth = this.lineWidth;
 			gc.xlineCap = this.lineCap;
 			gc.xlineJoin = this.lineJoin;
@@ -288,7 +336,7 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
-	private List<GraphicsState> stack = new ArrayList<GraphicsState>();
+	private final List<GraphicsState> stack = new ArrayList<>();
 
 	private AffineTransform transform = null;
 
@@ -364,60 +412,37 @@ public class PDFGC implements GC, Closeable {
 	/** Current PDF fill overprint mode. */
 	public byte xfillOverprint = 0;
 
-	private static class PatternKey {
-		final double pageWidth;
-
-		final double pageHeight;
-
-		final Image image;
-
-		final AffineTransform at;
-
-		PatternKey(double pageWidth, double pageHeight, Image image, AffineTransform at) {
-			this.pageWidth = pageWidth;
-			this.pageHeight = pageHeight;
-			this.image = image;
-			this.at = at;
-		}
-
-		public boolean equals(Object o) {
-			if (o instanceof PatternKey) {
-				PatternKey key = (PatternKey) o;
-				return key.pageWidth == this.pageWidth && key.pageHeight == this.pageHeight
-						&& key.image.equals(this.image) && key.at.equals(this.at);
-			}
-			return false;
-		}
-
-		public int hashCode() {
-			int hash = 1;
-			long a = Double.doubleToLongBits(this.pageWidth);
-			long b = Double.doubleToLongBits(this.pageHeight);
-			hash = hash * 31 + (int) (a ^ (a >>> 32));
-			hash = hash * 31 + (int) (b ^ (b >>> 32));
-			hash = hash * 31 + this.image.hashCode();
-			if (this.at != null) {
-				hash = hash * 31 + this.at.hashCode();
-			}
-			return hash;
-		}
+	private record PatternKey(double pageWidth, double pageHeight, Image image, AffineTransform at) {
 	}
 
-	private final Map<PatternKey, Object> patterns;
+	private final Map<Object, String> resourceCache;
+
+	private final double[] cord = new double[6];
 
 	private int qDepth = 0;
 
 	private final PDFParams.Version pdfVersion;
 
-	private PDFGC(PDFGraphicsOutput out, Map<PatternKey, Object> patterns) {
+	@SuppressWarnings("unchecked")
+	private PDFGC(final PDFGraphicsOutput out, final Map<Object, String> resourceCache) {
 		this.out = out;
-		this.patterns = patterns;
+		if (resourceCache == null) {
+			final var writer = out.getPdfWriter();
+			var cache = (Map<Object, String>) writer.getAttribute("sfResCache");
+			if (cache == null) {
+				cache = new HashMap<>();
+				writer.putAttribute("sfResCache", cache);
+			}
+			this.resourceCache = cache;
+		} else {
+			this.resourceCache = resourceCache;
+		}
 		this.pdfVersion = this.out.getPdfWriter().getParams().getVersion();
 		this.stack.add(new GraphicsState(this));
 	}
 
-	public PDFGC(PDFGraphicsOutput out) {
-		this(out, new HashMap<PatternKey, Object>());
+	public PDFGC(final PDFGraphicsOutput out) {
+		this(out, null);
 	}
 
 	public FontManager getFontManager() {
@@ -432,9 +457,10 @@ public class PDFGC implements GC, Closeable {
 		return this.out.getPdfWriter();
 	}
 
+	@Override
 	public void begin() throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("begin");
+			LOG.fine("begin");
 		}
 		try {
 			this.applyTransform();
@@ -445,16 +471,17 @@ public class PDFGC implements GC, Closeable {
 		this.stack.add(new GraphicsState(this));
 	}
 
+	@Override
 	public void end() throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("end");
+			LOG.fine("end");
 		}
 		try {
 			this.grestore();
 		} catch (IOException e) {
 			throw new GraphicsException(e);
 		}
-		GraphicsState state = (GraphicsState) this.stack.remove(this.stack.size() - 1);
+		final var state = this.stack.removeLast();
 		state.restore(this);
 		if (this.stack.isEmpty()) {
 			this.transform = null;
@@ -462,33 +489,37 @@ public class PDFGC implements GC, Closeable {
 		this.clip = null;
 	}
 
+	@Override
 	public void resetState() throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("reset");
+			LOG.fine("reset");
 		}
 		try {
 			this.grestore();
 		} catch (IOException e) {
 			throw new GraphicsException(e);
 		}
-		GraphicsState state = (GraphicsState) this.stack.get(this.stack.size() - 1);
+		final var state = this.stack.getLast();
 		state.restore(this);
 		this.transform = null;
 		this.clip = null;
 	}
 
-	public void setLineWidth(double lineWidth) {
+	@Override
+	public void setLineWidth(final double lineWidth) {
 		if (DEBUG) {
 			System.err.println("setLineWidth: " + lineWidth);
 		}
 		this.lineWidth = lineWidth;
 	}
 
+	@Override
 	public double getLineWidth() {
 		return this.lineWidth;
 	}
 
-	public void setLinePattern(double[] linePattern) {
+	@Override
+	public void setLinePattern(final double[] linePattern) {
 		if (DEBUG) {
 			System.err.println("setLinePattern: " + linePattern);
 		}
@@ -499,55 +530,64 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
+	@Override
 	public double[] getLinePattern() {
 		return this.linePattern;
 	}
 
-	public void setLineJoin(LineJoin lineJoin) {
+	@Override
+	public void setLineJoin(final LineJoin lineJoin) {
 		if (DEBUG) {
 			System.err.println("setLineJoin: " + lineJoin);
 		}
 		this.lineJoin = lineJoin;
 	}
 
+	@Override
 	public LineJoin getLineJoin() {
 		return this.lineJoin;
 	}
 
-	public void setLineCap(LineCap lineCap) {
+	@Override
+	public void setLineCap(final LineCap lineCap) {
 		if (DEBUG) {
 			System.err.println("setLineCap: " + lineCap);
 		}
 		this.lineCap = lineCap;
 	}
 
+	@Override
 	public LineCap getLineCap() {
 		return this.lineCap;
 	}
 
-	public void setStrokePaint(Paint paint) throws GraphicsException {
+	@Override
+	public void setStrokePaint(final Paint paint) throws GraphicsException {
 		if (DEBUG) {
 			System.err.println("setStrokePaint: " + paint);
 		}
 		this.setPaint(paint, false);
 	}
 
+	@Override
 	public Paint getStrokePaint() {
 		return this.strokePaint;
 	}
 
-	public void setFillPaint(Paint paint) throws GraphicsException {
+	@Override
+	public void setFillPaint(final Paint paint) throws GraphicsException {
 		if (DEBUG) {
 			System.err.println("setFillPaint: " + paint);
 		}
 		this.setPaint(paint, true);
 	}
 
+	@Override
 	public Paint getFillPaint() {
 		return this.fillPaint;
 	}
 
-	protected void setPaint(Paint paint, boolean fill) throws GraphicsException {
+	protected void setPaint(final Paint paint, final boolean fill) throws GraphicsException {
 		if (fill) {
 			this.fillPaint = paint;
 			this.fillAlpha = 1;
@@ -582,42 +622,47 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
+	@Override
 	public float getStrokeAlpha() {
 		return this.strokeAlpha;
 	}
 
-	public void setStrokeAlpha(float strokeAlpha) {
+	@Override
+	public void setStrokeAlpha(final float strokeAlpha) {
 		this.strokeAlpha = strokeAlpha;
 	}
 
+	@Override
 	public float getFillAlpha() {
 		return this.fillAlpha;
 	}
 
-	public void setFillAlpha(float fillAlpha) {
+	@Override
+	public void setFillAlpha(final float fillAlpha) {
 		this.fillAlpha = fillAlpha;
 	}
 
-	public void setTextMode(TextMode textMode) {
+	@Override
+	public void setTextMode(final TextMode textMode) {
 		if (DEBUG) {
-			System.err.println("setTextMode: " + textMode);
+			LOG.fine("setTextMode: " + textMode);
 		}
 		this.textMode = textMode;
 	}
 
+	@Override
 	public TextMode getTextMode() {
 		return this.textMode;
 	}
 
-	public void transform(AffineTransform at) throws GraphicsException {
+	@Override
+	public void transform(final AffineTransform at) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("transform: " + at);
+			LOG.fine("transform: " + at);
 		}
 		if (at == null || at.isIdentity()) {
 			return;
 		}
-		// assert at.getScaleX() != 0;
-		// assert at.getScaleY() != 0;
 		assert !Double.isNaN(at.getTranslateX());
 		assert !Double.isNaN(at.getTranslateY());
 		assert !Double.isNaN(at.getScaleX());
@@ -641,13 +686,15 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
+	@Override
 	public AffineTransform getTransform() {
 		return this.actualTransform == null ? null : new AffineTransform(this.actualTransform);
 	}
 
-	public void clip(Shape clip) throws GraphicsException {
+	@Override
+	public void clip(final Shape clip) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("clip: " + (clip == null ? clip : clip.getBounds2D()));
+			LOG.fine("clip: " + (clip == null ? clip : clip.getBounds2D()));
 		}
 		try {
 			this.applyTransform();
@@ -658,54 +705,50 @@ public class PDFGC implements GC, Closeable {
 		this.clip = clip;
 	}
 
-	public void fill(Shape shape) throws GraphicsException {
+	@Override
+	public void fill(final Shape shape) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("fill: " + shape.getBounds2D());
+			LOG.fine("fill: " + shape.getBounds2D());
 		}
 		try {
 			this.applyStates();
-			int winding;
-			if (shape instanceof Rectangle2D) {
-				Rectangle2D r = (Rectangle2D) shape;
+			final int winding;
+			if (shape instanceof Rectangle2D r) {
 				if (this.out.equals(r.getWidth(), 0.0) || this.out.equals(r.getHeight(), 0.0)) {
 					return;
 				}
 				winding = PathIterator.WIND_NON_ZERO;
 				this.plotRect(r);
 			} else {
-				PathIterator i = shape.getPathIterator(null);
+				final var i = shape.getPathIterator(null);
 				winding = i.getWindingRule();
 				this.plot(i);
 			}
 
-			switch (winding) {
-				case PathIterator.WIND_NON_ZERO:
-					this.out.writeOperator("f");
-					break;
-				case PathIterator.WIND_EVEN_ODD:
-					this.out.writeOperator("f*");
-					break;
-				default:
-					throw new IllegalStateException();
-			}
+			final var operator = switch (winding) {
+				case PathIterator.WIND_NON_ZERO -> "f";
+				case PathIterator.WIND_EVEN_ODD -> "f*";
+				default -> throw new IllegalStateException("Unknown winding rule: " + winding);
+			};
+			this.out.writeOperator(operator);
 		} catch (IOException e) {
 			throw new GraphicsException(e);
 		}
 	}
 
-	public void draw(Shape shape) throws GraphicsException {
+	@Override
+	public void draw(final Shape shape) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("draw: " + shape.getBounds2D());
+			LOG.fine("draw: " + shape.getBounds2D());
 		}
 		try {
 			this.applyStates();
-			boolean close;
-			if (shape instanceof Rectangle2D) {
-				Rectangle2D r = (Rectangle2D) shape;
+			final boolean close;
+			if (shape instanceof Rectangle2D r) {
 				close = false;
 				this.plotRect(r);
 			} else {
-				PathIterator i = shape.getPathIterator(null);
+				final var i = shape.getPathIterator(null);
 				close = this.plot(i);
 			}
 
@@ -715,43 +758,40 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
-	public void fillDraw(Shape shape) throws GraphicsException {
+	@Override
+	public void fillDraw(final Shape shape) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("fillDraw: " + shape.getBounds2D());
+			LOG.fine("fillDraw: " + shape.getBounds2D());
 		}
 		try {
 			this.applyStates();
-			int winding;
-			boolean close;
-			if (shape instanceof Rectangle2D) {
-				Rectangle2D r = (Rectangle2D) shape;
+			final int winding;
+			final boolean close;
+			if (shape instanceof Rectangle2D r) {
 				winding = PathIterator.WIND_NON_ZERO;
 				close = false;
 				this.plotRect(r);
 			} else {
-				PathIterator i = shape.getPathIterator(null);
+				final var i = shape.getPathIterator(null);
 				winding = i.getWindingRule();
 				close = this.plot(i);
 			}
 
-			switch (winding) {
-				case PathIterator.WIND_NON_ZERO:
-					this.out.writeOperator(close ? "b" : "B");
-					break;
-				case PathIterator.WIND_EVEN_ODD:
-					this.out.writeOperator(close ? "b*" : "B*");
-					break;
-				default:
-					throw new IllegalStateException();
-			}
+			final var operator = switch (winding) {
+				case PathIterator.WIND_NON_ZERO -> close ? "b" : "B";
+				case PathIterator.WIND_EVEN_ODD -> close ? "b*" : "B*";
+				default -> throw new IllegalStateException("Unknown winding rule: " + winding);
+			};
+			this.out.writeOperator(operator);
 		} catch (IOException e) {
 			throw new GraphicsException(e);
 		}
 	}
 
-	public void drawImage(Image image) throws GraphicsException {
+	@Override
+	public void drawImage(final Image image) throws GraphicsException {
 		if (DEBUG) {
-			System.err.println("drawImage: " + image);
+			LOG.fine("drawImage: " + image);
 		}
 		try {
 			this.applyStates();
@@ -761,7 +801,7 @@ public class PDFGC implements GC, Closeable {
 		image.drawTo(this);
 	}
 
-	public void drawPDFImage(String name, double width, double height) throws GraphicsException {
+	public void drawPDFImage(final String name, final double width, final double height) throws GraphicsException {
 		try {
 			this.applyStates();
 			this.begin();
@@ -784,7 +824,8 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
-	public void drawText(Text text, double x, double y) throws GraphicsException {
+	@Override
+	public void drawText(final Text text, final double x, final double y) throws GraphicsException {
 		if (DEBUG) {
 			System.err.println("drawText: " + text);
 		}
@@ -792,10 +833,10 @@ public class PDFGC implements GC, Closeable {
 			return;
 		}
 
-		Font font = ((FontMetricsImpl) text.getFontMetrics()).getFont();
-		FontPolicyList fpl = text.getFontStyle().getPolicy();
+		final var font = ((FontMetricsImpl) text.getFontMetrics()).getFont();
+		final var fpl = text.getFontStyle().getPolicy();
 		boolean outline = false;
-		LOOP: for (int i = 0; i < fpl.getLength(); ++i) {
+		LOOP: for (var i = 0; i < fpl.getLength(); ++i) {
 			switch (fpl.get(i)) {
 				case EMBEDDED:
 				case CID_IDENTITY:
@@ -808,14 +849,14 @@ public class PDFGC implements GC, Closeable {
 			}
 		}
 		if (outline || font instanceof ImageFont) {
-			if (font instanceof DrawableFont) {
-				if (font instanceof ShapedFont) {
-					int glyphCount = text.getGlyphCount();
-					int[] glyphIds = text.getGlyphIds();
+			if (font instanceof DrawableFont df) {
+				if (font instanceof ShapedFont sf) {
+					final var glyphCount = text.getGlyphCount();
+					final var glyphIds = text.getGlyphIds();
 					boolean hasShape = false;
-					for (int i = 0; i < glyphCount; ++i) {
-						int gid = glyphIds[i];
-						Shape shape = ((ShapedFont) font).getShapeByGID(gid);
+					for (var i = 0; i < glyphCount; ++i) {
+						final var gid = glyphIds[i];
+						final var shape = sf.getShapeByGID(gid);
 						if (shape != null && !shape.getPathIterator(null).isDone()) {
 							hasShape = true;
 							break;
@@ -828,7 +869,7 @@ public class PDFGC implements GC, Closeable {
 				}
 				this.begin();
 				this.transform(AffineTransform.getTranslateInstance(x, y));
-				FontUtils.drawText(this, (DrawableFont) font, text);
+				FontUtils.drawText(this, df, text);
 				this.end();
 				return;
 			}
@@ -860,29 +901,21 @@ public class PDFGC implements GC, Closeable {
 
 			boolean localContext = false;
 			double size = fontStyle.getSize();
+			var drawX = x;
+			var drawY = y;
+
 			double enlargement;
-			Weight weight = fontStyle.getWeight();
+			final var weight = fontStyle.getWeight();
 			if (this.textMode == TextMode.FILL && weight.w >= 500 && source.getWeight().w < 500) {
 				// Simulate bold manually
-				switch (weight) {
-					case W_500:
-						enlargement = size / 28.0;
-						break;
-					case W_600:
-						enlargement = size / 24.0;
-						break;
-					case W_700:
-						enlargement = size / 20.0;
-						break;
-					case W_800:
-						enlargement = size / 16.0;
-						break;
-					case W_900:
-						enlargement = size / 12.0;
-						break;
-					default:
-						throw new IllegalStateException();
-				}
+				enlargement = switch (weight) {
+					case W_500 -> size / 28.0;
+					case W_600 -> size / 24.0;
+					case W_700 -> size / 20.0;
+					case W_800 -> size / 16.0;
+					case W_900 -> size / 12.0;
+					default -> throw new IllegalStateException("Unexpected weight: " + weight);
+				};
 				if (enlargement > 0 && this.fillPaint.getPaintType() == Paint.Type.COLOR && this.fillAlpha == 1) {
 					this.q();
 					localContext = true;
@@ -902,17 +935,15 @@ public class PDFGC implements GC, Closeable {
 				enlargement = 0;
 			}
 
-			// Text direction
-			Direction direction = fontStyle.getDirection();
+			final var direction = fontStyle.getDirection();
 			AffineTransform rotate = null;
 			double center = 0;
 			boolean verticalFont = false;
 			switch (direction) {
-				case LTR:
-				case RTL:// TODO RTL
+				case LTR, RTL -> { // TODO RTL
 					// Horizontal
-					break;
-				case TB:
+				}
+				case TB -> {
 					// Vertical
 					if (source.getDirection() == direction) {
 						// Vertical typesetting
@@ -923,23 +954,22 @@ public class PDFGC implements GC, Closeable {
 							this.q();
 							localContext = true;
 						}
-						rotate = AffineTransform.getRotateInstance(Math.PI / 2, x, y);
+						rotate = AffineTransform.getRotateInstance(Math.PI / 2, drawX, drawY);
 						this.out.writeTransform(rotate);
 						this.out.writeOperator("cm");
-						BBox bbox = source.getBBox();
+						final var bbox = source.getBBox();
 						center = ((bbox.lly() + bbox.ury()) * size / FontSource.DEFAULT_UNITS_PER_EM) / 2.0;
-						y += center;
+						drawY += center;
 					}
-					break;
-				default:
-					throw new IllegalStateException();
+				}
+				default -> throw new IllegalStateException("Unexpected direction: " + direction);
 			}
 
 			// Begin text
 			this.out.writeOperator("BT");
 
 			// Italic
-			Style style = fontStyle.getStyle();
+			final var style = fontStyle.getStyle();
 			if (style != Style.NORMAL && !source.isItalic()) {
 				// Simulate italic manually
 				if (verticalFont) {
@@ -948,7 +978,7 @@ public class PDFGC implements GC, Closeable {
 					this.out.writeReal(-0.25);
 					this.out.writeReal(0);
 					this.out.writeReal(1);
-					this.out.writePosition(x, y);
+					this.out.writePosition(drawX, drawY);
 					this.out.writeOperator("Tm");
 				} else {
 					// Horizontal italic
@@ -956,11 +986,11 @@ public class PDFGC implements GC, Closeable {
 					this.out.writeReal(0);
 					this.out.writeReal(0.25);
 					this.out.writeReal(1);
-					this.out.writePosition(x, y);
+					this.out.writePosition(drawX, drawY);
 					this.out.writeOperator("Tm");
 				}
 			} else {
-				this.out.writePosition(x, y);
+				this.out.writePosition(drawX, drawY);
 				this.out.writeOperator("Td");
 			}
 
@@ -1028,16 +1058,22 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
-	public GroupImageGC createGroupImage(double width, double height) {
+	@Override
+	public GroupImageGC createGroupImage(final double width, final double height) {
 		try {
-			final PDFGroupImage image = this.getPdfWriter().createGroupImage(width, height);
-			final GroupImageGC gc = new PdfGroupImageGC(image);
-			return gc;
+			final var image = this.getPdfWriter().createGroupImage(width, height);
+			return new PdfGroupImageGC(image);
 		} catch (IOException e) {
 			throw new GraphicsException(e);
 		}
 	}
 
+	/**
+	 * Outputs the current transform instruction (cm) and clears the transform
+	 * buffer.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	protected void applyTransform() throws IOException {
 		if (this.transform != null) {
 			this.gsave();
@@ -1047,87 +1083,96 @@ public class PDFGC implements GC, Closeable {
 		}
 	}
 
+	/**
+	 * Outputs the current clip instruction (W or W*) and clears the clip buffer.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	protected void applyClip() throws IOException {
 		if (this.clip != null) {
 			this.gsave();
-			int winding;
-			if (this.clip instanceof Rectangle2D) {
-				Rectangle2D r = (Rectangle2D) this.clip;
+			final int winding;
+			if (this.clip instanceof Rectangle2D r) {
 				winding = PathIterator.WIND_NON_ZERO;
-				this.out.writeRect((double) r.getX(), (double) r.getY(), (double) r.getWidth(), (double) r.getHeight());
+				this.out.writeRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
 				this.out.writeOperator("re");
 			} else {
-				PathIterator i = this.clip.getPathIterator(null);
+				final var i = this.clip.getPathIterator(null);
 				winding = i.getWindingRule();
 				this.plot(i);
 			}
 
-			switch (winding) {
-				case PathIterator.WIND_NON_ZERO:
-					this.out.writeOperator("W");
-					break;
-				case PathIterator.WIND_EVEN_ODD:
-					this.out.writeOperator("W*");
-					break;
-				default:
-					throw new IllegalStateException();
-			}
+			final var operator = switch (winding) {
+				case PathIterator.WIND_NON_ZERO -> "W";
+				case PathIterator.WIND_EVEN_ODD -> "W*";
+				default -> throw new IllegalStateException("Unknown winding rule: " + winding);
+			};
+			this.out.writeOperator(operator);
 			this.out.writeOperator("n");
 			this.clip = null;
 		}
 	}
 
-	private String getPaintName(Paint paint) throws GraphicsException {
-		switch (paint.getPaintType()) {
-			case PATTERN: {
-				String name;
-				Pattern pattern = (Pattern) paint;
-				Image image = pattern.getImage();
-				AffineTransform at = this.getTransform();
+	/**
+	 * Retrieves the PDF resource name for the given paint.
+	 *
+	 * @param paint The paint object.
+	 * @return The resource name.
+	 * @throws GraphicsException if an error occurs while creating the resource.
+	 */
+	private String getPaintName(final Paint paint) throws GraphicsException {
+		return switch (paint.getPaintType()) {
+			case PATTERN -> {
+				final var pattern = (Pattern) paint;
+				final var image = pattern.getImage();
+				var at = this.getTransform();
 				if (at == null) {
 					at = pattern.getTransform();
 				} else if (pattern.getTransform() != null) {
 					at.concatenate(pattern.getTransform());
 				}
 
-				PDFGraphicsOutput pout = (PDFGraphicsOutput) this.out;
-				PatternKey key = new PatternKey(pout.getWidth(), pout.getHeight(), image, at);
+				final var pout = this.out;
+				final var key = new PatternKey(pout.getWidth(), pout.getHeight(), image, at);
 
-				name = (String) this.patterns.get(key);
+				var name = this.resourceCache.get(key);
 				if (name == null) {
-					double width = image.getWidth();
-					double height = image.getHeight();
-					try (PDFNamedGraphicsOutput tout = pout.getPdfWriter().createTilingPattern(width, height,
-							pout.getHeight(), at)) {
-						PDFGC pgc = new PDFGC(tout, this.patterns);
+					final var width = image.getWidth();
+					final var height = image.getHeight();
+					try (final var tout = pout.getPdfWriter().createTilingPattern(width, height, pout.getHeight(),
+							at)) {
+						final var pgc = new PDFGC(tout, this.resourceCache);
 						image.drawTo(pgc);
 						name = tout.getName();
 					} catch (IOException e) {
-						new GraphicsException(e);
+						throw new GraphicsException(e);
 					}
-					this.patterns.put(key, name);
+					this.resourceCache.put(key, name);
 				}
-				return name;
+				yield name;
 			}
-			case LINEAR_GRADIENT: {
+			case LINEAR_GRADIENT -> {
 				// PDF Axial(Type 2) Shading
 				if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
-					return null;
+					yield null;
 				}
-				LinearGradient gradient = (LinearGradient) paint;
+				final var gradient = (LinearGradient) paint;
 
-				Color[] colors = gradient.colors();
-				double[] fractions = gradient.fractions();
-
-				AffineTransform at = this.getTransform();
+				var at = this.getTransform();
 				if (at == null) {
 					at = gradient.transform();
 				} else if (gradient.transform() != null) {
 					at.concatenate(gradient.transform());
 				}
 
-				PDFGraphicsOutput pout = (PDFGraphicsOutput) this.out;
-				try (PDFNamedOutput sout = pout.getPdfWriter().createShadingPattern(pout.getHeight(), at)) {
+				final var pout = this.out;
+				final var key = new ShadingKey(pout.getHeight(), at, gradient);
+				var name = this.resourceCache.get(key);
+				if (name != null) {
+					yield name;
+				}
+
+				try (final var sout = pout.getPdfWriter().createShadingPattern(pout.getHeight(), at)) {
 					sout.writeName("ShadingType");
 					sout.writeInt(2);
 					sout.lineBreak();
@@ -1140,42 +1185,47 @@ public class PDFGC implements GC, Closeable {
 					sout.writeReal(gradient.y2());
 					sout.endArray();
 					sout.lineBreak();
-					this.shadingFunction(sout, colors, fractions);
+					this.shadingFunction(sout, gradient.colors(), gradient.fractions());
 
-					return sout.getName();
+					name = sout.getName();
+					this.resourceCache.put(key, name);
+					yield name;
 				} catch (IOException e) {
 					throw new GraphicsException(e);
 				}
 			}
-			case RADIAL_GRADIENT: {
+			case RADIAL_GRADIENT -> {
 				// PDF Radial(Type 3) Shading
 				if (this.pdfVersion.v < PDFParams.Version.V_1_3.v) {
-					return null;
+					yield null;
 				}
-				RadialGradient gp = (RadialGradient) paint;
+				final var gp = (RadialGradient) paint;
+				final var radius = gp.radius();
 
-				Color[] colors = gp.colors();
-				double[] fractions = gp.fractions();
-				double radius = gp.radius();
-
-				AffineTransform at = this.getTransform();
+				var at = this.getTransform();
 				if (at == null) {
 					at = gp.transform();
 				} else if (gp.transform() != null) {
 					at.concatenate(gp.transform());
 				}
 
-				double dx = gp.fx() - gp.cx();
-				double dy = gp.fy() - gp.cy();
-				double d = Math.sqrt(dx * dx + dy * dy);
-				if (d > radius) {
-					double scale = (radius * .9999) / d;
-					dx = dx * scale;
-					dy = dy * scale;
+				final var pout = this.out;
+				final var key = new ShadingKey(pout.getHeight(), at, gp);
+				var name = this.resourceCache.get(key);
+				if (name != null) {
+					yield name;
 				}
 
-				PDFGraphicsOutput pout = (PDFGraphicsOutput) this.out;
-				try (PDFNamedOutput sout = pout.getPdfWriter().createShadingPattern(pout.getHeight(), at)) {
+				var dx = gp.fx() - gp.cx();
+				var dy = gp.fy() - gp.cy();
+				final var d = Math.sqrt(dx * dx + dy * dy);
+				if (d > radius) {
+					final var scale = (radius * .9999) / d;
+					dx *= scale;
+					dy *= scale;
+				}
+
+				try (final var sout = pout.getPdfWriter().createShadingPattern(pout.getHeight(), at)) {
 					sout.writeName("ShadingType");
 					sout.writeInt(3);
 					sout.lineBreak();
@@ -1191,50 +1241,56 @@ public class PDFGC implements GC, Closeable {
 					sout.endArray();
 					sout.lineBreak();
 
-					this.shadingFunction(sout, colors, fractions);
-					return sout.getName();
+					this.shadingFunction(sout, gp.colors(), gp.fractions());
+					name = sout.getName();
+					this.resourceCache.put(key, name);
+					yield name;
 				} catch (IOException e) {
 					throw new GraphicsException(e);
 				}
 			}
-
-			default:
-				throw new IllegalStateException();
-		}
+			case COLOR -> null;
+		};
 	}
 
-	protected void shadingFunction(PDFOutput sout, Color[] colors, double[] fractions) throws IOException {
+	/**
+	 * Configures the shading function for gradients.
+	 *
+	 * @param sout      The output stream.
+	 * @param colors    Array of colors.
+	 * @param fractions Array of color stop fractions.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	protected void shadingFunction(final PDFOutput sout, final Color[] colors, final double[] fractions)
+			throws IOException {
 		// TODO Alpha gradient
 		sout.writeName("ColorSpace");
-		Color.Type colorType;
-		if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.GRAY) {
+		final var params = this.getPdfWriter().getParams();
+		final Color.Type colorType;
+		if (params.getColorMode() == PDFParams.ColorMode.GRAY) {
 			colorType = Color.Type.GRAY;
-		} else if (this.getPdfWriter().getParams().getColorMode() == PDFParams.ColorMode.CMYK) {
+		} else if (params.getColorMode() == PDFParams.ColorMode.CMYK) {
 			colorType = Color.Type.CMYK;
 		} else {
-			colorType = colors[0].getColorType();
-			for (int i = 1; i < colors.length; ++i) {
-				if (colorType != colors[i].getColorType()) {
-					colorType = Color.Type.RGB;
+			var type = colors[0].getColorType();
+			for (var i = 1; i < colors.length; ++i) {
+				if (type != colors[i].getColorType()) {
+					type = Color.Type.RGB;
 				}
 			}
-			if (colorType == Color.Type.RGBA) {
-				colorType = Color.Type.RGB;
+			if (type == Color.Type.RGBA) {
+				type = Color.Type.RGB;
 			}
+			colorType = type;
 		}
-		switch (colorType) {
-			case GRAY:
-				sout.writeName("DeviceGray");
-				break;
-			case RGB:
-				sout.writeName("DeviceRGB");
-				break;
-			case CMYK:
-				sout.writeName("DeviceCMYK");
-				break;
-			default:
-				throw new IllegalStateException();
-		}
+
+		final var colorSpaceName = switch (colorType) {
+			case GRAY -> "DeviceGray";
+			case RGB -> "DeviceRGB";
+			case CMYK -> "DeviceCMYK";
+			default -> throw new IllegalStateException("Unexpected color type: " + colorType);
+		};
+		sout.writeName(colorSpaceName);
 		sout.lineBreak();
 
 		sout.writeName("Extend");
@@ -1250,9 +1306,6 @@ public class PDFGC implements GC, Closeable {
 				&& (fractions == null || fractions.length == 0 || (fractions.length == 1 && fractions[0] == 0)
 						|| (fractions.length == 2 && fractions[0] == 0 && fractions[1] == 1))) {
 			// Simple case
-			Color c0 = colors[0];
-			Color c1 = colors[1];
-
 			sout.writeName("FunctionType");
 			sout.writeInt(2);
 			sout.lineBreak();
@@ -1270,18 +1323,18 @@ public class PDFGC implements GC, Closeable {
 
 			sout.writeName("C0");
 			sout.startArray();
-			writeColor(sout, colorType, c0);
+			writeColor(sout, colorType, colors[0]);
 			sout.endArray();
 			sout.lineBreak();
 
 			sout.writeName("C1");
 			sout.startArray();
-			writeColor(sout, colorType, c1);
+			writeColor(sout, colorType, colors[1]);
 			sout.endArray();
 			sout.lineBreak();
 		} else {
 			// Complex case
-			int segments = fractions.length - 1;
+			var segments = fractions.length - 1;
 			if (fractions[0] != 0) {
 				++segments;
 			}
@@ -1302,7 +1355,7 @@ public class PDFGC implements GC, Closeable {
 
 			sout.writeName("Encode");
 			sout.startArray();
-			for (int i = 0; i < segments; ++i) {
+			for (var i = 0; i < segments; ++i) {
 				sout.writeReal(0.0);
 				sout.writeReal(1.0);
 			}
@@ -1314,7 +1367,7 @@ public class PDFGC implements GC, Closeable {
 			if (fractions[0] != 0) {
 				sout.writeReal(fractions[0]);
 			}
-			for (int i = 1; i < fractions.length - 1; ++i) {
+			for (var i = 1; i < fractions.length - 1; ++i) {
 				sout.writeReal(fractions[i]);
 			}
 			if (fractions[fractions.length - 1] != 1) {
@@ -1325,8 +1378,8 @@ public class PDFGC implements GC, Closeable {
 
 			sout.writeName("Functions");
 			sout.startArray();
-			for (int i = -1; i < fractions.length; ++i) {
-				Color c0, c1;
+			for (var i = -1; i < fractions.length; ++i) {
+				final Color c0, c1;
 				if (i == -1) {
 					if (fractions[0] != 0) {
 						c0 = colors[0];
@@ -1382,33 +1435,47 @@ public class PDFGC implements GC, Closeable {
 		sout.lineBreak();
 	}
 
-	private static void writeColor(PDFOutput sout, Color.Type colorType, Color color) throws IOException {
+	/**
+	 * Writes color components to the output.
+	 *
+	 * @param sout      The output stream.
+	 * @param colorType The target color space type.
+	 * @param color     The color object.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	private static void writeColor(final PDFOutput sout, final Color.Type colorType, final Color color)
+			throws IOException {
 		switch (colorType) {
-			case GRAY:
-				if (color.getColorType() == Color.Type.GRAY) {
-					sout.writeReal(((GrayColor) color).getComponent(0));
-					break;
+			case GRAY -> {
+				if (color instanceof GrayColor gray) {
+					sout.writeReal(gray.getComponent(0));
+				} else {
+					sout.writeReal(ColorUtils.toGray(color.getRed(), color.getGreen(), color.getBlue()));
 				}
-				sout.writeReal(ColorUtils.toGray(color.getRed(), color.getGreen(), color.getBlue()));
-				break;
-			case RGB:
+			}
+			case RGB -> {
 				sout.writeReal(color.getRed());
 				sout.writeReal(color.getGreen());
 				sout.writeReal(color.getBlue());
-				break;
-			case CMYK:
-				CMYKColor cmyk = ColorUtils.toCMYK(color);
+			}
+			case CMYK -> {
+				final var cmyk = ColorUtils.toCMYK(color);
 				sout.writeReal(cmyk.getComponent(CMYKColor.C));
 				sout.writeReal(cmyk.getComponent(CMYKColor.M));
 				sout.writeReal(cmyk.getComponent(CMYKColor.Y));
 				sout.writeReal(cmyk.getComponent(CMYKColor.K));
-				break;
-			default:
-				throw new IllegalStateException();
+			}
+			default -> throw new IllegalStateException("Unexpected color type: " + colorType);
 		}
 	}
 
+	/**
+	 * Synchronizes the current graphics state with the PDF output.
+	 *
+	 * @throws IOException if an I/O error occurs.
+	 */
 	protected void applyStates() throws IOException {
+		final var out = this.out;
 		// Transform
 		this.applyTransform();
 		this.applyClip();
@@ -1416,141 +1483,135 @@ public class PDFGC implements GC, Closeable {
 		// Stroke
 		if (this.lineWidth != this.xlineWidth) {
 			this.xlineWidth = this.lineWidth;
-			this.out.writeReal(this.lineWidth);
-			this.out.writeOperator("w");
+			out.writeReal(this.lineWidth);
+			out.writeOperator("w");
 		}
 		if (this.lineCap != this.xlineCap) {
 			this.xlineCap = this.lineCap;
-			this.out.writeInt(this.lineCap.code);
-			this.out.writeOperator("J");
+			out.writeInt(this.lineCap.code);
+			out.writeOperator("J");
 		}
 		if (this.lineJoin != this.xlineJoin) {
 			this.xlineJoin = this.lineJoin;
-			this.out.writeInt(this.lineJoin.j);
-			this.out.writeOperator("j");
+			out.writeInt(this.lineJoin.j);
+			out.writeOperator("j");
 		}
 		if (!Arrays.equals(this.linePattern, this.xlinePattern)) {
 			this.xlinePattern = this.linePattern;
-			this.out.startArray();
+			out.startArray();
 			if (this.linePattern != null) {
-				for (int i = 0; i < this.linePattern.length; ++i) {
-					this.out.writeReal(this.linePattern[i]);
+				for (final var p : this.linePattern) {
+					out.writeReal(p);
 				}
 			}
-			this.out.endArray();
-			this.out.writeInt(0);
-			this.out.writeOperator("d");
+			out.endArray();
+			out.writeInt(0);
+			out.writeOperator("d");
 		}
 
 		// Color
 		if (this.strokePaint != null && !this.strokePaint.equals(this.xstrokePaint)) {
 			switch (this.strokePaint.getPaintType()) {
-				case COLOR:
+				case COLOR -> {
 					if (this.xstrokePaint != null && this.xstrokePaint.getPaintType() != Paint.Type.COLOR) {
-						this.out.writeName("DeviceRGB");
-						this.out.writeOperator("CS");
+						out.writeName("DeviceRGB");
+						out.writeOperator("CS");
 					}
-					this.out.writeStrokeColor((Color) this.strokePaint);
-					break;
-				case PATTERN:
-				case LINEAR_GRADIENT:
-				case RADIAL_GRADIENT:
-					String name = this.getPaintName(this.strokePaint);
+					out.writeStrokeColor((Color) this.strokePaint);
+				}
+				case PATTERN, LINEAR_GRADIENT, RADIAL_GRADIENT -> {
+					final var name = this.getPaintName(this.strokePaint);
 					if (name != null) {
-						this.out.writeName("Pattern");
-						this.out.writeOperator("CS");
-						this.out.useResource("Pattern", name);
-						this.out.writeName(name);
-						this.out.writeOperator("SCN");
+						out.writeName("Pattern");
+						out.writeOperator("CS");
+						out.useResource("Pattern", name);
+						out.writeName(name);
+						out.writeOperator("SCN");
 					}
-					break;
-				default:
-					throw new IllegalStateException();
+				}
+				default -> throw new IllegalStateException("Unexpected paint type: " + this.strokePaint.getPaintType());
 			}
 			this.xstrokePaint = this.strokePaint;
 		}
 		if (this.fillPaint != null && !this.fillPaint.equals(this.xfillPaint)) {
 			switch (this.fillPaint.getPaintType()) {
-				case COLOR:
+				case COLOR -> {
 					if (this.xfillPaint != null && this.xfillPaint.getPaintType() != Paint.Type.COLOR) {
-						this.out.writeName("DeviceRGB");
-						this.out.writeOperator("cs");
+						out.writeName("DeviceRGB");
+						out.writeOperator("cs");
 					}
-					this.out.writeFillColor((Color) this.fillPaint);
-					break;
-				case PATTERN:
-				case LINEAR_GRADIENT:
-				case RADIAL_GRADIENT:
-					String name = this.getPaintName(this.fillPaint);
+					out.writeFillColor((Color) this.fillPaint);
+				}
+				case PATTERN, LINEAR_GRADIENT, RADIAL_GRADIENT -> {
+					final var name = this.getPaintName(this.fillPaint);
 					if (name != null) {
-						this.out.writeName("Pattern");
-						this.out.writeOperator("cs");
-						this.out.useResource("Pattern", name);
-						this.out.writeName(name);
-						this.out.writeOperator("scn");
+						out.writeName("Pattern");
+						out.writeOperator("cs");
+						out.useResource("Pattern", name);
+						out.writeName(name);
+						out.writeOperator("scn");
 					}
-					break;
-				default:
-					throw new IllegalStateException();
+				}
+				default -> throw new IllegalStateException("Unexpected paint type: " + this.fillPaint.getPaintType());
 			}
 			this.xfillPaint = this.fillPaint;
 		}
 
 		// Opacity
-		boolean supportAlpha = this.pdfVersion.v >= PDFParams.Version.V_1_4.v
+		final var supportAlpha = this.pdfVersion.v >= PDFParams.Version.V_1_4.v
 				&& this.pdfVersion.v != PDFParams.Version.V_PDFA1B.v
 				&& this.pdfVersion.v != PDFParams.Version.V_PDFX1A.v;
 		// When transparency is supported
-		if ((supportAlpha && (this.strokeAlpha != this.xstrokeAlpha || this.fillAlpha != this.xfillAlpha))
+		if ((supportAlpha && (!this.out.equals(this.strokeAlpha, this.xstrokeAlpha)
+				|| !this.out.equals(this.fillAlpha, this.xfillAlpha)))
 				|| (this.strokeOverprint != this.xstrokeOverprint || this.fillOverprint != this.xfillOverprint)) {
 			this.xstrokeAlpha = this.strokeAlpha;
 			this.xfillAlpha = this.fillAlpha;
 			this.xstrokeOverprint = this.strokeOverprint;
 			this.xfillOverprint = this.fillOverprint;
 			@SuppressWarnings("unchecked")
-			Map<String, String> gs = (Map<String, String>) this.out.getPdfWriter().getAttribute("sfGs");
-			if (gs == null) {
-				gs = new HashMap<String, String>();
-				this.out.getPdfWriter().putAttribute("sfGs", gs);
+			var gsCache = (Map<ExtGStateKey, String>) this.out.getPdfWriter().getAttribute("sfGsCache");
+			if (gsCache == null) {
+				gsCache = new HashMap<>();
+				this.out.getPdfWriter().putAttribute("sfGsCache", gsCache);
 			}
-			String key = (supportAlpha ? (this.strokeAlpha + "/" + this.fillAlpha) : "") + "/" + this.fillOverprint
-					+ "/" + this.strokeOverprint;
-			String name = (String) gs.get(key);
-			try {
-				if (name == null) {
-					try (PDFNamedOutput gsOut = this.out.getPdfWriter().createSpecialGraphicsState()) {
-						if (supportAlpha) {
-							gsOut.writeName("CA");
-							gsOut.writeReal(this.strokeAlpha);
-							gsOut.writeName("ca");
-							gsOut.writeReal(this.fillAlpha);
-						}
-						if (this.strokeOverprint != CMYKColor.OVERPRINT_NONE) {
-							gsOut.writeName("OP");
-							gsOut.writeBoolean(true);
-							if (this.strokeOverprint == CMYKColor.OVERPRINT_ILLUSTRATOR) {
-								gsOut.writeName("OPM");
-								gsOut.writeInt(1);
-							}
-						}
-						if (this.fillOverprint != CMYKColor.OVERPRINT_NONE) {
-							gsOut.writeName("op");
-							gsOut.writeBoolean(true);
-							if (this.fillOverprint == CMYKColor.OVERPRINT_ILLUSTRATOR) {
-								gsOut.writeName("opm");
-								gsOut.writeInt(1);
-							}
-						}
-						name = gsOut.getName();
-						gs.put(key, name);
+			final var key = new ExtGStateKey(
+					supportAlpha ? this.strokeAlpha : 1.0f,
+					supportAlpha ? this.fillAlpha : 1.0f,
+					this.strokeOverprint,
+					this.fillOverprint);
+			var name = gsCache.get(key);
+			if (name == null) {
+				try (final var gsOut = this.out.getPdfWriter().createSpecialGraphicsState()) {
+					if (supportAlpha) {
+						gsOut.writeName("CA");
+						gsOut.writeReal(this.strokeAlpha);
+						gsOut.writeName("ca");
+						gsOut.writeReal(this.fillAlpha);
 					}
+					if (this.strokeOverprint != CMYKColor.OVERPRINT_NONE) {
+						gsOut.writeName("OP");
+						gsOut.writeBoolean(true);
+						if (this.strokeOverprint == CMYKColor.OVERPRINT_ILLUSTRATOR) {
+							gsOut.writeName("OPM");
+							gsOut.writeInt(1);
+						}
+					}
+					if (this.fillOverprint != CMYKColor.OVERPRINT_NONE) {
+						gsOut.writeName("op");
+						gsOut.writeBoolean(true);
+						if (this.fillOverprint == CMYKColor.OVERPRINT_ILLUSTRATOR) {
+							gsOut.writeName("opm");
+							gsOut.writeInt(1);
+						}
+					}
+					name = gsOut.getName();
+					gsCache.put(key, name);
 				}
-				this.out.useResource("ExtGState", name);
-				this.out.writeName(name);
-				this.out.writeOperator("gs");
-			} catch (IOException e) {
-				throw new GraphicsException(e);
 			}
+			out.useResource("ExtGState", name);
+			out.writeName(name);
+			out.writeOperator("gs");
 		}
 	}
 
@@ -1558,17 +1619,18 @@ public class PDFGC implements GC, Closeable {
 	 * If the current graphics state is applied for the first time,
 	 * outputs the graphics context start instruction (q) and saves the current
 	 * graphics state.
-	 * 
+	 *
 	 * @throws IOException if an I/O error occurs
 	 */
 	private void gsave() throws IOException {
 		if (this.stack.isEmpty()) {
 			return;
 		}
-		GraphicsState state = (GraphicsState) this.stack.get(this.stack.size() - 1);
+		final var state = this.stack.getLast();
 		if (state.gstate == null) {
 			this.q();
-			state.gstate = new XGraphicsState(this);
+			final var newState = state.withXState(new XGraphicsState(this));
+			this.stack.set(this.stack.size() - 1, newState);
 		}
 	}
 
@@ -1576,18 +1638,23 @@ public class PDFGC implements GC, Closeable {
 	 * If a previous graphics state is saved,
 	 * outputs the graphics context end instruction (Q) and restores the graphics
 	 * state.
-	 * 
+	 *
 	 * @throws IOException if an I/O error occurs
 	 */
 	private void grestore() throws IOException {
-		GraphicsState state = (GraphicsState) this.stack.get(this.stack.size() - 1);
+		final var state = this.stack.getLast();
 		if (state.gstate != null) {
 			this.Q();
 			state.gstate.restore(this);
-			state.gstate = null;
+			this.stack.set(this.stack.size() - 1, state.withoutXState());
 		}
 	}
 
+	/**
+	 * Outputs the graphics context start instruction (q).
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	private void q() throws IOException {
 		++this.qDepth;
 		if (this.pdfVersion.v == PDFParams.Version.V_PDFA1B.v) {
@@ -1598,57 +1665,104 @@ public class PDFGC implements GC, Closeable {
 		this.out.writeOperator("q");
 	}
 
+	/**
+	 * Outputs the graphics context end instruction (Q).
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	private void Q() throws IOException {
 		--this.qDepth;
 		this.out.writeOperator("Q");
 	}
 
-	protected void plotRect(Rectangle2D r) throws IOException {
-		this.out.writeRect((double) r.getX(), (double) r.getY(), (double) r.getWidth(), (double) r.getHeight());
+	/**
+	 * Plots a rectangle in the PDF.
+	 *
+	 * @param r The rectangle to plot.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	protected void plotRect(final Rectangle2D r) throws IOException {
+		this.out.writeRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
 		this.out.writeOperator("re");
 	}
 
-	protected boolean plot(PathIterator i) throws IOException {
-		double[] cord = new double[6];
-		double sx = 0, sy = 0;
+	/**
+	 * Plots a path in the PDF.
+	 *
+	 * @param i The path iterator.
+	 * @return true if the path is closed.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	protected boolean plot(final PathIterator i) throws IOException {
+		final var out = this.out;
+		final var c = this.cord;
+
+		var sx = 0.0;
+		var sy = 0.0;
+		var px = 0.0;
+		var py = 0.0;
+		var first = true;
+
 		while (!i.isDone()) {
-			int type = i.currentSegment(cord);
+			final var type = i.currentSegment(c);
 			switch (type) {
-				case PathIterator.SEG_MOVETO:
-					this.out.writePosition(sx = cord[0], sy = cord[1]);
-					this.out.writeOperator("m");
-					break;
-				case PathIterator.SEG_LINETO:
-					this.out.writePosition(sx = cord[0], sy = cord[1]);
-					this.out.writeOperator("l");
-					break;
-				case PathIterator.SEG_QUADTO:
-					double cx = cord[0];
-					double cy = cord[1];
-					double ex = cord[2];
-					double ey = cord[3];
-					double x1 = (sx + 2.0 * cx) / 3.0;
-					double y1 = (sy + 2.0 * cy) / 3.0;
-					double x2 = (ex + 2.0 * cx) / 3.0;
-					double y2 = (ey + 2.0 * cy) / 3.0;
-					this.out.writePosition(x1, y1);
-					this.out.writePosition(x2, y2);
-					this.out.writePosition(sx = ex, sy = ey);
-					this.out.writeOperator("c");
-					break;
-				case PathIterator.SEG_CUBICTO:
-					this.out.writePosition(cord[0], cord[1]);
-					this.out.writePosition(cord[2], cord[3]);
-					this.out.writePosition(sx = cord[4], sy = cord[5]);
-					this.out.writeOperator("c");
-					break;
-				case PathIterator.SEG_CLOSE:
+				case PathIterator.SEG_LINETO -> {
+					final var x = c[0];
+					final var y = c[1];
+					if (first || !out.equals(x, px) || !out.equals(y, py)) {
+						out.writePosition(x, y);
+						out.writeOperator("l");
+						px = x;
+						py = y;
+					}
+					sx = x;
+					sy = y;
+					first = false;
+				}
+				case PathIterator.SEG_MOVETO -> {
+					sx = px = c[0];
+					sy = py = c[1];
+					out.writePosition(sx, sy);
+					out.writeOperator("m");
+					first = false;
+				}
+				case PathIterator.SEG_CUBICTO -> {
+					out.writePosition(c[0], c[1]);
+					out.writePosition(c[2], c[3]);
+					sx = c[4];
+					sy = c[5];
+					out.writePosition(sx, sy);
+					out.writeOperator("c");
+					px = sx;
+					py = sy;
+					first = false;
+				}
+				case PathIterator.SEG_QUADTO -> {
+					final var cx = c[0];
+					final var cy = c[1];
+					final var ex = c[2];
+					final var ey = c[3];
+					out.writePosition(sx * ONE_THIRD + cx * TWO_THIRD, sy * ONE_THIRD + cy * TWO_THIRD);
+					out.writePosition(ex * ONE_THIRD + cx * TWO_THIRD, ey * ONE_THIRD + cy * TWO_THIRD);
+					sx = ex;
+					sy = ey;
+					out.writePosition(sx, sy);
+					out.writeOperator("c");
+					px = sx;
+					py = sy;
+					first = false;
+				}
+				case PathIterator.SEG_CLOSE -> {
 					i.next();
 					if (i.isDone()) {
 						return true;
 					}
-					this.out.writeOperator("h");
+					out.writeOperator("h");
+					px = sx;
+					py = sy;
 					continue;
+				}
+				default -> throw new IllegalStateException("Unknown segment type: " + type);
 			}
 			i.next();
 		}

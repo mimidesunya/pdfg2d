@@ -57,39 +57,32 @@ public interface PDFWriter extends Closeable {
 	FontManager getFontManager();
 
 	/**
-	 * Loads an image.
+	 * Loads an image from the specified source.
 	 * 
-	 * @param source the image source
-	 * @return the PDF image information; the name can be used for referencing in
-	 *         graphics operations
-	 * @throws IOException in case of I/O error
+	 * @param source The image source
+	 * @return The PDF image representation
+	 * @throws IOException If an I/O error occurs
 	 */
-	Image loadImage(Source source) throws IOException;
+	Image loadImage(final Source source) throws IOException;
 
 	/**
 	 * Adds an image from a BufferedImage.
 	 * 
-	 * @param image the buffered image
-	 * @return the PDF image information; the name can be used for referencing in
-	 *         graphics operations
-	 * @throws IOException in case of I/O error
+	 * @param image The buffered image to add
+	 * @return The PDF image representation
+	 * @throws IOException If an I/O error occurs
 	 */
-	Image addImage(BufferedImage image) throws IOException;
+	Image addImage(final BufferedImage image) throws IOException;
 
 	/**
-	 * Adds an attachment file. At least one of name or desc in attachment parameter
-	 * is required.
-	 * <p>
-	 * The returned stream should be used to write the file content immediately and
-	 * then closed.
-	 * </p>
+	 * Adds an attachment file.
 	 * 
-	 * @param name       the name
-	 * @param attachment the attachment information
-	 * @return the output stream for attachment content
-	 * @throws IOException in case of I/O error
+	 * @param name       The attachment name
+	 * @param attachment The attachment metadata
+	 * @return Output stream to write the attachment content
+	 * @throws IOException If an I/O error occurs
 	 */
-	OutputStream addAttachment(String name, Attachment attachment) throws IOException;
+	OutputStream addAttachment(final String name, final Attachment attachment) throws IOException;
 
 	/**
 	 * Creates a special extended graphics state.
@@ -140,16 +133,13 @@ public interface PDFWriter extends Closeable {
 
 	/**
 	 * Creates a new page.
-	 * <p>
-	 * The returned PDFPageOutput must be closed after writing the page content.
-	 * </p>
 	 * 
-	 * @param width  page width
-	 * @param height page height
-	 * @return the page output context
-	 * @throws IOException in case of I/O error
+	 * @param width  Page width
+	 * @param height Page height
+	 * @return The page output context
+	 * @throws IOException If an I/O error occurs
 	 */
-	PDFPageOutput nextPage(double width, double height) throws IOException;
+	PDFPageOutput nextPage(final double width, final double height) throws IOException;
 
 	Object getAttribute(Object key);
 

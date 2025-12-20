@@ -10,11 +10,13 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCII85OutputStream;
 import net.zamasoft.pdfg2d.pdf.util.codec.ASCIIHexOutputStream;
-import net.zamasoft.pdfg2d.pdf.util.encryption.Encryptor;
 import net.zamasoft.pdfg2d.pdf.util.io.FastBufferedOutputStream;
 
 /**
- * Implementation of PDFFragmentOutput.
+ * Concrete implementation of PDFFragmentOutput.
+ * This class handles the actual writing of PDF objects, streams, and encrypted
+ * content
+ * into fragmented output segments.
  * 
  * @author MIYABE Tatsuhiko
  */
@@ -38,9 +40,10 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 	private byte[] buff = null;
 
-	public PDFFragmentOutputImpl(final OutputStream out, final PDFWriterImpl pdfWriter, final int id, final int nextId,
-			final ObjectRef currentRef) throws IOException {
+	public PDFFragmentOutputImpl(final OutputStream out, final PDFWriterImpl pdfWriter, final int id,
+			final int nextId, final ObjectRef currentRef) throws IOException {
 		super(out, pdfWriter.getParams().getPlatformEncoding());
+		this.setPrecision(pdfWriter.getParams().getPrecision());
 		this.pdfWriter = pdfWriter;
 		this.id = id;
 		this.anchorId = nextId;
@@ -54,24 +57,30 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		return this.buff;
 	}
 
+	/**
+	 * Creates a new fragment and links it to the current output structure.
+	 * 
+	 * @return A new PDFFragmentOutputImpl instance.
+	 * @throws IOException If an I/O error occurs.
+	 */
 	protected PDFFragmentOutputImpl forkFragment() throws IOException {
 		this.close();
-		final int nextId = this.pdfWriter.nextId();
+		final var builder = this.pdfWriter.builder;
+		final var nextId = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
-			this.pdfWriter.builder.addFragment();
+			builder.addFragment();
 		} else {
-			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
+			builder.insertFragmentBefore(this.anchorId);
 		}
-		final OutputStream out = new FragmentOutputAdapter(this.pdfWriter.builder, nextId);
+		final var streamOut = new FragmentOutputAdapter(builder, nextId);
 		this.id = this.pdfWriter.nextId();
 		if (this.anchorId == -1) {
-			this.pdfWriter.builder.addFragment();
+			builder.addFragment();
 		} else {
-			this.pdfWriter.builder.insertFragmentBefore(this.anchorId);
+			builder.insertFragmentBefore(this.anchorId);
 		}
-		final PDFFragmentOutputImpl newFragOut = new PDFFragmentOutputImpl(out, this.pdfWriter, nextId, this.id,
-				this.currentRef);
-		this.out = new FragmentOutputAdapter(this.pdfWriter.builder, this.id);
+		final var newFragOut = new PDFFragmentOutputImpl(streamOut, this.pdfWriter, nextId, this.id, this.currentRef);
+		this.out = new FragmentOutputAdapter(builder, this.id);
 		this.length = 0;
 		return newFragOut;
 	}
@@ -110,68 +119,62 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 	}
 
 	@Override
-	@SuppressWarnings("resource")
 	public OutputStream startStreamFromHash(final Mode mode) throws IOException {
 		if (this.streamLengthFlow != null) {
 			throw new IllegalStateException("Cannot nest streams: " + this.streamLengthFlow);
 		}
 
+		final var compression = this.pdfWriter.params.getCompression();
 		switch (mode) {
-			case RAW:
-				break;
-
-			case ASCII:
-				switch (this.pdfWriter.params.getCompression()) {
-					case NONE:
-						break;
-					case ASCII:
+			case RAW -> {
+			}
+			case ASCII -> {
+				switch (compression) {
+					case ASCII -> {
 						this.writeName("Filter");
 						this.startArray();
 						this.writeName("ASCII85Decode");
 						this.writeName("FlateDecode");
 						this.endArray();
 						this.breakBefore();
-						break;
-					case BINARY:
+					}
+					case BINARY -> {
 						this.writeName("Filter");
 						this.startArray();
 						this.writeName("FlateDecode");
 						this.endArray();
 						this.breakBefore();
-						break;
+					}
+					default -> {
+					}
 				}
-				break;
-
-			case BINARY:
-				switch (this.pdfWriter.params.getCompression()) {
-					case NONE:
+			}
+			case BINARY -> {
+				switch (compression) {
+					case NONE -> {
 						this.writeName("Filter");
 						this.startArray();
 						this.writeName("ASCIIHexDecode");
 						this.endArray();
 						this.breakBefore();
-						break;
-					case ASCII:
+					}
+					case ASCII -> {
 						this.writeName("Filter");
 						this.startArray();
 						this.writeName("ASCII85Decode");
 						this.writeName("FlateDecode");
 						this.endArray();
 						this.breakBefore();
-						break;
-					case BINARY:
+					}
+					case BINARY -> {
 						this.writeName("Filter");
 						this.startArray();
 						this.writeName("FlateDecode");
 						this.endArray();
 						this.breakBefore();
-						break;
-					default:
-						throw new IllegalStateException();
+					}
 				}
-				break;
-			default:
-				throw new IllegalStateException();
+			}
 		}
 
 		this.writeName("Length");
@@ -183,74 +186,53 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 		this.flush();
 		this.startStreamPosition = this.getLength();
 
-		OutputStream out = new FilterOutputStream(this) {
+		var flowOut = (OutputStream) new FilterOutputStream(this) {
 			@Override
 			public void close() throws IOException {
 				PDFFragmentOutputImpl.this.endStream();
 			}
 		};
 
-		// Encryption
+		// Apply encryption if enabled
 		if (this.pdfWriter.encryption != null) {
-			out = this.pdfWriter.encryption.getEncryptor(this.currentRef).getOutputStream(out);
+			flowOut = this.pdfWriter.encryption.getEncryptor(this.currentRef).getOutputStream(flowOut);
 		}
 
-		// Encodings
-		switch (mode) {
-			case RAW:
-				break;
-
-			case ASCII:
-				switch (this.pdfWriter.params.getCompression()) {
-					case NONE:
-						break;
-					case ASCII:
-						out = new DeflaterOutputStream(new ASCII85OutputStream(out));
-						break;
-					case BINARY:
-						out = new DeflaterOutputStream(out);
-						break;
-					default:
-						throw new IllegalArgumentException();
-				}
-				out = new FastBufferedOutputStream(out, this.getBuff());
-				break;
-
-			case BINARY:
-				switch (this.pdfWriter.params.getCompression()) {
-					case NONE:
-						out = new ASCIIHexOutputStream(out);
-						break;
-					case ASCII:
-						out = new DeflaterOutputStream(new ASCII85OutputStream(out));
-						break;
-					case BINARY:
-						out = new DeflaterOutputStream(out);
-						break;
-					default:
-						throw new IllegalArgumentException();
-				}
-				out = new FastBufferedOutputStream(out, this.getBuff());
-				break;
-			default:
-				throw new IllegalArgumentException();
-		}
-
-		return out;
+		// Apply final output encoding/compression based on mode and configuration
+		final var output = switch (mode) {
+			case RAW -> flowOut;
+			case ASCII -> {
+				final var encodedOut = switch (compression) {
+					case ASCII -> new DeflaterOutputStream(new ASCII85OutputStream(flowOut));
+					case BINARY -> new DeflaterOutputStream(flowOut);
+					default -> flowOut;
+				};
+				yield new FastBufferedOutputStream(encodedOut, this.getBuff());
+			}
+			case BINARY -> {
+				final var encodedOut = switch (compression) {
+					case NONE -> new ASCIIHexOutputStream(flowOut);
+					case ASCII -> new DeflaterOutputStream(new ASCII85OutputStream(flowOut));
+					case BINARY -> new DeflaterOutputStream(flowOut);
+				};
+				yield new FastBufferedOutputStream(encodedOut, this.getBuff());
+			}
+		};
+		return output;
 	}
 
 	/**
-	 * Writes end of stream.
+	 * Finalizes the current stream fragment, calculating its length and writing
+	 * the end-of-stream markers.
 	 * 
-	 * @throws IOException in case of I/O error
+	 * @throws IOException If an I/O error occurs.
 	 */
 	protected void endStream() throws IOException {
 		this.streamLengthFlow.writeInt(this.getLength() - this.startStreamPosition);
 		this.streamLengthFlow.close();
 		this.streamLengthFlow = null;
 		this.startStreamPosition = 0;
-		// In PDF/A-1, insert EOL before endstream, this length is not included in
-		// Length
+		// Required EOL before endstream in some PDF profiles
 		this.lineBreak();
 		this.writeLine("endstream");
 	}
@@ -261,7 +243,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			super.writeBytes16(c);
 			return;
 		}
-		final byte[] data = new byte[2];
+		final var data = new byte[2];
 		data[0] = (byte) ((c >> 8) & 0xFF);
 		data[1] = (byte) (c & 0xFF);
 		this.writeEncryptedBytes8(data, 0, data.length);
@@ -273,25 +255,40 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			super.writeBytes16(a, off, len);
 			return;
 		}
-		final byte[] data = new byte[len * 2];
-		for (int i = 0; i < len; ++i) {
-			final int c = a[i + off];
+		final var data = new byte[len * 2];
+		for (var i = 0; i < len; ++i) {
+			final var c = a[i + off];
 			data[i * 2] = (byte) ((c >> 8) & 0xFF);
 			data[i * 2 + 1] = (byte) (c & 0xFF);
 		}
 		this.writeEncryptedBytes8(data, 0, data.length);
 	}
 
-	protected void writeEncryptedBytes8(byte[] data, int off, int len) throws IOException {
-		final Encryptor e = this.pdfWriter.encryption.getEncryptor(this.currentRef);
-		if (e.isBlock()) {
-			data = e.blockEncrypt(data, off, len);
-			off = 0;
-			len = data.length;
+	/**
+	 * Writes encrypted bytes. If the encryptor uses block encryption, it encrypts
+	 * the entire block; otherwise, it encrypts in-place.
+	 * 
+	 * @param data Byte array to encrypt and write.
+	 * @param off  Offset in the buffer.
+	 * @param len  Length of data.
+	 * @throws IOException If an I/O error occurs.
+	 */
+	protected void writeEncryptedBytes8(final byte[] data, final int off, final int len) throws IOException {
+		final var encryptor = this.pdfWriter.encryption.getEncryptor(this.currentRef);
+		final byte[] outData;
+		final int outOff;
+		final int outLen;
+		if (encryptor.isBlock()) {
+			outData = encryptor.blockEncrypt(data, off, len);
+			outOff = 0;
+			outLen = outData.length;
 		} else {
-			e.fastEncrypt(data, off, len);
+			encryptor.fastEncrypt(data, off, len);
+			outData = data;
+			outOff = off;
+			outLen = len;
 		}
-		super.writeBytes8(data, off, len);
+		super.writeBytes8(outData, outOff, outLen);
 	}
 
 	@Override
@@ -300,7 +297,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			super.writeString(str);
 			return;
 		}
-		final byte[] data = str.getBytes("iso-8859-1");
+		final var data = str.getBytes(this.nameEncoding);
 		this.writeEncryptedBytes8(data, 0, data.length);
 	}
 
@@ -319,11 +316,11 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			super.writeUTF16(text);
 			return;
 		}
-		final byte[] data = new byte[text.length() * 2 + 2];
+		final var data = new byte[text.length() * 2 + 2];
 		data[0] = (byte) 0xFE;
 		data[1] = (byte) 0xFF;
-		for (int i = 0; i < text.length(); ++i) {
-			final char c = text.charAt(i);
+		for (var i = 0; i < text.length(); ++i) {
+			final var c = text.charAt(i);
 			data[i * 2 + 2] = (byte) ((c >> 8) & 0xFF);
 			data[i * 2 + 3] = (byte) (c & 0xFF);
 		}

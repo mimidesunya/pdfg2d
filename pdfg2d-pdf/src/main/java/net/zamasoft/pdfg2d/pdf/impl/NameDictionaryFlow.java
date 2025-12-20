@@ -5,6 +5,11 @@ import java.io.IOException;
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 
 /**
+ * Manages the "Names" dictionary in the PDF Catalog.
+ * This class handles mapping of top-level name tree categories (e.g., Dests,
+ * EmbeddedFiles)
+ * to their respective root nodes.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -15,17 +20,16 @@ class NameDictionaryFlow {
 
 	private boolean hasEntry = false;
 
-	public NameDictionaryFlow(PDFWriterImpl pdfWriter) throws IOException {
+	public NameDictionaryFlow(final PDFWriterImpl pdfWriter) throws IOException {
 		this.xref = pdfWriter.xref;
-
-		PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		final var mainFlow = pdfWriter.mainFlow;
 		this.out = mainFlow.forkFragment();
 		this.catalogFlow = pdfWriter.catalogFlow;
 	}
 
-	public void addEntry(String key, ObjectRef ref) throws IOException {
+	public void addEntry(final String key, final ObjectRef ref) throws IOException {
 		if (!this.hasEntry) {
-			ObjectRef nameTreeRef = this.xref.nextObjectRef();
+			final var nameTreeRef = this.xref.nextObjectRef();
 			this.catalogFlow.writeName("Names");
 			this.catalogFlow.writeObjectRef(nameTreeRef);
 			this.catalogFlow.lineBreak();

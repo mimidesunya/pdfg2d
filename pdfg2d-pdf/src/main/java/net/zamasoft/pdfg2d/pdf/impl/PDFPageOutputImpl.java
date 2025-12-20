@@ -3,7 +3,6 @@ package net.zamasoft.pdfg2d.pdf.impl;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.util.Map;
 
 import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFFragmentOutput;
@@ -14,6 +13,10 @@ import net.zamasoft.pdfg2d.pdf.annot.Annot;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 /**
+ * Implementation of a PDF page output. This class manages the page content
+ * stream,
+ * annotations, and page-level metadata like boxes (MediaBox, CropBox, etc.).
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -38,18 +41,21 @@ class PDFPageOutputImpl extends PDFPageOutput {
 			final PDFFragmentOutputImpl pagesKidsFlow, final double width, final double height) throws IOException {
 		super(pdfWriter, null, width, height);
 		if (width < PDFWriter.MIN_PAGE_WIDTH || height < PDFWriter.MIN_PAGE_HEIGHT) {
-			throw new IllegalArgumentException("Page size is less than 3pt: width=" + width + ",height=" + height);
+			throw new IllegalArgumentException("Page size is too small: " + width + "x" + height);
 		}
 		if (width > PDFWriter.MAX_PAGE_WIDTH || height > PDFWriter.MAX_PAGE_HEIGHT) {
-			throw new IllegalArgumentException("Page size exceeds 14400pt: width=" + width + ",height=" + height);
+			throw new IllegalArgumentException("Page size exceeds limits: " + width + "x" + height);
 		}
-		if (pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
+
+		final var params = pdfWriter.getParams();
+		if (params.getVersion() == PDFParams.Version.V_PDFX1A) {
 			this.artBox = new Rectangle2D.Double(0, 0, width, height);
 		}
 
-		final PDFFragmentOutputImpl mainFlow = pdfWriter.mainFlow;
+		final var mainFlow = pdfWriter.mainFlow;
+		final var xref = pdfWriter.xref;
 
-		this.pageRef = pdfWriter.xref.nextObjectRef();
+		this.pageRef = xref.nextObjectRef();
 		mainFlow.startObject(this.pageRef);
 		pagesKidsFlow.writeObjectRef(this.pageRef);
 		mainFlow.startHash();
@@ -70,7 +76,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 		mainFlow.lineBreak();
 
 		mainFlow.writeName("Contents");
-		final ObjectRef contentsRef = pdfWriter.xref.nextObjectRef();
+		final var contentsRef = xref.nextObjectRef();
 		mainFlow.writeObjectRef(contentsRef);
 		mainFlow.lineBreak();
 
@@ -83,6 +89,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 		this.pageFlow = mainFlow.forkFragment();
 		this.pageFlow.startObject(contentsRef);
 
+		// Always use ASCII/Flate compression for page contents
 		this.out = this.pageFlow.startStream(PDFFragmentOutput.Mode.ASCII);
 	}
 
@@ -95,23 +102,27 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	}
 
 	public void useResource(final String type, final String name) throws IOException {
-		final PDFWriterImpl pdfWriter = this.getPDFWriterImpl();
-		final ResourceFlow resourceFlow = pdfWriter.pageResourceFlow;
+		final var pdfWriter = this.getPDFWriterImpl();
+		final var resourceFlow = pdfWriter.pageResourceFlow;
 		if (resourceFlow.contains(name)) {
 			return;
 		}
-		final Map<String, ObjectRef> nameToResourceRef = pdfWriter.nameToResourceRef;
-
-		final ObjectRef objectRef = nameToResourceRef.get(name);
+		final var nameToResourceRef = pdfWriter.nameToResourceRef;
+		final var objectRef = nameToResourceRef.get(name);
 		resourceFlow.put(type, name, objectRef);
 	}
 
 	/**
-	 * Adds an annotation.
+	 * Adds an annotation to this page.
+	 * 
+	 * @param annot The annotation to add
+	 * @throws IOException If an I/O error occurs
 	 */
 	public void addAnnotation(final Annot annot) throws IOException {
-		if (this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
-			throw new UnsupportedOperationException("Annotations are not available in PDF/X.");
+		final var pdfWriterImpl = this.getPDFWriterImpl();
+		final var params = pdfWriterImpl.getParams();
+		if (params.getVersion() == PDFParams.Version.V_PDFX1A) {
+			throw new UnsupportedOperationException("Annotations are not allowed in PDF/X standards.");
 		}
 
 		if (!this.hasAnnots) {
@@ -119,23 +130,21 @@ class PDFPageOutputImpl extends PDFPageOutput {
 			this.annotsFlow.startArray();
 			this.hasAnnots = true;
 		}
-		@SuppressWarnings("resource")
-		final ObjectRef annotRef = this.getPDFWriterImpl().xref.nextObjectRef();
+
+		final var annotRef = pdfWriterImpl.xref.nextObjectRef();
 		this.annotsFlow.writeObjectRef(annotRef);
 
-		try (@SuppressWarnings("resource")
-		PDFFragmentOutput objectsFlow = this.getPDFWriterImpl().objectsFlow.forkFragment()) {
+		// Write annotation object to a separate fragment
+		try (final var objectsFlow = pdfWriterImpl.objectsFlow.forkFragment()) {
 			objectsFlow.startObject(annotRef);
 			objectsFlow.startHash();
-
-			// Output details
 			annot.writeTo(objectsFlow, this);
 
-			if (this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFA1B
-					|| this.pdfWriter.getParams().getVersion() == PDFParams.Version.V_PDFX1A) {
-				// Flags
+			// Required flags for PDF/A or PDF/X
+			if (params.getVersion() == PDFParams.Version.V_PDFA1B
+					|| params.getVersion() == PDFParams.Version.V_PDFX1A) {
 				objectsFlow.writeName("F");
-				objectsFlow.writeInt(0x04);
+				objectsFlow.writeInt(0x04); // Print flag
 				objectsFlow.lineBreak();
 			}
 
@@ -174,14 +183,14 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	}
 
 	/**
-	 * Ends bookmark hierarchy.
+	 * Ends the current bookmark hierarchy level.
 	 * 
-	 * @throws IOException in case of I/O error
+	 * @throws IOException If an I/O error occurs
 	 */
-	@SuppressWarnings("resource")
 	public void endBookmark() throws IOException {
-		if (this.getPDFWriterImpl().outline != null) {
-			this.getPDFWriterImpl().outline.endBookmark();
+		final var outline = this.getPDFWriterImpl().outline;
+		if (outline != null) {
+			outline.endBookmark();
 		}
 	}
 
@@ -197,7 +206,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 
 	public void setMediaBox(final Rectangle2D mediaBox) {
 		if (mediaBox == null) {
-			throw new NullPointerException();
+			throw new NullPointerException("MediaBox cannot be null");
 		}
 		this.mediaBox = mediaBox;
 	}
@@ -208,21 +217,21 @@ class PDFPageOutputImpl extends PDFPageOutput {
 
 	public void setBleedBox(final Rectangle2D bleedBox) {
 		if (bleedBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
-			throw new UnsupportedOperationException("BleedBox is available in PDF 1.4 or later.");
+			throw new UnsupportedOperationException("BleedBox requires PDF 1.4+.");
 		}
 		this.bleedBox = bleedBox;
 	}
 
 	public void setTrimBox(final Rectangle2D trimBox) {
 		if (trimBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
-			throw new UnsupportedOperationException("TrimBox is available in PDF 1.4 or later.");
+			throw new UnsupportedOperationException("TrimBox requires PDF 1.4+.");
 		}
 		this.trimBox = trimBox;
 	}
 
 	public void setArtBox(final Rectangle2D artBox) {
 		if (artBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
-			throw new UnsupportedOperationException("ArtBox is available in PDF 1.4 or later.");
+			throw new UnsupportedOperationException("ArtBox requires PDF 1.4+.");
 		}
 		this.artBox = artBox;
 	}

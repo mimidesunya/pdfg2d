@@ -13,7 +13,9 @@ import net.zamasoft.pdfg2d.pdf.font.PDFFont;
 import net.zamasoft.pdfg2d.pdf.font.PDFFontSource;
 
 /**
- * Manages font resources.
+ * Manages font resources and their serialization into the PDF document.
+ * This class tracks unique font sources and ensures each is correctly
+ * mapped to a PDF font resource name.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -37,17 +39,17 @@ class FontFlow {
 	}
 
 	public Font useFont(final FontSource source) throws IOException {
-		Font font = this.fonts.get(source);
+		var font = this.fonts.get(source);
 		if (font != null) {
 			return font;
 		}
 
-		if (source instanceof PDFFontSource) {
-			final String name = "F" + this.fonts.size();
-			final ObjectRef fontRef = this.xref.nextObjectRef();
+		if (source instanceof final PDFFontSource pdfSource) {
+			final var name = "F" + this.fonts.size();
+			final var fontRef = this.xref.nextObjectRef();
 			this.nameToResourceRef.put(name, fontRef);
 
-			font = ((PDFFontSource) source).createFont(name, fontRef);
+			font = pdfSource.createFont(name, fontRef);
 			this.fontList.add((PDFFont) font);
 		} else {
 			font = source.createFont();

@@ -42,8 +42,6 @@ import net.zamasoft.pdfg2d.gc.GC;
 import net.zamasoft.pdfg2d.gc.font.FontFamilyList;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Style;
 import net.zamasoft.pdfg2d.gc.font.FontStyle.Weight;
-import net.zamasoft.pdfg2d.gc.paint.Color;
-import net.zamasoft.pdfg2d.gc.paint.Paint;
 import net.zamasoft.pdfg2d.gc.text.GlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.TextLayoutHandler;
 import net.zamasoft.pdfg2d.gc.text.breaking.TextBreakingRulesBundle;
@@ -51,7 +49,10 @@ import net.zamasoft.pdfg2d.gc.text.layout.SimpleLayoutGlyphHandler;
 import net.zamasoft.pdfg2d.gc.text.util.TextUtils;
 
 /**
- * A class that provides access to pdfg2d graphics context via Java Graphics2D.
+ * A bridge class that implements {@link Graphics2D} by delegating to a
+ * {@link GC} instance.
+ * This allow existing Java2D-based code to generate PDF content through the
+ * pdfg2d library.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -81,12 +82,12 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 
 	protected Font font = new Font("serif", Font.PLAIN, 12);
 
-	public BridgeGraphics2D(GC gc, GraphicsConfiguration config) {
+	public BridgeGraphics2D(final GC gc, final GraphicsConfiguration config) {
 		this.gc = gc;
 		this.config = config;
 	}
 
-	public BridgeGraphics2D(GC gc) {
+	public BridgeGraphics2D(final GC gc) {
 		this(gc, null);
 	}
 
@@ -96,16 +97,15 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 
 	private void restoreState() {
 		this.gc.resetState();
-		Color gcolor = G2DUtils.fromAwtColor(this.foreground);
+		final var gcolor = G2DUtils.fromAwtColor(this.foreground);
 		this.gc.setStrokePaint(gcolor);
 		this.gc.setFillPaint(gcolor);
-		if (this.stroke instanceof BasicStroke) {
-			BasicStroke bs = (BasicStroke) this.stroke;
+		if (this.stroke instanceof final BasicStroke bs) {
 			this.gc.setLineWidth(bs.getLineWidth());
-			float[] da = bs.getDashArray();
+			final var da = bs.getDashArray();
 			if (da != null) {
-				double[] dda = new double[da.length];
-				for (int i = 0; i < da.length; ++i) {
+				final var dda = new double[da.length];
+				for (var i = 0; i < da.length; ++i) {
 					dda[i] = da[i];
 				}
 				this.gc.setLinePattern(dda);
@@ -115,7 +115,7 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 			this.gc.setLineCap(G2DUtils.decodeLineCap((short) bs.getEndCap()));
 			this.gc.setLineJoin(G2DUtils.decodeLineJoin((short) bs.getLineJoin()));
 		} else {
-			throw new IllegalStateException();
+			throw new IllegalStateException("Unsupported stroke type: " + this.stroke.getClass().getName());
 		}
 		if (this.transform != null) {
 			this.gc.transform(this.transform);
@@ -137,20 +137,20 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.config;
 	}
 
-	public void setRenderingHint(Key key, Object value) {
+	public void setRenderingHint(final Key key, final Object value) {
 		this.hints.put(key, value);
 	}
 
-	public Object getRenderingHint(Key key) {
+	public Object getRenderingHint(final Key key) {
 		return this.hints.get(key);
 	}
 
 	@SuppressWarnings("unchecked")
-	public void setRenderingHints(Map<?, ?> hints) {
+	public void setRenderingHints(final Map<?, ?> hints) {
 		this.hints = new RenderingHints((Map<RenderingHints.Key, ?>) hints);
 	}
 
-	public void addRenderingHints(Map<?, ?> hints) {
+	public void addRenderingHints(final Map<?, ?> hints) {
 		this.hints.putAll(hints);
 	}
 
@@ -158,12 +158,12 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.hints;
 	}
 
-	public void transform(AffineTransform at) {
+	public void transform(final AffineTransform at) {
 		this.transform.concatenate(at);
 		this.gc.transform(at);
 	}
 
-	public void setTransform(AffineTransform at) {
+	public void setTransform(final AffineTransform at) {
 		this.transform = new AffineTransform(at);
 		this.restoreState();
 	}
@@ -172,15 +172,15 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return new AffineTransform(this.transform);
 	}
 
-	public void setPaint(java.awt.Paint paint) {
+	public void setPaint(final java.awt.Paint paint) {
 		if (paint == null) {
 			return;
 		}
 		this.paint = paint;
-		if (paint instanceof java.awt.Color) {
-			this.foreground = (java.awt.Color) paint;
+		if (paint instanceof final java.awt.Color c) {
+			this.foreground = c;
 		}
-		Paint spaint = G2DUtils.fromAwtPaint(paint);
+		final var spaint = G2DUtils.fromAwtPaint(paint);
 		if (spaint != null) {
 			this.gc.setStrokePaint(spaint);
 			this.gc.setFillPaint(spaint);
@@ -191,10 +191,10 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.paint;
 	}
 
-	public void setComposite(Composite composite) {
+	public void setComposite(final Composite composite) {
 		this.composite = composite;
-		if (composite instanceof AlphaComposite) {
-			float alpha = ((AlphaComposite) composite).getAlpha();
+		if (composite instanceof final AlphaComposite ac) {
+			final var alpha = ac.getAlpha();
 			this.gc.setFillAlpha(alpha);
 			this.gc.setStrokeAlpha(alpha);
 		}
@@ -204,7 +204,7 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.composite;
 	}
 
-	public void setBackground(java.awt.Color background) {
+	public void setBackground(final java.awt.Color background) {
 		this.background = background;
 	}
 
@@ -212,15 +212,14 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.background;
 	}
 
-	public void setStroke(Stroke stroke) {
+	public void setStroke(final Stroke stroke) {
 		this.stroke = stroke;
-		if (stroke instanceof BasicStroke) {
-			BasicStroke bs = (BasicStroke) stroke;
+		if (stroke instanceof final BasicStroke bs) {
 			this.gc.setLineWidth(bs.getLineWidth());
-			float[] da = bs.getDashArray();
+			final var da = bs.getDashArray();
 			if (da != null) {
-				double[] dda = new double[da.length];
-				for (int i = 0; i < da.length; ++i) {
+				final var dda = new double[da.length];
+				for (var i = 0; i < da.length; ++i) {
 					dda[i] = da[i];
 				}
 				this.gc.setLinePattern(dda);
@@ -240,17 +239,18 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return this.foreground;
 	}
 
-	public void setColor(java.awt.Color color) {
+	public void setColor(final java.awt.Color color) {
 		this.setPaint(color);
 	}
 
-	public void clip(Shape clip) {
-		Shape s = clip;
+	@Override
+	public void clip(final Shape clip) {
+		var s = clip;
 		if (s != null) {
 			s = this.transform.createTransformedShape(s);
 		}
 		if (this.clip != null) {
-			Area newClip = new Area(this.clip);
+			final var newClip = new Area(this.clip);
 			newClip.intersect(new Area(s));
 			this.clip = new GeneralPath(newClip);
 		} else {
@@ -260,20 +260,17 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		this.gc.clip(clip);
 	}
 
-	public void clipRect(int x, int y, int width, int height) {
+	@Override
+	public void clipRect(final int x, final int y, final int width, final int height) {
 		this.clip(new Rectangle(x, y, width, height));
 	}
 
-	public void setClip(Shape clip) {
-		if (clip != null) {
-			this.clip = this.transform.createTransformedShape(clip);
-		} else {
-			this.clip = null;
-		}
+	public void setClip(final Shape clip) {
+		this.clip = (clip != null) ? this.transform.createTransformedShape(clip) : null;
 		this.restoreState();
 	}
 
-	public void setClip(int x, int y, int width, int height) {
+	public void setClip(final int x, final int y, final int width, final int height) {
 		this.setClip(new Rectangle(x, y, width, height));
 	}
 
@@ -285,26 +282,26 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		}
 	}
 
-	public void draw(Shape shape) {
-		Stroke stroke = this.getStroke();
-		if (stroke instanceof BasicStroke) {
+	public void draw(final Shape shape) {
+		if (this.stroke instanceof BasicStroke) {
 			this.gc.draw(shape);
 		} else {
-			this.gc.fill(stroke.createStrokedShape(shape));
+			this.gc.fill(this.stroke.createStrokedShape(shape));
 		}
 	}
 
-	public void fill(Shape shape) {
+	public void fill(final Shape shape) {
 		this.gc.fill(shape);
 	}
 
+	@Override
 	public FontRenderContext getFontRenderContext() {
-		Object antialiasingHint = hints.get(RenderingHints.KEY_TEXT_ANTIALIASING);
-		boolean isAntialiased = true;
+		var antialiasingHint = this.hints.get(RenderingHints.KEY_TEXT_ANTIALIASING);
+		var isAntialiased = true;
 		if (antialiasingHint != RenderingHints.VALUE_TEXT_ANTIALIAS_ON
 				&& antialiasingHint != RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT) {
 			if (antialiasingHint != RenderingHints.VALUE_TEXT_ANTIALIAS_OFF) {
-				antialiasingHint = hints.get(RenderingHints.KEY_ANTIALIASING);
+				antialiasingHint = this.hints.get(RenderingHints.KEY_ANTIALIASING);
 				if (antialiasingHint != RenderingHints.VALUE_ANTIALIAS_ON
 						&& antialiasingHint != RenderingHints.VALUE_ANTIALIAS_DEFAULT) {
 					if (antialiasingHint == RenderingHints.VALUE_ANTIALIAS_OFF) {
@@ -314,16 +311,11 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 			} else {
 				isAntialiased = false;
 			}
-
 		}
 
-		boolean useFractionalMetrics = true;
-		if (hints.get(RenderingHints.KEY_FRACTIONALMETRICS) == RenderingHints.VALUE_FRACTIONALMETRICS_OFF) {
-			useFractionalMetrics = false;
-		}
-
-		FontRenderContext frc = new FontRenderContext(DEFAULT_TRANSFORM, isAntialiased, useFractionalMetrics);
-		return frc;
+		final var useFractionalMetrics = this.hints
+				.get(RenderingHints.KEY_FRACTIONALMETRICS) != RenderingHints.VALUE_FRACTIONALMETRICS_OFF;
+		return new FontRenderContext(DEFAULT_TRANSFORM, isAntialiased, useFractionalMetrics);
 	}
 
 	public Font getFont() {
@@ -349,27 +341,27 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		}
 	}
 
-	public FontMetrics getFontMetrics(Font font) {
+	public FontMetrics getFontMetrics(final Font font) {
 		return new MyFontMetrics(font);
 	}
 
-	public void drawString(String text, int x, int y) {
+	public void drawString(final String text, final int x, final int y) {
 		this.drawString(text, (float) x, (float) y);
 	}
 
-	public void drawString(String text, float x, float y) {
-		this.drawString(new AttributedString(text, this.getFont().getAttributes()).getIterator(), x, y);
+	public void drawString(final String text, final float x, final float y) {
+		this.drawString(new AttributedString(text, this.font.getAttributes()).getIterator(), x, y);
 	}
 
-	public void drawString(AttributedCharacterIterator aci, int x, int y) {
+	public void drawString(final AttributedCharacterIterator aci, final int x, final int y) {
 		this.drawString(aci, (float) x, (float) y);
 	}
 
-	private void drawString(GlyphHandler gh, AttributedCharacterIterator aci) {
-		try (TextLayoutHandler tlf = new TextLayoutHandler(this.gc, TextBreakingRulesBundle.getRules("ja"), gh)) {
-			Map<TextAttribute, ?> atts = this.font.getAttributes();
+	private void drawString(final GlyphHandler gh, final AttributedCharacterIterator aci) {
+		try (final var tlf = new TextLayoutHandler(this.gc, TextBreakingRulesBundle.getRules("ja"), gh)) {
+			final var atts = this.font.getAttributes();
 			tlf.setFontFamilies(FontFamilyList.create(this.font.getFamily()));
-			int style = this.font.getStyle();
+			final var style = this.font.getStyle();
 			tlf.setFontWeight(TextUtils.toFontWeight((Float) atts.get(TextAttribute.WEIGHT),
 					(style & Font.BOLD) != 0 ? Weight.W_600 : Weight.W_400));
 			tlf.setFontSize(this.font.getSize2D());
@@ -379,60 +371,60 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		}
 	}
 
-	public void drawString(AttributedCharacterIterator aci, float x, float y) {
+	@Override
+	public void drawString(final AttributedCharacterIterator aci, final float x, final float y) {
 		this.gc.begin();
 		this.gc.transform(AffineTransform.getTranslateInstance(x, y));
 
-		SimpleLayoutGlyphHandler lgh = new SimpleLayoutGlyphHandler();
+		final var lgh = new SimpleLayoutGlyphHandler();
 		lgh.setGC(this.gc);
 		this.drawString(lgh, aci);
 
 		this.gc.end();
 	}
 
-	public void drawGlyphVector(GlyphVector gv, float x, float y) {
-		Shape glyphOutline = gv.getOutline(x, y);
-		this.gc.fill(glyphOutline);
+	@Override
+	public void drawGlyphVector(final GlyphVector gv, final float x, final float y) {
+		this.gc.fill(gv.getOutline(x, y));
 	}
 
-	protected void drawBufferedImage(BufferedImage image, AffineTransform at) {
+	protected void drawBufferedImage(final BufferedImage image, final AffineTransform at) {
 		this.gc.begin();
 		this.gc.transform(at);
 		this.gc.drawImage(new RasterImageImpl(image));
 		this.gc.end();
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void drawRenderedImage(RenderedImage image, AffineTransform at) {
-		BufferedImage bimage;
-		if (image instanceof BufferedImage) {
-			bimage = (BufferedImage) image;
-		} else {
-			Hashtable<?, ?> props = new Hashtable();
-			bimage = new BufferedImage(image.getColorModel(), image.copyData(null), true, props);
-		}
+	@Override
+	public void drawRenderedImage(final RenderedImage image, final AffineTransform at) {
+		final var bimage = (image instanceof final BufferedImage bi) ? bi
+				: new BufferedImage(image.getColorModel(), image.copyData(null),
+						image.getColorModel().isAlphaPremultiplied(), new Hashtable<>());
 		this.drawBufferedImage(bimage, at);
 	}
 
-	public void drawRenderableImage(RenderableImage image, AffineTransform at) {
+	@Override
+	public void drawRenderableImage(final RenderableImage image, final AffineTransform at) {
 		this.drawRenderedImage(image.createDefaultRendering(), at);
 	}
 
-	public void drawImage(BufferedImage image, BufferedImageOp op, int x, int y) {
-		AffineTransform at = AffineTransform.getTranslateInstance(x, y);
+	@Override
+	public void drawImage(BufferedImage image, final BufferedImageOp op, final int x, final int y) {
+		final var at = AffineTransform.getTranslateInstance(x, y);
 		if (op != null) {
 			image = op.createCompatibleDestImage(image, image.getColorModel());
 		}
 		this.drawRenderedImage(image, at);
 	}
 
-	public boolean drawImage(Image image, AffineTransform at, ImageObserver obs) {
-		if (image instanceof RenderedImage) {
-			this.drawRenderedImage((RenderedImage) image, at);
-		} else if (image instanceof RenderableImage) {
-			this.drawRenderableImage((RenderableImage) image, at);
+	@Override
+	public boolean drawImage(final Image image, final AffineTransform at, final ImageObserver obs) {
+		if (image instanceof final RenderedImage ri) {
+			this.drawRenderedImage(ri, at);
+		} else if (image instanceof final RenderableImage rai) {
+			this.drawRenderableImage(rai, at);
 		} else {
-			BufferedImage bimage = new BufferedImage(image.getWidth(obs), image.getHeight(obs),
+			final var bimage = new BufferedImage(image.getWidth(obs), image.getHeight(obs),
 					BufferedImage.TYPE_INT_ARGB);
 			bimage.getGraphics().drawImage(image, 0, 0, null);
 			this.drawBufferedImage(bimage, at);
@@ -440,44 +432,54 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		return true;
 	}
 
-	public boolean drawImage(Image image, int x, int y, ImageObserver obs) {
+	@Override
+	public boolean drawImage(final Image image, final int x, final int y, final ImageObserver obs) {
 		return this.drawImage(image, x, y, image.getWidth(null), image.getHeight(null), obs);
 	}
 
-	public boolean drawImage(Image image, int x, int y, int width, int height, ImageObserver obs) {
-		AffineTransform at = new AffineTransform((double) width / (double) image.getWidth(null), 0, 0,
-				(double) height / (double) image.getHeight(null), x, y);
+	@Override
+	public boolean drawImage(final Image image, final int x, final int y, final int width, final int height,
+			final ImageObserver obs) {
+		final var at = new AffineTransform((double) width / image.getWidth(null), 0, 0,
+				(double) height / image.getHeight(null), x, y);
 		return this.drawImage(image, at, obs);
 	}
 
-	public boolean drawImage(Image image, int x, int y, java.awt.Color color, ImageObserver obs) {
+	@Override
+	public boolean drawImage(final Image image, final int x, final int y, final java.awt.Color color,
+			final ImageObserver obs) {
 		return this.drawImage(image, x, y, image.getWidth(null), image.getHeight(null), obs);
 	}
 
-	public boolean drawImage(Image image, int x, int y, int width, int height, java.awt.Color color,
-			ImageObserver obs) {
-		java.awt.Paint paint = this.getPaint();
+	@Override
+	public boolean drawImage(final Image image, final int x, final int y, final int width, final int height,
+			final java.awt.Color color, final ImageObserver obs) {
+		final var p = this.getPaint();
 		this.setPaint(color);
 		this.fillRect(x, y, width, height);
-		this.setPaint(paint);
+		this.setPaint(p);
 		return this.drawImage(image, x, y, width, height, obs);
 	}
 
-	public boolean drawImage(Image image, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2,
-			ImageObserver obs) {
-		int w = dx2 - dx1, h = dy2 - dy1;
-		BufferedImage bimage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+	@Override
+	public boolean drawImage(final Image image, final int dx1, final int dy1, final int dx2, final int dy2,
+			final int sx1, final int sy1, final int sx2, final int sy2, final ImageObserver obs) {
+		final var w = dx2 - dx1;
+		final var h = dy2 - dy1;
+		final var bimage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		bimage.getGraphics().drawImage(image, 0, 0, w, h, sx1, sy1, sx2, sy2, null);
 		return this.drawImage(bimage, dx1, dy1, obs);
 	}
 
-	public boolean drawImage(Image image, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2,
-			java.awt.Color color, ImageObserver obs) {
+	@Override
+	public boolean drawImage(final Image image, final int dx1, final int dy1, final int dx2, final int dy2,
+			final int sx1, final int sy1, final int sx2, final int sy2, final java.awt.Color color,
+			final ImageObserver obs) {
 		if (color != null) {
-			java.awt.Paint paint = this.getPaint();
+			final var p = this.getPaint();
 			this.setPaint(color);
 			this.fillRect(dx1, dy1, dx2 - dx1, dy2 - dy1);
-			this.setPaint(paint);
+			this.setPaint(p);
 		}
 		return this.drawImage(image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, obs);
 	}
@@ -495,112 +497,123 @@ public class BridgeGraphics2D extends Graphics2D implements Cloneable {
 		this.setComposite(null);
 	}
 
-	public void setXORMode(java.awt.Color color) {
+	public void setXORMode(final java.awt.Color color) {
 		this.setComposite(AlphaComposite.Xor);
 	}
 
 	public Rectangle getClipBounds() {
-		Shape clip = this.getClip();
-		if (clip == null) {
-			return null;
-		} else {
-			return clip.getBounds();
-		}
+		final var c = this.getClip();
+		return (c == null) ? null : c.getBounds();
 	}
 
-	public boolean hit(Rectangle rect, Shape shape, boolean onStroke) {
-		// TODO
+	public boolean hit(final Rectangle rect, final Shape shape, final boolean onStroke) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void translate(int x, int y) {
+	public void translate(final int x, final int y) {
 		this.translate((double) x, (double) y);
 	}
 
-	public void translate(double x, double y) {
+	public void translate(final double x, final double y) {
 		this.transform(AffineTransform.getTranslateInstance(x, y));
 	}
 
-	public void rotate(double theta) {
+	public void rotate(final double theta) {
 		this.transform(AffineTransform.getRotateInstance(theta));
 	}
 
-	public void rotate(double theta, double x, double y) {
+	public void rotate(final double theta, final double x, final double y) {
 		this.transform(AffineTransform.getRotateInstance(theta, x, y));
 	}
 
-	public void scale(double sx, double sy) {
+	public void scale(final double sx, final double sy) {
 		this.transform(AffineTransform.getScaleInstance(sx, sy));
 	}
 
-	public void shear(double shx, double shy) {
+	public void shear(final double shx, final double shy) {
 		this.transform(AffineTransform.getShearInstance(shx, shy));
 	}
 
-	public void copyArea(int x, int y, int width, int height, int dx, int dy) {
+	public void copyArea(final int x, final int y, final int width, final int height, final int dx, final int dy) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void drawLine(int x1, int y1, int x2, int y2) {
+	@Override
+	public void drawLine(final int x1, final int y1, final int x2, final int y2) {
 		this.gc.fill(new Line2D.Float(x1, y1, x2, y2));
 	}
 
-	public void drawRect(int x, int y, int width, int height) {
+	@Override
+	public void drawRect(final int x, final int y, final int width, final int height) {
 		this.draw(new Rectangle(x, y, width, height));
 	}
 
-	public void fillRect(int x, int y, int width, int height) {
+	@Override
+	public void fillRect(final int x, final int y, final int width, final int height) {
 		this.gc.fill(new Rectangle(x, y, width, height));
 	}
 
-	public void clearRect(int x, int y, int width, int height) {
-		this.gc.setFillPaint(G2DUtils.fromAwtColor(this.getBackground()));
+	@Override
+	public void clearRect(final int x, final int y, final int width, final int height) {
+		final var bg = G2DUtils.fromAwtColor(this.getBackground());
+		final var fg = G2DUtils.fromAwtColor(this.getColor());
+		this.gc.setFillPaint(bg);
 		this.gc.fill(new Rectangle(x, y, width, height));
-		this.gc.setStrokePaint(G2DUtils.fromAwtColor(this.getColor()));
-
+		this.gc.setStrokePaint(fg);
 	}
 
-	public void drawRoundRect(int x, int y, int width, int height, int rx, int ry) {
+	@Override
+	public void drawRoundRect(final int x, final int y, final int width, final int height, final int rx, final int ry) {
 		this.draw(new RoundRectangle2D.Float(x, y, width, height, rx, ry));
 	}
 
-	public void fillRoundRect(int x, int y, int width, int height, int rx, int ry) {
+	@Override
+	public void fillRoundRect(final int x, final int y, final int width, final int height, final int rx, final int ry) {
 		this.gc.fill(new RoundRectangle2D.Float(x, y, width, height, rx, ry));
 	}
 
-	public void drawOval(int x, int y, int width, int height) {
+	@Override
+	public void drawOval(final int x, final int y, final int width, final int height) {
 		this.draw(new Ellipse2D.Float(x, y, width, height));
 	}
 
-	public void fillOval(int x, int y, int width, int height) {
+	@Override
+	public void fillOval(final int x, final int y, final int width, final int height) {
 		this.gc.fill(new Ellipse2D.Float(x, y, width, height));
 	}
 
-	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+	@Override
+	public void drawArc(final int x, final int y, final int width, final int height, final int startAngle,
+			final int arcAngle) {
 		this.draw(new Arc2D.Float(x, y, width, height, startAngle, arcAngle, Arc2D.CHORD));
 	}
 
-	public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+	@Override
+	public void fillArc(final int x, final int y, final int width, final int height, final int startAngle,
+			final int arcAngle) {
 		this.gc.fill(new Arc2D.Float(x, y, width, height, startAngle, arcAngle, Arc2D.PIE));
 	}
 
-	public void drawPolyline(int[] xpoints, int[] ypoints, int npoints) {
+	@Override
+	public void drawPolyline(final int[] xpoints, final int[] ypoints, final int npoints) {
 		if (npoints <= 0) {
 			return;
 		}
-		GeneralPath path = new GeneralPath();
+		final var path = new GeneralPath();
 		path.moveTo(xpoints[0], ypoints[0]);
-		for (int i = 0; i < npoints; ++i) {
+		for (var i = 1; i < npoints; ++i) {
 			path.lineTo(xpoints[i], ypoints[i]);
 		}
 		this.draw(path);
 	}
 
-	public void drawPolygon(int[] xpoints, int[] ypoints, int npoints) {
+	@Override
+	public void drawPolygon(final int[] xpoints, final int[] ypoints, final int npoints) {
 		this.draw(new Polygon(xpoints, ypoints, npoints));
 	}
 
-	public void fillPolygon(int[] xpoints, int[] ypoints, int npoints) {
+	@Override
+	public void fillPolygon(final int[] xpoints, final int[] ypoints, final int npoints) {
 		this.gc.fill(new Polygon(xpoints, ypoints, npoints));
 	}
 

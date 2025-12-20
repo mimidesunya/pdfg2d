@@ -6,7 +6,9 @@ import net.zamasoft.pdfg2d.pdf.ObjectRef;
 import net.zamasoft.pdfg2d.pdf.PDFOutput.Destination;
 
 /**
- * Manages PDF outlines (bookmarks).
+ * Manages the PDF document outline (bookmarks) hierarchy.
+ * This class handles the creation of bookmark entries and serializes them
+ * into the PDF structure during finalization.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -26,6 +28,15 @@ class OutlineFlow {
 		this.catalogFlow = pdfWriter.catalogFlow;
 	}
 
+	/**
+	 * Starts a new bookmark entry.
+	 * 
+	 * @param pageRef Reference to the target page object.
+	 * @param title   The label for the bookmark.
+	 * @param t       Page height to calculate relative top-origin.
+	 * @param x       X coordinate.
+	 * @param y       Y coordinate (top-origin).
+	 */
 	public void startBookmark(final ObjectRef pageRef, final String title, final double t, final double x,
 			final double y) {
 		final var dest = new Destination(pageRef, x, t - y, 0);
@@ -59,14 +70,18 @@ class OutlineFlow {
 		this.currentOutline = this.currentOutline.parent;
 	}
 
+	/**
+	 * Finalizes the outline hierarchy and writes it to the PDF output.
+	 * 
+	 * @throws IOException If an I/O error occurs.
+	 */
 	public void close() throws IOException {
 		if (this.firstOutline == null) {
 			this.out.close();
 			return;
 		}
 
-		// Entries with empty title and no child nodes are not output.
-		// Generate object references.
+		// First pass: Filter out empty entries and assign object references.
 		{
 			var outline = this.firstOutline;
 			FOR: for (;;) {
@@ -77,11 +92,12 @@ class OutlineFlow {
 					if (outline.next != null) {
 						outline.next.prev = outline.prev;
 					}
-					if (outline.parent != null) {
-						if (outline.parent.first == outline) {
-							outline.parent.first = outline.next;
+					final var parent = outline.parent;
+					if (parent != null) {
+						if (parent.first == outline) {
+							parent.first = outline.next;
 						}
-						--outline.parent.count;
+						--parent.count;
 					} else {
 						if (this.firstOutline == outline) {
 							this.firstOutline = outline.next;
@@ -90,12 +106,14 @@ class OutlineFlow {
 					}
 				} else {
 					outline.ref = this.xref.nextObjectRef();
-					if (outline.parent != null) {
-						outline.parent.last = outline;
+					final var parent = outline.parent;
+					if (parent != null) {
+						parent.last = outline;
 					} else {
 						this.lastOutline = outline;
 					}
 				}
+
 				if (outline.first != null) {
 					outline = outline.first;
 				} else {
@@ -115,89 +133,85 @@ class OutlineFlow {
 			return;
 		}
 
-		// Update catalog
-		this.catalogFlow.writeName("Outlines");
-		final var outlineRef = this.xref.nextObjectRef();
-		this.catalogFlow.writeObjectRef(outlineRef);
-		this.catalogFlow.lineBreak();
+		final var outFlow = this.out;
+		final var catalog = this.catalogFlow;
 
-		this.catalogFlow.writeName("PageMode");
-		this.catalogFlow.writeName("UseOutlines");
-		this.catalogFlow.lineBreak();
+		// Update PDF Catalog with the Outline root
+		catalog.writeName("Outlines");
+		final var outlineRootRef = this.xref.nextObjectRef();
+		catalog.writeObjectRef(outlineRootRef);
+		catalog.lineBreak();
 
-		// Output root information
-		this.out.startObject(outlineRef);
-		this.out.startHash();
-		this.out.writeName("Count");
-		this.out.writeInt(this.rootOutlineCount);
-		this.out.lineBreak();
+		catalog.writeName("PageMode");
+		catalog.writeName("UseOutlines");
+		catalog.lineBreak();
 
-		this.out.writeName("First");
-		this.out.writeObjectRef(this.firstOutline.ref);
-		this.out.lineBreak();
+		// Write Outline Dictionary (Root)
+		outFlow.startObject(outlineRootRef);
+		outFlow.startHash();
+		outFlow.writeName("Count");
+		outFlow.writeInt(this.rootOutlineCount);
+		outFlow.lineBreak();
 
-		this.out.writeName("Last");
-		this.out.writeObjectRef(this.lastOutline.ref);
-		this.out.lineBreak();
+		outFlow.writeName("First");
+		outFlow.writeObjectRef(this.firstOutline.ref);
+		outFlow.lineBreak();
 
-		this.out.endHash();
-		this.out.endObject();
+		outFlow.writeName("Last");
+		outFlow.writeObjectRef(this.lastOutline.ref);
+		outFlow.lineBreak();
 
-		// Output entries
+		outFlow.endHash();
+		outFlow.endObject();
+
+		// Second pass: Serialize entries to PDF objects
 		{
 			var outline = this.firstOutline;
 			FOR: for (;;) {
-				this.out.startObject(outline.ref);
-				this.out.startHash();
+				outFlow.startObject(outline.ref);
+				outFlow.startHash();
 
-				this.out.writeName("Parent");
-				if (outline.parent == null) {
-					this.out.writeObjectRef(outlineRef);
-				} else {
-					this.out.writeObjectRef(outline.parent.ref);
-				}
-				this.out.lineBreak();
+				outFlow.writeName("Parent");
+				outFlow.writeObjectRef(outline.parent == null ? outlineRootRef : outline.parent.ref);
+				outFlow.lineBreak();
 
-				this.out.writeName("Dest");
-				this.out.writeDestination(outline.dest);
-				this.out.lineBreak();
+				outFlow.writeName("Dest");
+				outFlow.writeDestination(outline.dest);
+				outFlow.lineBreak();
 
-				this.out.writeName("Title");
-				if (outline.title == null) {
-					this.out.writeText("");
-				} else {
-					this.out.writeText(outline.title);
-				}
-				this.out.lineBreak();
+				outFlow.writeName("Title");
+				outFlow.writeText(outline.title == null ? "" : outline.title);
+				outFlow.lineBreak();
 
 				if (outline.prev != null) {
-					this.out.writeName("Prev");
-					this.out.writeObjectRef(outline.prev.ref);
-					this.out.lineBreak();
+					outFlow.writeName("Prev");
+					outFlow.writeObjectRef(outline.prev.ref);
+					outFlow.lineBreak();
 				}
 
 				if (outline.next != null) {
-					this.out.writeName("Next");
-					this.out.writeObjectRef(outline.next.ref);
-					this.out.lineBreak();
+					outFlow.writeName("Next");
+					outFlow.writeObjectRef(outline.next.ref);
+					outFlow.lineBreak();
 				}
 
 				if (outline.count > 0) {
-					this.out.writeName("First");
-					this.out.writeObjectRef(outline.first.ref);
-					this.out.lineBreak();
+					outFlow.writeName("First");
+					outFlow.writeObjectRef(outline.first.ref);
+					outFlow.lineBreak();
 
-					this.out.writeName("Last");
-					this.out.writeObjectRef(outline.last.ref);
-					this.out.lineBreak();
+					outFlow.writeName("Last");
+					outFlow.writeObjectRef(outline.last.ref);
+					outFlow.lineBreak();
 
-					this.out.writeName("Count");
-					this.out.writeInt(-outline.count);
-					this.out.lineBreak();
+					outFlow.writeName("Count");
+					// Negative count indicates bookmarks are closed by default
+					outFlow.writeInt(-outline.count);
+					outFlow.lineBreak();
 				}
 
-				this.out.endHash();
-				this.out.endObject();
+				outFlow.endHash();
+				outFlow.endObject();
 
 				if (outline.first != null) {
 					outline = outline.first;
@@ -212,27 +226,26 @@ class OutlineFlow {
 				}
 			}
 		}
-		this.out.close();
-	}
-}
-
-class OutlineEntry {
-	public final String title;
-
-	public final Destination dest;
-
-	public ObjectRef ref;
-
-	public OutlineEntry parent, prev, next, first, last;
-
-	public int count = 0;
-
-	public OutlineEntry(final String title, final Destination dest) {
-		this.title = title;
-		this.dest = dest;
+		outFlow.close();
 	}
 
-	public boolean isEmpty() {
-		return this.title == null && this.count <= 0;
+	/**
+	 * Represents an internal bookmark entry data structure.
+	 */
+	private static class OutlineEntry {
+		public final String title;
+		public final Destination dest;
+		public ObjectRef ref;
+		public OutlineEntry parent, prev, next, first, last;
+		public int count = 0;
+
+		public OutlineEntry(final String title, final Destination dest) {
+			this.title = title;
+			this.dest = dest;
+		}
+
+		public boolean isEmpty() {
+			return this.title == null && this.count <= 0;
+		}
 	}
 }

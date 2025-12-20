@@ -14,6 +14,10 @@ import net.zamasoft.pdfg2d.pdf.XRef;
 import net.zamasoft.pdfg2d.pdf.util.encryption.Encryption;
 
 /**
+ * Implementation of the PDF cross-reference table (xref).
+ * This class tracks object positions and generates the trailer and xref table
+ * during the finalization of the PDF document.
+ * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
  */
@@ -36,9 +40,9 @@ class XRefImpl implements XRef {
 	}
 
 	/**
-	 * Returns the next object ID.
+	 * Creates and returns the next object reference.
 	 * 
-	 * @return the next object reference
+	 * @return A new ObjectRefImpl instance.
 	 */
 	public ObjectRef nextObjectRef() {
 		final var ref = new ObjectRefImpl(this.xref.size() + 1);
@@ -46,14 +50,23 @@ class XRefImpl implements XRef {
 		return ref;
 	}
 
-	void close(final PositionInfo posInfo, final ObjectRef infoRef, final byte[][] fileid, final Encryption encrypter)
-			throws IOException {
-		// startxref
-		int xrefPosition = (int) posInfo.getPosition(this.mainFlow.getId()) + this.mainFlow.getLength();
+	/**
+	 * Finalizes the PDF by writing the xref table and trailer.
+	 * 
+	 * @param posInfo   Position information of fragments.
+	 * @param infoRef   Reference to the Info dictionary.
+	 * @param fileid    The document IDs.
+	 * @param encrypter Encryption settings, if any.
+	 * @throws IOException If an I/O error occurs.
+	 */
+	void close(final PositionInfo posInfo, final ObjectRef infoRef, final byte[][] fileid,
+			final Encryption encrypter) throws IOException {
+		// Calculate the starting position of the xref table
+		final int xrefPosition = (int) posInfo.getPosition(this.mainFlow.getId()) + this.mainFlow.getLength();
 
-		// Trailer
-		ByteArrayOutputStream buff = new ByteArrayOutputStream();
-		try (PDFOutput trailerFlow = new PDFOutput(buff, "ISO-8859-1")) {
+		// Generate trailer content in a memory buffer first
+		final var trailerBytes = new ByteArrayOutputStream();
+		try (final var trailerFlow = new PDFOutput(trailerBytes, "ISO-8859-1")) {
 			trailerFlow.writeOperator("trailer");
 			trailerFlow.startHash();
 
@@ -62,7 +75,7 @@ class XRefImpl implements XRef {
 			trailerFlow.lineBreak();
 
 			trailerFlow.writeName("Root");
-			trailerFlow.writeObjectRef(rootRef);
+			trailerFlow.writeObjectRef(this.rootRef);
 			trailerFlow.lineBreak();
 
 			if (infoRef != null) {
@@ -87,7 +100,6 @@ class XRefImpl implements XRef {
 			}
 
 			trailerFlow.endHash();
-
 			trailerFlow.writeOperator("startxref");
 			trailerFlow.lineBreak();
 			trailerFlow.writeInt(xrefPosition);
@@ -96,70 +108,73 @@ class XRefImpl implements XRef {
 			trailerFlow.write(EOF);
 			trailerFlow.lineBreak();
 		}
-		String trailer = new String(buff.toByteArray(), "ISO-8859-1");
+		final var trailer = trailerBytes.toString("ISO-8859-1");
 
-		// Cross-reference
-		// Cross-reference
+		// Write xref table header
 		this.mainFlow.writeOperator("xref");
 		this.mainFlow.lineBreak();
 		this.mainFlow.writeInt(0);
 		this.mainFlow.writeInt(this.xref.size() + 1);
-		writeXrefEntry(this.mainFlow, 0, 65535, false);
-		// Offset is trailer length + xref length
-		// Each xref entry is 20 bytes
-		for (int i = 0; i < this.xref.size(); ++i) {
-			ObjectRefImpl ref = (ObjectRefImpl) this.xref.get(i);
-			writeXrefEntry(this.mainFlow, ref.getPosition(posInfo), ref.generationNumber(), true);
+
+		// First entry is always the free object at generation 65535
+		this.writeXrefEntry(this.mainFlow, 0, 65535, false);
+
+		// Write actual object positions
+		for (final var ref : this.xref) {
+			final var impl = (ObjectRefImpl) ref;
+			this.writeXrefEntry(this.mainFlow, impl.getPosition(posInfo), impl.generationNumber(), true);
 		}
 
+		// Append trailer content
 		this.mainFlow.write(trailer);
 	}
 
 	private final byte[] work = new byte[10];
 
-	private void writeXrefEntry(PDFFragmentOutputImpl out, long byteOffset, int generationNum, boolean inUse)
-			throws IOException {
+	/**
+	 * Writes a 20-byte cross-reference table entry.
+	 * format: nnnnnnnnnn ggggg f/n[EOL]
+	 * 
+	 * @param out           Output target.
+	 * @param byteOffset    Byte offset of the object.
+	 * @param generationNum Generation number.
+	 * @param inUse         Whether the object is in use ('n') or free ('f').
+	 * @throws IOException If an I/O error occurs.
+	 */
+	private void writeXrefEntry(final PDFFragmentOutputImpl out, final long byteOffset, final int generationNum,
+			final boolean inUse) throws IOException {
 		out.breakBefore();
-		{
-			String str = String.valueOf(byteOffset);
-			int off = 10 - str.length();
-			for (int i = 0; i < off; ++i) {
-				this.work[i] = '0';
-			}
-			for (int i = 0; i < str.length(); ++i) {
-				this.work[i + off] = (byte) str.charAt(i);
-			}
-		}
-		out.write(this.work, 0, 10);
+
+		// Write 10-digit offset with leading zeros
+		this.writeFixedNumber(out, byteOffset, 10);
 		out.write(' ');
 
-		{
-			String str = String.valueOf(generationNum);
-			int off = 5 - str.length();
-			for (int i = 0; i < off; ++i) {
-				this.work[i] = '0';
-			}
-			for (int i = 0; i < str.length(); ++i) {
-				this.work[i + off] = (byte) str.charAt(i);
-			}
-		}
-		out.write(this.work, 0, 5);
+		// Write 5-digit generation number with leading zeros
+		this.writeFixedNumber(out, generationNum, 5);
 		out.write(' ');
 
 		out.write(inUse ? 'n' : 'f');
 		out.lineBreak();
 	}
 
-	public Object getAttribute(String key) {
-		if (this.attributes == null) {
-			return null;
+	/**
+	 * Helper to write a zero-padded number of fixed width.
+	 */
+	private void writeFixedNumber(final PDFFragmentOutputImpl out, long val, final int width) throws IOException {
+		for (var i = width - 1; i >= 0; --i) {
+			this.work[i] = (byte) ('0' + (val % 10));
+			val /= 10;
 		}
-		return this.attributes.get(key);
+		out.write(this.work, 0, width);
 	}
 
-	public void setAttribute(String key, Object value) {
+	public Object getAttribute(final String key) {
+		return (this.attributes == null) ? null : this.attributes.get(key);
+	}
+
+	public void setAttribute(final String key, final Object value) {
 		if (this.attributes == null) {
-			this.attributes = new HashMap<String, Object>();
+			this.attributes = new HashMap<>();
 		}
 		this.attributes.put(key, value);
 	}

@@ -1,6 +1,5 @@
 package net.zamasoft.pdfg2d.pdf.impl;
 
-import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
@@ -49,7 +49,10 @@ import net.zamasoft.pdfg2d.resolver.Source;
 import net.zamasoft.pdfg2d.util.ColorUtils;
 
 /**
- * Flow for image data.
+ * Handles the loading, scaling, and serialization of image resources into PDF
+ * XObjects.
+ * Supports various formats (JPEG, PNG, etc.), color mode conversions, and EXIF
+ * orientation.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -68,6 +71,9 @@ class ImageFlow {
 	/** Mapping from image URI (String) to image (PDFImage). */
 	private final Map<URI, Image> images = new HashMap<>();
 
+	/** Mapping from BufferedImage instance to image (PDFImage). */
+	private final Map<BufferedImage, Image> bufferedImages = new IdentityHashMap<>();
+
 	private int imageNumber = 0;
 
 	private static final short DEVICE_GRAY = 1;
@@ -83,82 +89,84 @@ class ImageFlow {
 	}
 
 	public Image loadImage(final Source source) throws IOException {
-		final URI uri = source.getURI();
-		Image pdfImage = this.images.get(uri);
+		final var uri = source.getURI();
+		var pdfImage = this.images.get(uri);
 		if (pdfImage != null) {
 			return pdfImage;
 		}
-		final ImageInputStream in;
-		if (source.isFile()) {
-			in = new FileImageInputStream(source.getFile()) {
-				@Override
-				public void flushBefore(final long pos) throws IOException {
-					// Ignore flush to prevent reloading from becoming impossible.
-				}
-			};
-		} else {
-			in = new FileCacheImageInputStream(source.getInputStream(), null) {
-				@Override
-				public void flushBefore(final long pos) throws IOException {
-					// Ignore flush to prevent reloading from becoming impossible.
-				}
-			};
-		}
+		// Wrap stream to prevent ImageIO from closing the underlying source too early
+		final ImageInputStream in = source.isFile() ? new FileImageInputStream(source.getFile()) {
+			@Override
+			public void flushBefore(final long pos) throws IOException {
+				// Prevent reloading issues
+			}
+		} : new FileCacheImageInputStream(source.getInputStream(), null) {
+			@Override
+			public void flushBefore(final long pos) throws IOException {
+				// Prevent reloading issues
+			}
+		};
+
 		try {
 			pdfImage = this.addImage(in, null);
 			this.images.put(uri, pdfImage);
+			return pdfImage;
 		} finally {
 			in.close();
 		}
-		return pdfImage;
 	}
 
 	public Image addImage(final BufferedImage image) throws IOException {
-		return this.addImage(null, image);
+		final var pdfImage = this.bufferedImages.get(image);
+		if (pdfImage != null) {
+			return pdfImage;
+		}
+		final var res = this.addImage(null, image);
+		this.bufferedImages.put(image, res);
+		return res;
 	}
 
-	private Image addImage(final ImageInputStream imageIn, BufferedImage image) throws IOException {
-		PDFImage pdfImage;
-		ImageReader ir;
+	private Image addImage(final ImageInputStream imageIn, final BufferedImage originalImage) throws IOException {
+		var image = originalImage;
 		int orientation = 1;
+		ImageReader ir = null;
+
 		if (imageIn != null) {
 			JPEGImageReader cir = null;
-			final Iterator<ImageReader> iri = ImageIO.getImageReaders(imageIn);
-			for (;;) {
-				if (iri != null && iri.hasNext()) {
-					ir = iri.next();
-					ir.setInput(imageIn);
-					try {
-						final Iterator<ImageTypeSpecifier> iti = ir.getImageTypes(0);
-						if (iti != null && iti.hasNext()) {
-							imageIn.seek(0);
-							if (ir instanceof JPEGImageReader) {
-								cir = (JPEGImageReader) ir;
-								continue;
-							}
-							break;
+			final var iri = ImageIO.getImageReaders(imageIn);
+			while (iri.hasNext()) {
+				final var reader = iri.next();
+				reader.setInput(imageIn);
+				try {
+					final var iti = reader.getImageTypes(0);
+					if (iti != null && iti.hasNext()) {
+						imageIn.seek(0);
+						if (reader instanceof final JPEGImageReader jr) {
+							cir = jr;
+							continue;
 						}
-					} catch (final IOException e) {
-						// ignore
+						ir = reader;
+						break;
 					}
-					ir.dispose();
-					imageIn.seek(0);
-				} else {
-					if (cir == null) {
-						throw new IOException("No readable images in the image file: " + String.valueOf(iri));
-					}
-					ir = cir;
-					break;
+				} catch (final IOException e) {
+					// Ignore and try next reader
 				}
+				reader.dispose();
+				imageIn.seek(0);
 			}
-			if (cir != null) {
+			if (ir == null) {
+				if (cir == null) {
+					throw new IOException("No readable images found in the stream.");
+				}
+				ir = cir;
+			} else if (cir != null) {
 				cir.dispose();
 			}
-		} else {
-			ir = null;
 		}
 
 		int width, height;
+		final var name = "I" + this.imageNumber;
+		PDFImage pdfImage = null;
 		try {
 
 			final PDFParams.ColorMode colorMode = this.params.getColorMode();
@@ -244,83 +252,67 @@ class ImageFlow {
 			final double orgWidth = width;
 			final double orgHeight = height;
 			if (resize || imageType == PDFParams.ImageCompression.FLATE) {
-				// Recompress
+				// Re-load image if we only had the reader
 				if (ir != null) {
 					imageIn.seek(0);
 					image = G2DUtils.loadImage(ir, imageIn);
 				}
 				if (resize) {
-					// Scale down
-					final int type = image.getType();
-					if (maxWidth > 0 && width > maxWidth) {
-						// height = height * maxWidth / width;
-						// Do not do this to avoid unbalanced aspect ratio.
+					final var type = image.getType();
+					if (maxWidth > 0 && width > maxWidth)
 						width = maxWidth;
-					}
-					if (maxHeight > 0 && height > maxHeight) {
-						// width = width * maxHeight / height;
-						// Do not do this to avoid unbalanced aspect ratio.
+					if (maxHeight > 0 && height > maxHeight)
 						height = maxHeight;
-					}
-					final java.awt.Image scaled = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+
+					final var scaled = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
 					try {
 						image.flush();
-						switch (type) {
-							case BufferedImage.TYPE_BYTE_BINARY:
-							case BufferedImage.TYPE_BYTE_INDEXED:
-								image = new BufferedImage(width, height, type, (IndexColorModel) image.getColorModel());
-								break;
-
-							case BufferedImage.TYPE_3BYTE_BGR:
-							case BufferedImage.TYPE_4BYTE_ABGR:
-							case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-							case BufferedImage.TYPE_INT_ARGB:
-							case BufferedImage.TYPE_INT_ARGB_PRE:
-							case BufferedImage.TYPE_INT_BGR:
-							case BufferedImage.TYPE_INT_RGB:
-							case BufferedImage.TYPE_USHORT_555_RGB:
-							case BufferedImage.TYPE_USHORT_565_RGB:
-							case BufferedImage.TYPE_BYTE_GRAY:
-							case BufferedImage.TYPE_USHORT_GRAY:
-								image = new BufferedImage(width, height, type);
-								break;
-
-							default:
-								image = new BufferedImage(width, height,
+						image = switch (type) {
+							case BufferedImage.TYPE_BYTE_BINARY, BufferedImage.TYPE_BYTE_INDEXED ->
+								new BufferedImage(width, height, type, (IndexColorModel) image.getColorModel());
+							case BufferedImage.TYPE_3BYTE_BGR, BufferedImage.TYPE_4BYTE_ABGR,
+									BufferedImage.TYPE_4BYTE_ABGR_PRE, BufferedImage.TYPE_INT_ARGB,
+									BufferedImage.TYPE_INT_ARGB_PRE, BufferedImage.TYPE_INT_BGR,
+									BufferedImage.TYPE_INT_RGB, BufferedImage.TYPE_USHORT_555_RGB,
+									BufferedImage.TYPE_USHORT_565_RGB, BufferedImage.TYPE_BYTE_GRAY,
+									BufferedImage.TYPE_USHORT_GRAY ->
+								new BufferedImage(width, height, type);
+							default ->
+								new BufferedImage(width, height,
 										image.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB
 												: BufferedImage.TYPE_INT_RGB);
-								break;
-						}
-						final Graphics2D g2d = image.createGraphics();
+						};
+						final var g2d = image.createGraphics();
 						g2d.drawImage(scaled, 0, 0, null);
+						g2d.dispose();
 					} finally {
 						scaled.flush();
 					}
 					imageType = PDFParams.ImageCompression.FLATE;
 				}
 
-				// Grayscale filter
+				// Apply grayscale filter if requested
 				if (colorMode == PDFParams.ColorMode.GRAY && image.getType() != BufferedImage.TYPE_BYTE_GRAY
 						&& image.getType() != BufferedImage.TYPE_USHORT_GRAY) {
-					for (int y = 0; y < height; ++y) {
-						for (int x = 0; x < width; ++x) {
-							int rgb = image.getRGB(x, y);
-							final float r = ((rgb >> 16) & 0xFF) / 255f;
-							final float g = ((rgb >> 8) & 0xFF) / 255f;
-							final float b = (rgb & 0xFF) / 255f;
-							final float gr = ColorUtils.toGray(r, g, b);
-							final int octet = (int) (gr * 255f);
-							rgb = (rgb & 0xFF000000) | (octet << 16) | (octet << 8) | octet;
-							image.setRGB(x, y, rgb);
+					final var raster = image.getRaster();
+					final var cm = image.getColorModel();
+					final var pixel = raster.getDataElements(0, 0, null);
+					for (var y = 0; y < height; ++y) {
+						for (var x = 0; x < width; ++x) {
+							raster.getDataElements(x, y, pixel);
+							final var r = cm.getRed(pixel) / 255.0f;
+							final var g = cm.getGreen(pixel) / 255.0f;
+							final var b = cm.getBlue(pixel) / 255.0f;
+							final var gr = ColorUtils.toGray(r, g, b);
+							final var octet = (int) (gr * 255.0f);
+							image.setRGB(x, y, (cm.getAlpha(pixel) << 24) | (octet << 16) | (octet << 8) | octet);
 						}
 					}
 				}
 			}
+			pdfImage = new PDFImage(name, orgWidth, orgHeight);
 			try {
-				final String name = "I" + this.imageNumber;
-				pdfImage = new PDFImage(name, orgWidth, orgHeight);
-
-				final ObjectRef imageRef = this.xref.nextObjectRef();
+				final var imageRef = this.xref.nextObjectRef();
 				this.nameToResourceRef.put(name, imageRef);
 
 				this.objectsFlow.startObject(imageRef);
@@ -568,29 +560,26 @@ class ImageFlow {
 								break;
 						}
 						switch (imageType) {
-							case JPEG:
-							case JPEG2000: {
-								// JPEG / JPEG 2000
-								BufferedImage ximage = image;
+							case JPEG, JPEG2000 -> {
+								var ximage = image;
 								if (cm.hasAlpha()) {
 									ximage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-									ximage.createGraphics().drawImage(image, 0, 0, null);
-								}
-								if (image.getType() == BufferedImage.TYPE_USHORT_GRAY) {
+									final var g = ximage.createGraphics();
+									g.drawImage(image, 0, 0, null);
+									g.dispose();
+								} else if (image.getType() == BufferedImage.TYPE_USHORT_GRAY) {
 									ximage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-									ximage.createGraphics().drawImage(image, 0, 0, null);
+									final var g = ximage.createGraphics();
+									g.drawImage(image, 0, 0, null);
+									g.dispose();
 								}
 								try {
+									final var iout = new FileCacheImageOutputStream(out, null);
 									try {
-										final FileCacheImageOutputStream iout = new FileCacheImageOutputStream(out,
-												null);
-										try {
-											iw.setOutput(iout);
-											iw.write(null, new IIOImage(ximage, null, null), iwParams);
-										} finally {
-											iout.close();
-										}
+										iw.setOutput(iout);
+										iw.write(null, new IIOImage(ximage, null, null), iwParams);
 									} finally {
+										iout.close();
 										iw.dispose();
 									}
 								} finally {
@@ -599,37 +588,29 @@ class ImageFlow {
 									}
 								}
 							}
-								break;
-							case FLATE: {
-								// Lossless compression
-								final Raster raster = image.getRaster();
-								out = new FastBufferedOutputStream(out, this.objectsFlow.getBuff());
+							case FLATE -> {
+								final var raster = image.getRaster();
+								final var fastOut = new FastBufferedOutputStream(out, this.objectsFlow.getBuff());
+								final var pixel = raster.getDataElements(0, 0, null);
 								if (deviceGray) {
-									// Grayscale
-									Object pixel = raster.getDataElements(0, 0, null);
-									for (int y = 0; y < height; ++y) {
-										for (int x = 0; x < width; ++x) {
-											pixel = raster.getDataElements(x, y, pixel);
-											out.write(cm.getGreen(pixel));
+									for (var y = 0; y < height; ++y) {
+										for (var x = 0; x < width; ++x) {
+											fastOut.write(cm.getGreen(raster.getDataElements(x, y, pixel)));
 										}
 									}
 								} else {
-									// Color
-									Object pixel = raster.getDataElements(0, 0, null);
-									for (int y = 0; y < height; ++y) {
-										for (int x = 0; x < width; ++x) {
-											pixel = raster.getDataElements(x, y, pixel);
-											out.write(cm.getRed(pixel));
-											out.write(cm.getGreen(pixel));
-											out.write(cm.getBlue(pixel));
+									for (var y = 0; y < height; ++y) {
+										for (var x = 0; x < width; ++x) {
+											raster.getDataElements(x, y, pixel);
+											fastOut.write(cm.getRed(pixel));
+											fastOut.write(cm.getGreen(pixel));
+											fastOut.write(cm.getBlue(pixel));
 										}
 									}
 								}
+								fastOut.flush();
 							}
-								break;
-
-							default:
-								throw new IllegalStateException();
+							default -> throw new IllegalStateException();
 						}
 						out.close();
 					} finally {
@@ -757,44 +738,35 @@ class ImageFlow {
 			}
 		}
 		++this.imageNumber;
-		if (orientation == 1) {
-			return pdfImage;
-		}
-		final AffineTransform at = new AffineTransform();
-		switch (orientation) {
-			case 2:
-				at.scale(-1, 1);
-				at.translate(-width, 0);
-				break;
-			case 3:
-				at.rotate(Math.PI, width / 2.0, height / 2.0);
-				break;
-			case 4:
-				at.scale(1, -1);
-				at.translate(0, -height);
-				break;
-			case 5:
-				at.rotate(Math.PI / 2);
-				at.scale(-1, 1);
-				at.translate(0, -height);
-				break;
-			case 6:
-				at.rotate(Math.PI / 2);
-				at.translate(0, -height);
-				break;
-			case 7:
-				at.rotate(-Math.PI / 2);
-				at.scale(-1, 1);
-				at.translate(-width, 0);
-				break;
-			case 8:
-				at.rotate(-Math.PI / 2);
-				at.translate(-width, 0);
-				break;
-			default:
-				return pdfImage;
-		}
-		final Image retImage = new TransformedImage(pdfImage, at);
-		return retImage;
+		final var at = switch (orientation) {
+			case 2 -> new AffineTransform(-1, 0, 0, 1, width, 0);
+			case 3 -> AffineTransform.getRotateInstance(Math.PI, width / 2.0, height / 2.0);
+			case 4 -> new AffineTransform(1, 0, 0, -1, 0, height);
+			case 5 -> {
+				final var res = AffineTransform.getRotateInstance(Math.PI / 2.0);
+				res.scale(-1, 1);
+				res.translate(0, -height);
+				yield res;
+			}
+			case 6 -> {
+				final var res = AffineTransform.getRotateInstance(Math.PI / 2.0);
+				res.translate(0, -height);
+				yield res;
+			}
+			case 7 -> {
+				final var res = AffineTransform.getRotateInstance(-Math.PI / 2.0);
+				res.scale(-1, 1);
+				res.translate(-width, 0);
+				yield res;
+			}
+			case 8 -> {
+				final var res = AffineTransform.getRotateInstance(-Math.PI / 2.0);
+				res.translate(-width, 0);
+				yield res;
+			}
+			default -> null;
+		};
+
+		return (at == null) ? pdfImage : new TransformedImage(pdfImage, at);
 	}
 }

@@ -11,7 +11,8 @@ import net.zamasoft.pdfg2d.pdf.PDFNamedGraphicsOutput;
 import net.zamasoft.pdfg2d.pdf.PDFWriter;
 
 /**
- * Offscreen image.
+ * Represents an offscreen group image in PDF.
+ * This class corresponds to a PDF Form XObject.
  * 
  * @author MIYABE Tatsuhiko
  * @since 1.0
@@ -33,38 +34,55 @@ public abstract class PDFGroupImage extends PDFNamedGraphicsOutput implements Im
 		this.objectRef = objectRef;
 	}
 
+	/**
+	 * Sets the Optional Content Group (OCG) flags.
+	 * 
+	 * @param ocgFlags The flags to set.
+	 */
 	public void setOCG(final int ocgFlags) {
 		this.ocgFlags = ocgFlags;
 	}
 
-	public void drawTo(final GC _gc) throws GraphicsException {
-		final PDFGC gc = (PDFGC) _gc;
-		gc.drawPDFImage(this.name, this.width, this.height);
+	@Override
+	public void drawTo(final GC gc) throws GraphicsException {
+		if (gc instanceof PDFGC pdfgc) {
+			pdfgc.drawPDFImage(this.name, this.width, this.height);
+		}
 	}
 
+	@Override
 	public String getName() {
 		return this.name;
 	}
 
+	/**
+	 * Returns the object reference for this group image.
+	 * 
+	 * @return The object reference.
+	 */
 	public ObjectRef getObjectRef() {
 		return this.objectRef;
 	}
 
+	@Override
 	public String getAltString() {
 		return null;
 	}
 
+	@Override
 	public String toString() {
 		return this.name;
 	}
 
+	@Override
 	public boolean equals(final Object o) {
-		if (o instanceof PDFGroupImage) {
-			return ((PDFGroupImage) o).name.equals(this.name);
+		if (o instanceof PDFGroupImage other) {
+			return other.name.equals(this.name);
 		}
 		return false;
 	}
 
+	@Override
 	public int hashCode() {
 		return this.name.hashCode();
 	}
