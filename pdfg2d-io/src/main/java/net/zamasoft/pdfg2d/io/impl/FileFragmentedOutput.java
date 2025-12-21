@@ -41,21 +41,6 @@ public class FileFragmentedOutput extends AbstractTempFileOutput implements Sequ
 	}
 
 	/**
-	 * Creates a new file output with custom buffer settings.
-	 * 
-	 * @param file               target output file.
-	 * @param fragmentBufferSize maximum buffer size per fragment.
-	 * @param totalBufferSize    maximum total buffer size in memory.
-	 * @param threshold          threshold to flush fragment data to disk.
-	 * @deprecated Use {@link #FileFragmentedOutput(File, Config)} instead.
-	 */
-	@Deprecated
-	public FileFragmentedOutput(final File file, final int fragmentBufferSize, final int totalBufferSize,
-			final int threshold) {
-		this(file, new Config(fragmentBufferSize, totalBufferSize, threshold, Config.DEFAULT.segmentSize()));
-	}
-
-	/**
 	 * Creates a new file output with default buffer settings.
 	 * 
 	 * @param file target output file.

@@ -37,22 +37,6 @@ public class StreamFragmentedOutput extends AbstractTempFileOutput implements Se
 	}
 
 	/**
-	 * Creates a new stream output with custom buffer settings.
-	 * 
-	 * @param out                target output stream.
-	 * @param fragmentBufferSize maximum buffer size per fragment.
-	 * @param totalBufferSize    maximum total buffer size in memory.
-	 * @param threshold          threshold to flush fragment data to disk.
-	 * @deprecated Use {@link #StreamFragmentedOutput(OutputStream, Config)}
-	 *             instead.
-	 */
-	@Deprecated
-	public StreamFragmentedOutput(final OutputStream out, final int fragmentBufferSize, final int totalBufferSize,
-			final int threshold) {
-		this(out, new Config(fragmentBufferSize, totalBufferSize, threshold, Config.DEFAULT.segmentSize()));
-	}
-
-	/**
 	 * Creates a new stream output with default buffer settings.
 	 * 
 	 * @param out target output stream.
