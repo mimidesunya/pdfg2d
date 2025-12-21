@@ -25,9 +25,9 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 
 	public PDFGraphicsOutput(final PDFWriter pdfWriter, final OutputStream out, final double width,
 			final double height) throws IOException {
-		super(out, pdfWriter.getParams().getPlatformEncoding());
+		super(out, pdfWriter.getParams().platformEncoding());
 		final var params = pdfWriter.getParams();
-		this.setPrecision(params.getPrecision());
+		this.setPrecision(params.precision());
 		this.width = width;
 		this.height = height;
 		this.pdfWriter = pdfWriter;
@@ -125,7 +125,7 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	 */
 	public void writeFillColor(final Color color) throws IOException {
 		final var params = this.pdfWriter.getParams();
-		final var processedColor = switch (params.getColorMode()) {
+		final var processedColor = switch (params.colorMode()) {
 			case GRAY -> (color.getColorType() != Type.GRAY) ? ColorUtils.toGray(color) : color;
 			case CMYK -> (color.getColorType() != Type.CMYK) ? ColorUtils.toCMYK(color) : color;
 			default -> color;
@@ -161,7 +161,7 @@ public abstract class PDFGraphicsOutput extends PDFOutput {
 	 */
 	public void writeStrokeColor(final Color color) throws IOException {
 		final var params = this.pdfWriter.getParams();
-		final var processedColor = switch (params.getColorMode()) {
+		final var processedColor = switch (params.colorMode()) {
 			case GRAY -> (color.getColorType() != Type.GRAY) ? ColorUtils.toGray(color) : color;
 			case CMYK -> (color.getColorType() != Type.CMYK) ? ColorUtils.toCMYK(color) : color;
 			default -> color;

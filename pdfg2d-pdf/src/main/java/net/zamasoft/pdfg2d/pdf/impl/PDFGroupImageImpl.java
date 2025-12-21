@@ -45,7 +45,7 @@ public class PDFGroupImageImpl extends PDFGroupImage {
 	public void close() throws IOException {
 		if (this.ocgFlags != 0) {
 			final var pdfWriter = this.getPDFWriterImpl();
-			if (pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_5.v) {
+			if (pdfWriter.getParams().version().v < PDFParams.Version.V_1_5.v) {
 				throw new UnsupportedOperationException("OCG feature requires PDF >= 1.5.");
 			}
 

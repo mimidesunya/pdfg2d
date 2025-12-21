@@ -19,8 +19,7 @@ public class PDFBookmarkTest {
         final var tempFile = File.createTempFile("test-bookmarks", ".pdf");
         tempFile.deleteOnExit();
 
-        final var params = new PDFParams();
-        params.setBookmarks(true); // Enable bookmarks generation support (if applicable directly via API)
+        final var params = PDFParams.createDefault().withBookmarks(true);
 
         // PDFG2D creates bookmarks via PDFPageOutput API.
         // We ensure that setting the bookmark flag and calling start/endBookmark works.

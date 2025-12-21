@@ -22,8 +22,7 @@ public class PDFVersionTest {
         final var tempFile = File.createTempFile("test-version-" + version, ".pdf");
         tempFile.deleteOnExit();
 
-        final var params = new PDFParams();
-        params.setVersion(version);
+        final var params = PDFParams.createDefault().withVersion(version);
 
         try (final var out = new FileOutputStream(tempFile)) {
             final var builder = new StreamFragmentedOutput(out);

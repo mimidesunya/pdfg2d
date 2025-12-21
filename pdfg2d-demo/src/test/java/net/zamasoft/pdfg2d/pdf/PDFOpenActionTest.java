@@ -25,11 +25,10 @@ public class PDFOpenActionTest {
     @Test
     public void testOpenJavaScriptAction() throws Exception {
         final var file = new File(tempDir, "open_action_test.pdf");
-        final var params = new PDFParams();
-
         // Define JavaScript Open Action
-        String jsCode = "app.alert('Welcome to this PDF!');";
-        params.setOpenAction(new JavaScriptAction(jsCode));
+        final var jsCode = "app.alert('Welcome to this PDF!');";
+        final var params = PDFParams.createDefault()
+                .withOpenAction(new JavaScriptAction(jsCode));
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);

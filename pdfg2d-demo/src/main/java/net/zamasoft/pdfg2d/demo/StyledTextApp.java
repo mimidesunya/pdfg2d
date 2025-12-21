@@ -30,7 +30,7 @@ public class StyledTextApp {
 	public static void main(final String[] args) {
 		try (final var pdf = new PDFWriterImpl(
 				new FileFragmentedOutput(new File(DemoUtils.getOutputDir(), "styled-text.pdf")),
-				new PDFParams())) {
+				PDFParams.createDefault())) {
 
 			// Create A4 page
 			try (final var gc = new PDFGC(pdf.nextPage(PDFUtils.mmToPt(PDFUtils.PAPER_A4_WIDTH_MM),

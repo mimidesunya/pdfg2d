@@ -23,7 +23,7 @@ public class PDFGraphics2D extends BridgeGraphics2D implements Closeable {
 	}
 
 	public PDFGraphics2D(final File file, final double width, final double height) throws IOException {
-		this(file, width, height, new PDFParams());
+		this(file, width, height, PDFParams.createDefault());
 	}
 
 	public PDFGraphics2D(final File file) throws IOException {

@@ -19,7 +19,7 @@ public class PDFSecurityTest {
         final var tempFile = File.createTempFile("test-security-rc4", ".pdf");
         tempFile.deleteOnExit();
 
-        final var params = new PDFParams();
+        var params = PDFParams.createDefault();
 
         // Setup RC4 128-bit encryption (V2EncryptionParams indicates V2 algorithm,
         // typically standard 40-128 bit RC4)
@@ -34,7 +34,7 @@ public class PDFSecurityTest {
         perms.setCopy(false); // Disallow copying
         perms.setModify(false); // Disallow msg
 
-        params.setEncryption(encParams);
+        params = params.withEncryption(encParams);
 
         try (final var out = new FileOutputStream(tempFile)) {
             final var builder = new StreamFragmentedOutput(out);

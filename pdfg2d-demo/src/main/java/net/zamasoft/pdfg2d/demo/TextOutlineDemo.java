@@ -38,8 +38,7 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  */
 public class TextOutlineDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
-		params.setCompression(PDFParams.Compression.NONE);
+		final var params = PDFParams.createDefault().withCompression(PDFParams.Compression.NONE);
 
 		try (final var fsm = new PDFFontSourceManager()) {
 			{
@@ -49,7 +48,7 @@ public class TextOutlineDemo {
 				fsm.addFontFace(face);
 			}
 
-			params.setFontSourceManager(fsm);
+			final var finalParams = params.withFontSourceManager(fsm);
 
 			final var width = 300.0;
 			final var height = 300.0;

@@ -32,8 +32,7 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  */
 public class TransparencyGroupDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
-		params.setCompression(PDFParams.Compression.NONE);
+		final var params = PDFParams.createDefault().withCompression(PDFParams.Compression.NONE);
 
 		final var width = 300.0;
 		final var height = 300.0;

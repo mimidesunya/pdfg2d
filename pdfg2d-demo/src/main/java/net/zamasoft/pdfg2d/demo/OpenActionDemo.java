@@ -25,11 +25,11 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  */
 public class OpenActionDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
-		params.setCompression(PDFParams.Compression.NONE);
-		params.setVersion(PDFParams.Version.V_1_7);
-		final var js = new JavaScriptAction("this.print();");
-		params.setOpenAction(js);
+		final var js = new JavaScriptAction("app.alert('Hello');");
+		final var params = PDFParams.createDefault()
+				.withCompression(PDFParams.Compression.NONE)
+				.withVersion(PDFParams.Version.V_1_7)
+				.withOpenAction(js);
 
 		// final var width = 300.0;
 		// final var height = 300.0;

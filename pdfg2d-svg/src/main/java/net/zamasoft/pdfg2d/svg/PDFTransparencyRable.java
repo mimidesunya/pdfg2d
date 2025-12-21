@@ -72,7 +72,7 @@ class PDFTransparencyRable extends GraphicsNodeRable8Bit {
 
 			// Check PDF version for transparency support
 			if (!this.forceVector) {
-				final var pdfVersion = pdfOutput.getPdfWriter().getParams().getVersion();
+				final var pdfVersion = pdfOutput.getPdfWriter().getParams().version();
 				if (!supportsTransparency(pdfVersion)) {
 					// Fall back to rasterization for unsupported versions
 					return super.paintRable(g2d);

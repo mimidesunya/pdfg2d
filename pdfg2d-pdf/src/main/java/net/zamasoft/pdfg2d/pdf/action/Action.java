@@ -6,12 +6,8 @@ import net.zamasoft.pdfg2d.pdf.PDFOutput;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
 
 public class Action {
-	protected PDFParams params;
-	private Action[] next = null;
 
-	public void setParams(PDFParams params) {
-		this.params = params;
-	}
+	private Action[] next = null;
 
 	public Action[] getNext() {
 		return this.next;
@@ -21,7 +17,7 @@ public class Action {
 		this.next = next;
 	}
 
-	public void writeTo(PDFOutput out) throws IOException {
+	public void writeTo(PDFOutput out, PDFParams params) throws IOException {
 		out.writeName("Type");
 		out.writeName("Action");
 		out.lineBreak();
@@ -30,15 +26,13 @@ public class Action {
 			out.writeName("Next");
 			if (this.next.length == 1) {
 				out.startHash();
-				this.next[0].setParams(this.params);
-				this.next[0].writeTo(out);
+				this.next[0].writeTo(out, params);
 				out.endHash();
 			} else {
 				out.startArray();
 				for (int i = 0; i < this.next.length; ++i) {
 					out.startHash();
-					this.next[i].setParams(this.params);
-					this.next[i].writeTo(out);
+					this.next[i].writeTo(out, params);
 					out.endHash();
 				}
 				out.endArray();

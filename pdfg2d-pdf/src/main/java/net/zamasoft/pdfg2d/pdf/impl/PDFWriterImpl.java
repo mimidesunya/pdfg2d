@@ -159,7 +159,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	private List<ObjectRef> ocgs = null;
 
 	public PDFWriterImpl(final FragmentedOutput builder, final PDFParams params) throws IOException {
-		this.params = (params != null) ? params : new PDFParams();
+		this.params = (params != null) ? params : PDFParams.createDefault();
 		this.builder = builder.supportsPositionInfo() ? builder : new PositionTrackingOutput(builder);
 
 		final var id = this.nextId();
@@ -168,7 +168,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow = new PDFFragmentOutputImpl(out, this, id, -1, null);
 
 		// Header
-		final var pdfVersion = this.params.getVersion();
+		final var pdfVersion = this.params.version();
 		this.mainFlow.write(HEADER);
 		switch (pdfVersion) {
 			case V_1_2 -> this.mainFlow.write(PDF12);
@@ -233,7 +233,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		// XMP Metadata
 		var xmpmetaRef = (ObjectRef) null;
-		if (this.params.getVersion().v >= PDFParams.Version.V_1_4.v) {
+		if (this.params.version().v >= PDFParams.Version.V_1_4.v) {
 			xmpmetaRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("Metadata");
 			this.mainFlow.writeObjectRef(xmpmetaRef);
@@ -242,7 +242,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		// OutputIntents
 		var outputIntentRef = (ObjectRef) null;
-		if (this.params.getVersion().v >= PDFParams.Version.V_1_4.v) {
+		if (this.params.version().v >= PDFParams.Version.V_1_4.v) {
 			outputIntentRef = this.xref.nextObjectRef();
 			this.mainFlow.writeName("OutputIntents");
 			this.mainFlow.startArray();
@@ -255,7 +255,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.catalogFlow = this.mainFlow.forkFragment();
 
 		// File ID
-		var fileId = this.params.getFileId();
+		var fileId = this.params.fileId();
 		if (fileId == null) {
 			fileId = new byte[16];
 			RND.nextBytes(fileId);
@@ -267,7 +267,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		this.mainFlow.endObject();
 
 		// Encryption
-		final var encryptionParams = this.params.getEncryption();
+		final var encryptionParams = this.params.encryption();
 		if (encryptionParams != null) {
 			if (pdfVersion == PDFParams.Version.V_PDFA1B) {
 				throw new IllegalArgumentException("Encryption cannot be used in PDF/A-1.");
@@ -353,7 +353,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		}
 
 		// Outline Info
-		if (this.params.isBookmarks()) {
+		if (this.params.bookmarks()) {
 			this.outline = new OutlineFlow(this);
 		} else {
 			this.outline = null;
@@ -384,7 +384,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 					this.out.writeName("F");
 					this.out.writeFileName(new String[] { spec.name() },
-							PDFWriterImpl.this.params.getPlatformEncoding());
+							PDFWriterImpl.this.params.platformEncoding());
 					this.out.lineBreak();
 
 					if (pdfVersion.v >= PDFParams.Version.V_1_7.v && att.description() != null) {
@@ -419,7 +419,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	}
 
 	public PDFWriterImpl(final FragmentedOutput builder) throws IOException {
-		this(builder, new PDFParams());
+		this(builder, PDFParams.createDefault());
 	}
 
 	public PDFParams getParams() {
@@ -440,7 +440,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 	public FontManager getFontManager() {
 		if (this.fontManager == null) {
-			this.fontManager = new FontManagerImpl(this.params.getFontSourceManager(), this);
+			this.fontManager = new FontManagerImpl(this.params.fontSourceManager(), this);
 		}
 		return this.fontManager;
 	}
@@ -490,9 +490,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		gsOut.writeName("ExtGState");
 		gsOut.lineBreak();
 
-		return new PDFNamedOutput(gsOut, this.params.getPlatformEncoding()) {
+		return new PDFNamedOutput(gsOut, this.params.platformEncoding()) {
 			{
-				this.setPrecision(PDFWriterImpl.this.params.getPrecision());
+				this.setPrecision(PDFWriterImpl.this.params.precision());
 			}
 
 			@Override
@@ -510,7 +510,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	}
 
 	public PDFGroupImage createGroupImage(final double width, final double height) throws IOException {
-		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+		if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("Form Type 1 Group feature requires PDF >= 1.4.");
 		}
 		final var imageRef = this.xref.nextObjectRef();
@@ -691,9 +691,9 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 		objectsFlow.startObject(shadingRef);
 		objectsFlow.startHash();
-		return new PDFNamedOutput(objectsFlow, this.params.getPlatformEncoding()) {
+		return new PDFNamedOutput(objectsFlow, this.params.platformEncoding()) {
 			{
-				this.setPrecision(PDFWriterImpl.this.params.getPrecision());
+				this.setPrecision(PDFWriterImpl.this.params.precision());
 			}
 
 			@Override
@@ -714,13 +714,13 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 		if (attachment.description() == null && filename == null) {
 			throw new NullPointerException("Both description and filename cannot be null.");
 		}
-		if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+		if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 			throw new UnsupportedOperationException("File attachment requires PDF 1.4 or later.");
 		}
-		if (this.params.getVersion() == PDFParams.Version.V_PDFA1B) {
+		if (this.params.version() == PDFParams.Version.V_PDFA1B) {
 			throw new UnsupportedOperationException("File attachment cannot be used in PDF/A.");
 		}
-		if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
+		if (this.params.version() == PDFParams.Version.V_PDFX1A) {
 			throw new UnsupportedOperationException("File attachment cannot be used in PDF/X.");
 		}
 
@@ -807,7 +807,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	public void close() throws IOException {
 		try {
 			// Meta Info
-			final var info = this.params.getMetaInfo();
+			final var info = this.params.metaInfo();
 
 			final var author = info.getAuthor();
 			final var creator = info.getCreator();
@@ -826,7 +826,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			this.objectsFlow.startObject(infoRef);
 			this.objectsFlow.startHash();
 
-			if (this.params.getVersion() == PDFParams.Version.V_PDFX1A) {
+			if (this.params.version() == PDFParams.Version.V_PDFX1A) {
 				if (title == null || title.isEmpty()) {
 					title = "Untitled";
 				}
@@ -932,7 +932,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 					attsi.clear();
 
 					// PDF/A ID
-					if (this.params.getVersion() == PDFParams.Version.V_PDFA1B) {
+					if (this.params.version() == PDFParams.Version.V_PDFA1B) {
 						attsi.addAttribute("", "pdfaid", "xmlns:pdfaid", "CDATA", pdfaidURI);
 						attsi.addAttribute(rdfURI, "about", "rdf:about", "CDATA", "");
 						handler.startElement(rdfURI, "Description", "rdf:Description", attsi);
@@ -1119,7 +1119,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			}
 
 			// ViewerPreferences
-			final ViewerPreferences vp = this.params.getViewerPreferences();
+			final ViewerPreferences vp = this.params.viewerPreferences();
 			if (vp != null) {
 				this.catalogFlow.writeName("ViewerPreferences");
 				this.catalogFlow.startHash();
@@ -1155,7 +1155,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.isDisplayDocTitle()) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference DisplayDocTitle requires PDF 1.4 or later.");
 					}
@@ -1176,7 +1176,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getDirection() != ViewerPreferences.Direction.L2R) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_3.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference Direction requires PDF 1.3 or later.");
 					}
@@ -1190,7 +1190,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getViewArea() != ViewerPreferences.AreaBox.CROP) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference ViewArea requires PDF 1.4 or later.");
 					}
@@ -1200,7 +1200,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getViewClip() != ViewerPreferences.AreaBox.CROP) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference ViewClip requires PDF 1.4 or later.");
 					}
@@ -1210,7 +1210,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getPrintArea() != ViewerPreferences.AreaBox.CROP) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference PrintArea requires PDF 1.4 or later.");
 					}
@@ -1220,7 +1220,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getPrintClip() != ViewerPreferences.AreaBox.CROP) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_4.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_4.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference PrintClip requires PDF 1.4 or later.");
 					}
@@ -1230,7 +1230,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getPrintScaling() != ViewerPreferences.PrintScaling.APP_DEFAULT) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_6.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_6.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference PrintScaling requires PDF 1.6 or later.");
 					}
@@ -1241,7 +1241,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getDuplex() != ViewerPreferences.Duplex.NONE) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference Duplex requires PDF 1.7 or later.");
 					}
@@ -1257,7 +1257,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 				}
 
 				if (vp.getPickTrayByPDFSize()) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference PickTrayByPDFSize requires PDF 1.7 or later.");
 					}
@@ -1268,7 +1268,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				final var printPageRange = vp.getPrintPageRange();
 				if (printPageRange != null) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference PrintPageRange requires PDF 1.7 or later.");
 					}
@@ -1283,7 +1283,7 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 
 				final int numCopies = vp.getNumCopies();
 				if (numCopies > 0) {
-					if (this.params.getVersion().v < PDFParams.Version.V_1_7.v) {
+					if (this.params.version().v < PDFParams.Version.V_1_7.v) {
 						throw new UnsupportedOperationException(
 								"ViewerPreference NumCopies requires PDF 1.7 or later.");
 					}
@@ -1298,11 +1298,11 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 			}
 
 			// Open Action
-			final Action action = this.params.getOpenAction();
+			final Action action = this.params.openAction();
 			if (action != null) {
 				this.catalogFlow.writeName("OpenAction");
 				this.catalogFlow.startHash();
-				action.writeTo(this.catalogFlow);
+				action.writeTo(this.catalogFlow, this.params);
 				this.catalogFlow.endHash();
 				this.catalogFlow.lineBreak();
 			}

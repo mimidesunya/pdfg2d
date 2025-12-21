@@ -37,7 +37,7 @@ import net.zamasoft.pdfg2d.svg.SVGImage;
  */
 public class SVGRenderingDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
+		final var params = PDFParams.createDefault();
 		final var width = 300.0;
 		final var height = 300.0;
 

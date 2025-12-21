@@ -48,7 +48,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 		}
 
 		final var params = pdfWriter.getParams();
-		if (params.getVersion() == PDFParams.Version.V_PDFX1A) {
+		if (params.version() == PDFParams.Version.V_PDFX1A) {
 			this.artBox = new Rectangle2D.Double(0, 0, width, height);
 		}
 
@@ -121,7 +121,7 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	public void addAnnotation(final Annot annot) throws IOException {
 		final var pdfWriterImpl = this.getPDFWriterImpl();
 		final var params = pdfWriterImpl.getParams();
-		if (params.getVersion() == PDFParams.Version.V_PDFX1A) {
+		if (params.version() == PDFParams.Version.V_PDFX1A) {
 			throw new UnsupportedOperationException("Annotations are not allowed in PDF/X standards.");
 		}
 
@@ -141,8 +141,8 @@ class PDFPageOutputImpl extends PDFPageOutput {
 			annot.writeTo(objectsFlow, this);
 
 			// Required flags for PDF/A or PDF/X
-			if (params.getVersion() == PDFParams.Version.V_PDFA1B
-					|| params.getVersion() == PDFParams.Version.V_PDFX1A) {
+			if (params.version() == PDFParams.Version.V_PDFA1B
+					|| params.version() == PDFParams.Version.V_PDFX1A) {
 				objectsFlow.writeName("F");
 				objectsFlow.writeInt(0x04); // Print flag
 				objectsFlow.lineBreak();
@@ -216,21 +216,21 @@ class PDFPageOutputImpl extends PDFPageOutput {
 	}
 
 	public void setBleedBox(final Rectangle2D bleedBox) {
-		if (bleedBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
+		if (bleedBox != null && this.pdfWriter.getParams().version().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("BleedBox requires PDF 1.4+.");
 		}
 		this.bleedBox = bleedBox;
 	}
 
 	public void setTrimBox(final Rectangle2D trimBox) {
-		if (trimBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
+		if (trimBox != null && this.pdfWriter.getParams().version().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("TrimBox requires PDF 1.4+.");
 		}
 		this.trimBox = trimBox;
 	}
 
 	public void setArtBox(final Rectangle2D artBox) {
-		if (artBox != null && this.pdfWriter.getParams().getVersion().v < PDFParams.Version.V_1_3.v) {
+		if (artBox != null && this.pdfWriter.getParams().version().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("ArtBox requires PDF 1.4+.");
 		}
 		this.artBox = artBox;

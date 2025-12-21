@@ -25,7 +25,7 @@ public class PDFMetaInfoTest {
     public void testMetaInformation() {
         final var file = new File(tempDir, "meta_test.pdf");
         assertDoesNotThrow(() -> {
-            final var params = new PDFParams();
+            var params = PDFParams.createDefault();
             final var meta = new PDFMetaInfo();
             meta.setTitle("Test Title");
             meta.setAuthor("Test Author");
@@ -33,7 +33,7 @@ public class PDFMetaInfoTest {
             meta.setKeywords("test, pdf, java");
             meta.setCreator("PDFGraphics2D Test");
             meta.setProducer("PDFGraphics2D");
-            params.setMetaInfo(meta);
+            params = params.withMetaInfo(meta);
 
             try (final var g2d = new PDFGraphics2D(file, 595, 842, params)) {
                 g2d.setPaint(Color.BLACK);

@@ -437,7 +437,7 @@ public class PDFGC implements GC, Closeable {
 		} else {
 			this.resourceCache = resourceCache;
 		}
-		this.pdfVersion = this.out.getPdfWriter().getParams().getVersion();
+		this.pdfVersion = this.out.getPdfWriter().getParams().version();
 		this.stack.add(new GraphicsState(this));
 	}
 
@@ -1267,9 +1267,9 @@ public class PDFGC implements GC, Closeable {
 		sout.writeName("ColorSpace");
 		final var params = this.getPdfWriter().getParams();
 		final Color.Type colorType;
-		if (params.getColorMode() == PDFParams.ColorMode.GRAY) {
+		if (params.colorMode() == PDFParams.ColorMode.GRAY) {
 			colorType = Color.Type.GRAY;
-		} else if (params.getColorMode() == PDFParams.ColorMode.CMYK) {
+		} else if (params.colorMode() == PDFParams.ColorMode.CMYK) {
 			colorType = Color.Type.CMYK;
 		} else {
 			var type = colors[0].getColorType();

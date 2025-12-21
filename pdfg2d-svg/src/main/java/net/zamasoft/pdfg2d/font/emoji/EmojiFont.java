@@ -252,7 +252,7 @@ class EmojiFont implements ImageFont {
 				// Cache strategy depends on output type and PDF version
 				if (gc instanceof final PDFGC pdfGc
 						&& pdfGc.getPDFGraphicsOutput().getPdfWriter().getParams()
-								.getVersion().v >= PDFParams.Version.V_1_4.v) {
+								.version().v >= PDFParams.Version.V_1_4.v) {
 					// Create cached PDF group image for better performance
 					this.cacheAsPdfGroupImage(pdfGc, gid, gvtRoot);
 				} else {

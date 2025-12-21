@@ -52,7 +52,7 @@ abstract class NameTreeFlow {
 
 			// PDF 1.2 or earlier does not support top-level Names array in the root node.
 			// It requires a Kids array even if there is only one page-level node.
-			final var version = this.pdfWriter.params.getVersion();
+			final var version = this.pdfWriter.params.version();
 			if (version.v <= PDFParams.Version.V_1_2.v) {
 				this.out.writeName("Kids");
 				this.out.startArray();

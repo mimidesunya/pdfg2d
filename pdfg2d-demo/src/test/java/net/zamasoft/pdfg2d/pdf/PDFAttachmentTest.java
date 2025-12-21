@@ -27,9 +27,9 @@ public class PDFAttachmentTest {
     @Test
     public void testFileAttachments() throws Exception {
         final var file = new File(tempDir, "attachment_test.pdf");
-        final var params = new PDFParams();
         // Version 1.4+ required for attachments
-        params.setVersion(PDFParams.Version.V_1_4);
+        final var params = PDFParams.createDefault()
+                .withVersion(PDFParams.Version.V_1_4);
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);

@@ -22,9 +22,9 @@ public class JavaScriptAction extends Action {
 		return this.script;
 	}
 
-	public void writeTo(final PDFOutput out) throws IOException {
-		super.writeTo(out);
-		if (this.params.getVersion().v < PDFParams.Version.V_1_3.v) {
+	public void writeTo(final PDFOutput out, final PDFParams params) throws IOException {
+		super.writeTo(out, params);
+		if (params.version().v < PDFParams.Version.V_1_3.v) {
 			throw new UnsupportedOperationException("JavaScript Action requires PDF 1.3 or later.");
 		}
 		out.writeName("S");

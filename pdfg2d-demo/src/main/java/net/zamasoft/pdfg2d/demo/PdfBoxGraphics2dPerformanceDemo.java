@@ -103,7 +103,7 @@ public class PdfBoxGraphics2dPerformanceDemo {
         final var outFile = new File(DemoUtils.getOutputDir(), "performance-test-zamasoft.pdf");
 
         try (final var sourceDoc = Loader.loadPDF(file)) {
-            final var params = new PDFParams();
+            final var params = PDFParams.createDefault();
             final int pageCount = sourceDoc.getNumberOfPages();
             System.out.println("Starting rendering of " + pageCount + " pages...");
             final long startTime = System.currentTimeMillis();

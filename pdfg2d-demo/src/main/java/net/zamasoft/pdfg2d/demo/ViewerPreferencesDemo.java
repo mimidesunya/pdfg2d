@@ -24,14 +24,14 @@ import net.zamasoft.pdfg2d.pdf.params.ViewerPreferences;
  */
 public class ViewerPreferencesDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
-		params.setCompression(PDFParams.Compression.NONE);
-		params.setVersion(PDFParams.Version.V_1_7);
+		final var params = PDFParams.createDefault()
+				.withCompression(PDFParams.Compression.NONE)
+				.withVersion(PDFParams.Version.V_1_7);
 
-		final var meta = params.getMetaInfo();
+		final var meta = params.metaInfo();
 		meta.setTitle("タイトル");
 
-		final var prefs = params.getViewerPreferences();
+		final var prefs = params.viewerPreferences();
 		prefs.setNonFullScreenPageMode(ViewerPreferences.NonFullScreenPageMode.THUMBS);
 		prefs.setPickTrayByPDFSize(true);
 		prefs.setPrintPageRange(new int[] { 2, 3, 5, 7, 8, 9 });
@@ -39,7 +39,6 @@ public class ViewerPreferencesDemo {
 		prefs.setViewArea(ViewerPreferences.AreaBox.BLEED);
 		prefs.setViewClip(ViewerPreferences.AreaBox.BLEED);
 		prefs.setPrintScaling(ViewerPreferences.PrintScaling.NONE);
-		params.setViewerPreferences(prefs);
 
 		final var width = 300.0;
 		final var height = 300.0;

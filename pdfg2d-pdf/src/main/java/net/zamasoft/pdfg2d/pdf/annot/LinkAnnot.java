@@ -41,7 +41,7 @@ public class LinkAnnot extends Annot {
 		out.writeName("Link");
 		out.lineBreak();
 
-		final PDFParams.Version pdfVersion = pageOut.getPdfWriter().getParams().getVersion();
+		final PDFParams.Version pdfVersion = pageOut.getPdfWriter().getParams().version();
 		if (pdfVersion.v >= PDFParams.Version.V_1_6.v && !this.shape.equals(this.shape.getBounds2D())) {
 			// Non-rectangular link area
 			final double[] cord = new double[6];

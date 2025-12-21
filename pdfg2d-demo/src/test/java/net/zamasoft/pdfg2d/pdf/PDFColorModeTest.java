@@ -29,8 +29,7 @@ public class PDFColorModeTest {
     @Test
     public void testColorModeRGB() throws Exception {
         final var file = new File(tempDir, "color_mode_rgb.pdf");
-        final var params = new PDFParams();
-        params.setColorMode(ColorMode.PRESERVE); // Used for RGB
+        final var params = PDFParams.createDefault().withColorMode(ColorMode.PRESERVE); // Used for RGB
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);
@@ -66,8 +65,7 @@ public class PDFColorModeTest {
     @Test
     public void testColorModeGray() throws Exception {
         final var file = new File(tempDir, "color_mode_gray.pdf");
-        final var params = new PDFParams();
-        params.setColorMode(ColorMode.GRAY);
+        final var params = PDFParams.createDefault().withColorMode(ColorMode.GRAY);
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);
@@ -104,8 +102,7 @@ public class PDFColorModeTest {
     @Test
     public void testColorModeCMYK() throws Exception {
         final var file = new File(tempDir, "color_mode_cmyk.pdf");
-        final var params = new PDFParams();
-        params.setColorMode(ColorMode.CMYK);
+        final var params = PDFParams.createDefault().withColorMode(ColorMode.CMYK);
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);

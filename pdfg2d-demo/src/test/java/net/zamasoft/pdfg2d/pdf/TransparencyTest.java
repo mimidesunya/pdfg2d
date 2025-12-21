@@ -27,7 +27,7 @@ public class TransparencyTest {
         // 1. Generate PDF with transparency
         try (final var out = new FileOutputStream(tempFile)) {
             final var builder = new StreamFragmentedOutput(out);
-            final var pdf = new PDFWriterImpl(builder, new PDFParams());
+            final var pdf = new PDFWriterImpl(builder, PDFParams.createDefault());
 
             try (final var gc = new PDFGC(pdf.nextPage(400, 400))) {
                 final var g = new BridgeGraphics2D(gc);

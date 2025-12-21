@@ -42,8 +42,8 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 
 	public PDFFragmentOutputImpl(final OutputStream out, final PDFWriterImpl pdfWriter, final int id,
 			final int nextId, final ObjectRef currentRef) throws IOException {
-		super(out, pdfWriter.getParams().getPlatformEncoding());
-		this.setPrecision(pdfWriter.getParams().getPrecision());
+		super(out, pdfWriter.getParams().platformEncoding());
+		this.setPrecision(pdfWriter.getParams().precision());
 		this.pdfWriter = pdfWriter;
 		this.id = id;
 		this.anchorId = nextId;
@@ -124,7 +124,7 @@ class PDFFragmentOutputImpl extends PDFFragmentOutput {
 			throw new IllegalStateException("Cannot nest streams: " + this.streamLengthFlow);
 		}
 
-		final var compression = this.pdfWriter.params.getCompression();
+		final var compression = this.pdfWriter.params.compression();
 		switch (mode) {
 			case RAW -> {
 			}

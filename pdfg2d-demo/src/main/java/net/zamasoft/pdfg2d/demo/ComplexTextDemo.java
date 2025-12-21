@@ -39,8 +39,7 @@ import net.zamasoft.pdfg2d.pdf.params.PDFParams;
  */
 public class ComplexTextDemo {
 	public static void main(final String[] args) throws Exception {
-		final var params = new PDFParams();
-		params.setCompression(PDFParams.Compression.NONE);
+		final var params = PDFParams.createDefault().withCompression(PDFParams.Compression.NONE);
 
 		try (final var fsm = new PDFFontSourceManager()) {
 			{
@@ -68,7 +67,7 @@ public class ComplexTextDemo {
 				fsm.addFontFace(face);
 			}
 
-			params.setFontSourceManager(fsm);
+			final var finalParams = params.withFontSourceManager(fsm);
 
 			final var width = 300.0;
 			final var height = 300.0;
@@ -76,7 +75,7 @@ public class ComplexTextDemo {
 			try (final var out = new BufferedOutputStream(
 					new FileOutputStream(new File(DemoUtils.getOutputDir(), "text.pdf")))) {
 				final var builder = new StreamFragmentedOutput(out);
-				final PDFWriter pdf = new PDFWriterImpl(builder, params);
+				final PDFWriter pdf = new PDFWriterImpl(builder, finalParams);
 
 				try (final var gc = new PDFGC(pdf.nextPage(width, height))) {
 					draw(gc);

@@ -29,7 +29,7 @@ public class PDFEncryptionTest {
     public void testEncryptionRC4() {
         final var file = new File(tempDir, "encryption_rc4_test.pdf");
         assertDoesNotThrow(() -> {
-            final var params = new PDFParams();
+            var params = PDFParams.createDefault();
 
             // V2 Encryption (RC4)
             final var encParams = new V2EncryptionParams();
@@ -43,7 +43,7 @@ public class PDFEncryptionTest {
             perms.setCopy(false);
             perms.setModify(false);
 
-            params.setEncryption(encParams);
+            params = params.withEncryption(encParams);
 
             try (final var g2d = new PDFGraphics2D(file, 595, 842, params)) {
                 g2d.setPaint(Color.BLACK);
@@ -81,7 +81,7 @@ public class PDFEncryptionTest {
     public void testEncryptionAES() {
         final var file = new File(tempDir, "encryption_aes_test.pdf");
         assertDoesNotThrow(() -> {
-            final var params = new PDFParams();
+            var params = PDFParams.createDefault();
 
             // V4 Encryption (AES)
             final var encParams = new V4EncryptionParams();
@@ -96,8 +96,8 @@ public class PDFEncryptionTest {
             perms.setCopy(false);
             perms.setModify(false);
 
-            params.setVersion(PDFParams.Version.V_1_6);
-            params.setEncryption(encParams);
+            params = params.withVersion(PDFParams.Version.V_1_6)
+                    .withEncryption(encParams);
 
             try (final var g2d = new PDFGraphics2D(file, 595, 842, params)) {
                 g2d.setPaint(Color.BLACK);

@@ -169,10 +169,10 @@ class ImageFlow {
 		PDFImage pdfImage = null;
 		try {
 
-			final PDFParams.ColorMode colorMode = this.params.getColorMode();
-			final PDFParams.Compression streamCompression = this.params.getCompression();
-			final PDFParams.ImageCompression imageCompression = this.params.getImageCompression();
-			final PDFParams.Version pdfVersion = this.params.getVersion();
+			final PDFParams.ColorMode colorMode = this.params.colorMode();
+			final PDFParams.Compression streamCompression = this.params.compression();
+			final PDFParams.ImageCompression imageCompression = this.params.imageCompression();
+			final PDFParams.Version pdfVersion = this.params.version();
 			final boolean softMaskSupport = pdfVersion.v >= PDFParams.Version.V_1_4.v
 					&& pdfVersion.v != PDFParams.Version.V_PDFA1B.v && pdfVersion.v != PDFParams.Version.V_PDFX1A.v;
 			final boolean jpeg2000Support = pdfVersion.v >= PDFParams.Version.V_1_5.v;
@@ -180,7 +180,7 @@ class ImageFlow {
 
 			if (ir != null && colorMode == PDFParams.ColorMode.PRESERVE) {
 				final String formatName = ir.getFormatName();
-				if (this.params.getJPEGImage() == PDFParams.JPEGImage.RAW) {
+				if (this.params.jpegImage() == PDFParams.JPEGImage.RAW) {
 					// Detection of original image format
 					if (formatName.equalsIgnoreCase("jpeg")) {
 						imageType = PDFParams.ImageCompression.JPEG;
@@ -200,8 +200,8 @@ class ImageFlow {
 
 			boolean iccErrorHuck = false;
 			boolean iccGray = false;
-			final int maxWidth = this.params.getMaxImageWidth();
-			final int maxHeight = this.params.getMaxImageHeight();
+			final int maxWidth = this.params.maxImageWidth();
+			final int maxHeight = this.params.maxImageHeight();
 
 			if (image == null) {
 				try {
@@ -451,7 +451,7 @@ class ImageFlow {
 					try {
 						cm = image.getColorModel();
 
-						if ((width + height) > this.params.getImageCompressionLossless()) {
+						if ((width + height) > this.params.imageCompressionLossless()) {
 							imageType = imageCompression;
 						}
 						ImageWriter iw;

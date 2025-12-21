@@ -41,7 +41,7 @@ public class Graphics2DBridgeDemo {
 		final var x = 100;
 		final var y = 100;
 
-		final var params = new PDFParams();
+		final var params = PDFParams.createDefault();
 
 		// Create multi-page PDF using BridgeGraphics2D
 		try (final var out = new BufferedOutputStream(

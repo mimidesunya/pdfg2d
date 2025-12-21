@@ -27,7 +27,7 @@ public class PDFLinkTest {
     @Test
     public void testHyperlinks() throws Exception {
         final var file = new File(tempDir, "link_test.pdf");
-        final var params = new PDFParams();
+        final var params = PDFParams.createDefault();
 
         try (final var out = new FileOutputStream(file)) {
             final var builder = new StreamFragmentedOutput(out);
