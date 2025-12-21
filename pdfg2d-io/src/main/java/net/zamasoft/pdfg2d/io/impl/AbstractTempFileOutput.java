@@ -4,524 +4,354 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.zamasoft.pdfg2d.io.FragmentedOutput;
-import net.zamasoft.pdfg2d.io.util.IntList;
 
 /**
- * Abstract base implementation for fragmented output using a temporary file.
+ * High-performance implementation of FragmentedOutput.
  * <p>
- * This class provides a hybrid memory/disk storage strategy for building
- * fragmented data. Small fragments are kept in memory for fast access,
- * while larger fragments are stored in a temporary random access file.
+ * This class optimizes for speed and memory efficiency by buffering data in
+ * memory chunks and intelligently spilling to disk only when global memory
+ * limit is
+ * reached. It uses {@link FileChannel} for efficient file I/O and avoids strict
+ * segmentation for better flexibility.
  * </p>
- * <p>
- * Key features:
- * </p>
- * <ul>
- * <li>Fragments can be inserted in any order</li>
- * <li>Memory usage is controlled by buffer size limits</li>
- * <li>Automatic spillover to disk when memory limits are exceeded</li>
- * <li>Efficient final assembly using linked list ordering</li>
- * </ul>
  * 
  * @author MIYABE Tatsuhiko
- * @version $Id: AbstractRandomAccessFileBuilder.java 758 2011-11-13 14:05:46Z
- *          miyabe $
  */
 public abstract class AbstractTempFileOutput implements FragmentedOutput {
 	private static final Logger LOG = Logger.getLogger(AbstractTempFileOutput.class.getName());
 
 	/**
 	 * Configuration for buffer management.
-	 * <p>
-	 * Controls how data is buffered in memory versus stored on disk during
-	 * fragmented output construction.
-	 * </p>
 	 * 
-	 * @param fragmentBufferSize maximum buffer size per fragment in bytes.
-	 *                           Fragments smaller than this are kept in memory.
-	 * @param totalBufferSize    maximum total buffer size across all fragments in
-	 *                           bytes. When exceeded, fragments are spilled to
-	 *                           disk.
-	 * @param threshold          threshold in bytes below which fragments stay in
-	 *                           memory even when closed.
-	 * @param segmentSize        size of each segment in the temporary file in
-	 *                           bytes.
+	 * @param chunkSize maximum size of each memory chunk (e.g., 64KB).
+	 * @param maxMemory maximum total memory to use before spilling to disk.
 	 */
-	public record Config(int fragmentBufferSize, int totalBufferSize, int threshold, int segmentSize) {
+	public record Config(int chunkSize, long maxMemory) {
 		/**
-		 * Default configuration: 32KB per fragment, 8MB total, 4KB threshold, 8KB
-		 * segment.
+		 * Default configuration: 64KB chunks, 64MB max memory.
 		 */
-		public static final Config DEFAULT = new Config(32768, 1024 * 1024 * 8, 4096, 8192);
+		public static final Config DEFAULT = new Config(64 * 1024, 64 * 1024 * 1024);
 
 		/**
-		 * Creates a new configuration with validation.
-		 * 
-		 * @throws IllegalArgumentException if any value is not positive.
+		 * Configuration for purely in-memory processing.
+		 * <p>
+		 * Max memory is set to {@link Long#MAX_VALUE}, effectively disabling disk
+		 * spilling.
+		 * </p>
 		 */
+		public static final Config ON_MEMORY = new Config(64 * 1024, Long.MAX_VALUE);
+
 		public Config {
-			if (fragmentBufferSize <= 0) {
-				throw new IllegalArgumentException("fragmentBufferSize must be positive: " + fragmentBufferSize);
-			}
-			if (totalBufferSize <= 0) {
-				throw new IllegalArgumentException("totalBufferSize must be positive: " + totalBufferSize);
-			}
-			if (threshold <= 0) {
-				throw new IllegalArgumentException("threshold must be positive: " + threshold);
-			}
-			if (segmentSize <= 0) {
-				throw new IllegalArgumentException("segmentSize must be positive: " + segmentSize);
+			if (chunkSize <= 0)
+				throw new IllegalArgumentException("chunkSize must be positive");
+			if (maxMemory <= 0)
+				throw new IllegalArgumentException("maxMemory must be positive");
+		}
+	}
+
+	// Configuration
+	protected final int chunkSize;
+	protected final long maxMemory;
+
+	// Global State
+	protected long currentMemoryUsage = 0;
+	protected long totalLength = 0;
+
+	// Storage
+	protected File tempFile;
+	protected RandomAccessFile raf;
+	protected FileChannel fileChannel;
+
+	// Data Structure
+	protected final List<Fragment> fragments = new ArrayList<>();
+	protected Fragment first = null;
+	protected Fragment last = null;
+
+	// Spill Management
+	// We scan for the largest fragment only when spilling is required.
+	// This avoids overhead during normal writes.
+
+	/**
+	 * Represents a piece of data, either in memory or on disk.
+	 */
+	private sealed interface Chunk permits MemoryChunk, FileChunk {
+		long getLength();
+
+		void writeTo(OutputStream out, FileChannel channel, byte[] buffer) throws IOException;
+	}
+
+	private final class MemoryChunk implements Chunk {
+		final byte[] data;
+		int length;
+
+		MemoryChunk(int capacity) {
+			this.data = new byte[capacity];
+			this.length = 0;
+		}
+
+		@Override
+		public long getLength() {
+			return length;
+		}
+
+		@Override
+		public void writeTo(OutputStream out, FileChannel channel, byte[] buffer) throws IOException {
+			out.write(data, 0, length);
+		}
+	}
+
+	private final class FileChunk implements Chunk {
+		final long position;
+		final long length;
+
+		FileChunk(long position, long length) {
+			this.position = position;
+			this.length = length;
+		}
+
+		@Override
+		public long getLength() {
+			return length;
+		}
+
+		@Override
+		public void writeTo(OutputStream out, FileChannel channel, byte[] buffer) throws IOException {
+			long remaining = length;
+			long currentPos = position;
+			while (remaining > 0) {
+				int readSize = (int) Math.min(remaining, buffer.length);
+				// We need to synchronize if we were using multiple threads,
+				// but this class is not thread-safe by design (inherited).
+				// Use channel.read(dst, position) for thread safety if needed in future.
+				ByteBuffer buf = ByteBuffer.wrap(buffer, 0, readSize);
+				int read = channel.read(buf, currentPos);
+				if (read == -1)
+					break; // Should not happen
+				out.write(buffer, 0, read);
+				currentPos += read;
+				remaining -= read;
 			}
 		}
 	}
 
-	/** Size of each segment in the temporary file. */
-	private final int segmentSize;
-
-	/**
-	 * Maximum buffer size for a single fragment in memory.
-	 * Maximum total buffer size across all fragments.
-	 * Threshold below which fragments stay in memory on close.
-	 */
-	private final int fragmentBufferSize, totalBufferSize, threshold;
-
-	/** Random access file for disk-based storage; created lazily. */
-	protected RandomAccessFile raf = null;
-
-	/** Temporary file for disk-based storage; created lazily. */
-	protected File file = null;
-
-	/** List of all fragments indexed by ID. */
-	protected List<Fragment> fragments = null;
-
-	/** Linked list pointers for fragment ordering. */
-	protected Fragment first = null, last = null;
-
-	/** Total data length and current in-memory buffer usage. */
-	protected long length = 0, onMemory = 0;
-
-	/** Next segment index for disk storage allocation. */
-	protected int lastSegment = 0;
-
-	/** Shared buffer for reading segments during final assembly. */
-	private byte[] sharedBuffer = null;
-
-	/**
-	 * Represents a single fragment of data.
-	 * <p>
-	 * Each fragment maintains a doubly-linked list for ordering and can store
-	 * data either in memory or on disk. Data is automatically spilled to disk
-	 * when memory limits are exceeded.
-	 * </p>
-	 */
 	protected class Fragment {
-		/** Previous and next fragments in the linked list. */
-		public Fragment prev = null, next = null;
+		final int id;
+		Fragment prev, next;
 
-		/** Unique identifier for this fragment. */
-		private final int id;
+		final List<Chunk> chunks = new ArrayList<>();
+		long totalLength = 0;
+		long memoryUsage = 0;
 
-		/** Total byte length of data in this fragment. */
-		private int fragmentLength = 0;
+		// Optimization: keep the last chunk handy if it's a memory chunk for quick
+		// appending
+		MemoryChunk activeChunk = null;
 
-		/** In-memory buffer; null if data is stored on disk. */
-		private byte[] memoryBuffer = null;
-
-		/** List of segment indices in the temp file. */
-		private IntList segments;
-
-		/** Byte length of data in the last segment. */
-		private int lastSegmentLength = 0;
-
-		/**
-		 * Creates a new fragment with the given ID.
-		 * 
-		 * @param id unique fragment identifier.
-		 */
-		public Fragment(final int id) {
+		Fragment(int id) {
 			this.id = id;
 		}
 
-		/**
-		 * Returns the fragment ID.
-		 * 
-		 * @return fragment ID.
-		 */
-		public int getId() {
-			return this.id;
+		int getId() {
+			return id;
 		}
 
-		/**
-		 * Returns the total byte length of this fragment.
-		 * 
-		 * @return fragment length in bytes.
-		 */
-		public int getLength() {
-			return this.fragmentLength;
+		long getLength() {
+			return totalLength;
 		}
 
-		/**
-		 * Writes data to this fragment.
-		 * <p>
-		 * Data is buffered in memory if possible. When memory limits are exceeded,
-		 * data is automatically spilled to the temporary file.
-		 * </p>
-		 * 
-		 * @param buff source byte array.
-		 * @param pos  start offset in the source array.
-		 * @param len  number of bytes to write.
-		 * @throws IOException if an I/O error occurs.
-		 */
-		public void write(final byte[] buff, final int pos, final int len) throws IOException {
-			// Check if data fits in memory buffer
-			if (this.segments == null && (this.fragmentLength + len) < fragmentBufferSize
-					&& (AbstractTempFileOutput.this.onMemory + fragmentBufferSize) <= totalBufferSize) {
-				// Buffer in memory
-				if (this.memoryBuffer == null) {
-					this.memoryBuffer = new byte[fragmentBufferSize];
-					AbstractTempFileOutput.this.onMemory += fragmentBufferSize;
-				}
-				System.arraycopy(buff, pos, this.memoryBuffer, this.fragmentLength, len);
-			} else {
-				// Spill to disk
-				if (this.memoryBuffer != null) {
-					this.writeToRaf(this.memoryBuffer, 0, this.fragmentLength);
-					AbstractTempFileOutput.this.onMemory -= fragmentBufferSize;
-					this.memoryBuffer = null;
-				}
-				this.writeToRaf(buff, pos, len);
-			}
-			this.fragmentLength += len;
-		}
+		void write(byte[] b, int off, int len) throws IOException {
+			int remaining = len;
+			int offset = off;
 
-		/**
-		 * Writes data to the random access file.
-		 * <p>
-		 * Data is written in fixed-size segments. Multiple segments are
-		 * allocated as needed.
-		 * </p>
-		 * 
-		 * @param buff source byte array.
-		 * @param off  start offset.
-		 * @param len  number of bytes to write.
-		 * @throws IOException if an I/O error occurs.
-		 */
-		private void writeToRaf(final byte[] buff, int off, int len) throws IOException {
-			// Allocate first segment if needed
-			if (this.segments == null) {
-				this.segments = new IntList(10);
-				this.segments.add(AbstractTempFileOutput.this.lastSegment++);
-			}
-			// Write data across segments
-			while (len > 0) {
-				// Allocate new segment if current is full
-				if (this.lastSegmentLength == AbstractTempFileOutput.this.segmentSize) {
-					this.segments.add(AbstractTempFileOutput.this.lastSegment++);
-					this.lastSegmentLength = 0;
-				}
-				final int seg = this.segments.get(this.segments.size() - 1);
-				final int wlen = Math.min(len, AbstractTempFileOutput.this.segmentSize - this.lastSegmentLength);
-				final long wpos = (long) seg * (long) AbstractTempFileOutput.this.segmentSize
-						+ (long) this.lastSegmentLength;
-				AbstractTempFileOutput.this.raf.seek(wpos);
-				AbstractTempFileOutput.this.raf.write(buff, off, wlen);
-				this.lastSegmentLength += wlen;
-				off += wlen;
-				len -= wlen;
-			}
-		}
+			while (remaining > 0) {
+				ensureActiveChunk();
 
-		/**
-		 * Finishes writing to this fragment.
-		 * <p>
-		 * Optimizes memory usage by shrinking buffers or flushing to disk
-		 * based on the threshold setting.
-		 * </p>
-		 * 
-		 * @throws IOException if an I/O error occurs.
-		 */
-		public void close() throws IOException {
-			if (this.memoryBuffer != null) {
-				// Flush to disk if above threshold
-				if (this.fragmentLength >= AbstractTempFileOutput.this.threshold) {
-					this.writeToRaf(this.memoryBuffer, 0, this.fragmentLength);
-					AbstractTempFileOutput.this.onMemory -= fragmentBufferSize;
-					this.memoryBuffer = null;
-				} else if (this.fragmentLength < this.memoryBuffer.length) {
-					// Shrink buffer to actual size
-					final byte[] temp = new byte[this.fragmentLength];
-					System.arraycopy(this.memoryBuffer, 0, temp, 0, temp.length);
-					AbstractTempFileOutput.this.onMemory -= (this.memoryBuffer.length - this.fragmentLength);
-					this.memoryBuffer = temp;
+				int space = activeChunk.data.length - activeChunk.length;
+				int toWrite = Math.min(remaining, space);
+
+				System.arraycopy(b, offset, activeChunk.data, activeChunk.length, toWrite);
+
+				activeChunk.length += toWrite;
+				this.totalLength += toWrite;
+				offset += toWrite;
+				remaining -= toWrite;
+
+				if (activeChunk.length == activeChunk.data.length) {
+					// Current chunk is full
+					activeChunk = null;
 				}
 			}
 		}
 
-		/**
-		 * Writes all fragment data to the given output stream.
-		 * <p>
-		 * Reads from memory buffer or disk segments as appropriate.
-		 * </p>
-		 * 
-		 * @param out target output stream.
-		 * @throws IOException if an I/O error occurs.
-		 */
-		public void writeTo(final OutputStream out) throws IOException {
-			if (this.segments == null) {
-				// Write from memory
-				if (this.memoryBuffer != null) {
-					out.write(this.memoryBuffer, 0, this.fragmentLength);
-				}
-			} else {
-				// Read from disk and write to output
-				if (AbstractTempFileOutput.this.sharedBuffer == null) {
-					AbstractTempFileOutput.this.sharedBuffer = new byte[AbstractTempFileOutput.this.segmentSize];
-				}
-				final byte[] buff = AbstractTempFileOutput.this.sharedBuffer;
-				// Write all complete segments
-				for (int i = 0; i < this.segments.size() - 1; ++i) {
-					final int seg = this.segments.get(i);
-					final long rpos = (long) seg * (long) AbstractTempFileOutput.this.segmentSize;
-					AbstractTempFileOutput.this.raf.seek(rpos);
-					AbstractTempFileOutput.this.raf.readFully(buff);
-					out.write(buff);
-				}
-				// Write final partial segment
-				final int seg = this.segments.get(this.segments.size() - 1);
-				final long rpos = (long) seg * (long) AbstractTempFileOutput.this.segmentSize;
-				AbstractTempFileOutput.this.raf.seek(rpos);
-				AbstractTempFileOutput.this.raf.readFully(buff, 0, this.lastSegmentLength);
-				out.write(buff, 0, this.lastSegmentLength);
+		private void ensureActiveChunk() throws IOException {
+			if (activeChunk == null) {
+				checkSpill(); // Check memory limit before allocation
+
+				activeChunk = new MemoryChunk(chunkSize);
+				chunks.add(activeChunk);
+
+				this.memoryUsage += chunkSize;
+				updateGlobalMemory(chunkSize);
 			}
 		}
 
-		/**
-		 * Releases memory used by this fragment.
-		 */
-		public void dispose() {
-			this.memoryBuffer = null;
+		void spill() throws IOException {
+			if (memoryUsage == 0)
+				return;
+
+			// Prepare file
+			ensureFileOpen();
+
+			// Allocate a buffer for bulk writing if needed, but here we can just write
+			// chunks directly
+			// FileChannel.write(ByteBuffer[]) is perfect for this.
+
+			List<ByteBuffer> buffersToWrite = new ArrayList<>();
+			long bytesToSpill = 0;
+
+			// We only spill MemoryChunks that are currently in the list
+			// We replace them with FileChunks.
+
+			int firstMemoryIndex = -1;
+
+			for (int i = 0; i < chunks.size(); i++) {
+				Chunk c = chunks.get(i);
+				if (c instanceof MemoryChunk mc) {
+					if (firstMemoryIndex == -1)
+						firstMemoryIndex = i;
+					buffersToWrite.add(ByteBuffer.wrap(mc.data, 0, mc.length));
+					bytesToSpill += mc.length;
+				} else if (firstMemoryIndex != -1) {
+					// End of a contiguous block of memory chunks -> write them
+					flushMemoryBlock(firstMemoryIndex, i, buffersToWrite, bytesToSpill);
+					firstMemoryIndex = -1;
+					buffersToWrite.clear();
+					bytesToSpill = 0;
+				}
+			}
+
+			// Handle trailing memory chunks
+			if (firstMemoryIndex != -1) {
+				flushMemoryBlock(firstMemoryIndex, chunks.size(), buffersToWrite, bytesToSpill);
+			}
+
+			// Reset memory usage for this fragment
+			updateGlobalMemory(-this.memoryUsage);
+			this.memoryUsage = 0;
+			this.activeChunk = null; // Forces new chunk on next write
+		}
+
+		private void flushMemoryBlock(int startIndex, int endIndex, List<ByteBuffer> buffers, long length)
+				throws IOException {
+			if (length == 0)
+				return;
+
+			long filePos = fileChannel.position(); // Append to end
+
+			// Write all buffers
+			ByteBuffer[] bufArray = buffers.toArray(new ByteBuffer[0]);
+			long written = 0;
+			while (written < length) {
+				written += fileChannel.write(bufArray);
+			}
+
+			// Replace chunks in list with a single FileChunk
+			chunks.subList(startIndex, endIndex).clear();
+			chunks.add(startIndex, new FileChunk(filePos, length));
 		}
 	}
 
-	/**
-	 * Creates a new temp file output with custom buffer settings.
-	 * 
-	 * @param config buffer configuration.
-	 */
-	public AbstractTempFileOutput(final Config config) {
-		this.fragmentBufferSize = config.fragmentBufferSize();
-		this.totalBufferSize = config.totalBufferSize();
-		this.threshold = config.threshold();
-		this.segmentSize = config.segmentSize();
+	public AbstractTempFileOutput(Config config) {
+		this.chunkSize = config.chunkSize();
+		this.maxMemory = config.maxMemory();
 	}
 
-	/**
-	 * Creates a new temp file output with custom buffer settings.
-	 * 
-	 * @param fragmentBufferSize maximum buffer size per fragment.
-	 * @param totalBufferSize    maximum total buffer size in memory.
-	 * @param threshold          threshold below which fragments stay in memory.
-	 * @deprecated Use {@link #AbstractTempFileOutput(Config)} instead.
-	 */
 	@Deprecated
-	public AbstractTempFileOutput(final int fragmentBufferSize, final int totalBufferSize, final int threshold) {
-		this(new Config(fragmentBufferSize, totalBufferSize, threshold, Config.DEFAULT.segmentSize()));
+	public AbstractTempFileOutput(int fragmentBufferSize, int totalBufferSize, int threshold) {
+		this(new Config(fragmentBufferSize, totalBufferSize)); // Map legacy params
 	}
 
-	/**
-	 * Creates a new temp file output with default settings.
-	 * 
-	 * @see Config#DEFAULT
-	 */
 	public AbstractTempFileOutput() {
 		this(Config.DEFAULT);
 	}
 
-	/**
-	 * Generates the next fragment ID and initializes storage if needed.
-	 * <p>
-	 * On first call, creates the fragment list and temporary file.
-	 * </p>
-	 * 
-	 * @return the next available fragment ID.
-	 * @throws IOException if an I/O error occurs creating the temp file.
-	 */
-	protected int nextId() throws IOException {
-		if (this.fragments == null) {
-			this.fragments = new ArrayList<>();
-			this.file = File.createTempFile("pdfg2d-io-", ".fragments");
-			this.file.deleteOnExit();
-			this.raf = new RandomAccessFile(this.file, "rw");
+	// --- FragmentedOutput Implementation ---
+
+	@Override
+	public void addFragment() throws IOException {
+		Fragment f = new Fragment(fragments.size());
+		fragments.add(f);
+
+		if (first == null) {
+			first = f;
+		} else {
+			last.next = f;
+			f.prev = last;
 		}
-		return this.fragments.size();
+		last = f;
 	}
 
-	/**
-	 * Retrieves a fragment by ID.
-	 * 
-	 * @param id fragment ID.
-	 * @return the fragment with the given ID.
-	 * @throws IOException if an I/O error occurs.
-	 */
-	protected Fragment getFragment(final int id) throws IOException {
-		return this.fragments.get(id);
+	@Override
+	public void insertFragmentBefore(int anchorId) throws IOException {
+		Fragment anchor = fragments.get(anchorId);
+		Fragment f = new Fragment(fragments.size());
+		fragments.add(f);
+
+		f.prev = anchor.prev;
+		f.next = anchor;
+		if (anchor.prev != null) {
+			anchor.prev.next = f;
+		} else {
+			first = f;
+		}
+		anchor.prev = f;
 	}
 
-	/**
-	 * Stores a fragment in the fragment list.
-	 * 
-	 * @param id       fragment ID (must equal current list size).
-	 * @param fragment the fragment to store.
-	 */
-	protected void putFragment(final int id, final Fragment fragment) {
-		assert (id == this.fragments.size());
-		this.fragments.add(fragment);
+	@Override
+	public void write(int id, byte[] b, int off, int len) throws IOException {
+		Fragment f = fragments.get(id);
+		f.write(b, off, len);
+		this.totalLength += len;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Calculates positions by traversing the linked list in order and
-	 * accumulating fragment lengths.
-	 * </p>
-	 */
+	@Override
+	public void finishFragment(int id) throws IOException {
+		// No-op in this strategy
+	}
+
 	@Override
 	public PositionInfo getPositionInfo() {
-		final long[] idToPosition = new long[this.fragments.size()];
-		long position = 0;
-		var fragment = this.first;
-		while (fragment != null) {
-			idToPosition[fragment.getId()] = position;
-			position += fragment.getLength();
-			fragment = fragment.next;
-		}
-		return id -> idToPosition[id];
+		return new PositionInfo() {
+			private final long[] positions;
+			{
+				// Calculate all positions strictly by linked list order
+				positions = new long[fragments.size()];
+				long pos = 0;
+				Fragment curr = first;
+				while (curr != null) {
+					positions[curr.getId()] = pos;
+					pos += curr.getLength();
+					curr = curr.next;
+				}
+			}
+
+			@Override
+			public long getPosition(int id) {
+				return positions[id];
+			}
+		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @return always true; this implementation supports position info.
-	 */
 	@Override
 	public boolean supportsPositionInfo() {
 		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Creates a new fragment and appends it to the end of the linked list.
-	 * </p>
-	 */
-	@Override
-	public void addFragment() throws IOException {
-		final int id = this.nextId();
-		final var fragment = new Fragment(id);
-		if (this.first == null) {
-			this.first = fragment;
-		} else {
-			this.last.next = fragment;
-			fragment.prev = this.last;
-		}
-		this.putFragment(id, fragment);
-		this.last = fragment;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Creates a new fragment and inserts it before the anchor fragment
-	 * in the linked list.
-	 * </p>
-	 */
-	@Override
-	public void insertFragmentBefore(final int anchorId) throws IOException {
-		final int id = this.nextId();
-		final var anchor = this.getFragment(anchorId);
-		final var fragment = new Fragment(id);
-		this.putFragment(id, fragment);
-		// Insert into linked list before anchor
-		fragment.prev = anchor.prev;
-		fragment.next = anchor;
-		if (anchor.prev != null) {
-			anchor.prev.next = fragment;
-		}
-		anchor.prev = fragment;
-		if (this.first == anchor) {
-			this.first = fragment;
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Writes data to the specified fragment and updates the total length.
-	 * </p>
-	 */
-	@Override
-	public void write(final int id, final byte[] b, final int off, final int len) throws IOException {
-		final var fragment = this.getFragment(id);
-		fragment.write(b, off, len);
-		this.length += len;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Finishes the fragment by optimizing its memory usage.
-	 * </p>
-	 */
-	@Override
-	public void finishFragment(final int id) throws IOException {
-		final var fragment = this.getFragment(id);
-		fragment.close();
-	}
-
-	/**
-	 * Assembles all fragments in order and writes to the output stream.
-	 * <p>
-	 * Traverses the linked list from first to last, writing each fragment's
-	 * data to the output stream, then releases all resources.
-	 * </p>
-	 * 
-	 * @param out target output stream.
-	 * @throws IOException if an I/O error occurs.
-	 */
-	protected void finish(final OutputStream out) throws IOException {
-		if (this.first == null) {
-			// Empty output
-			this.clean();
-			return;
-		}
-		// Log statistics
-		if (LOG.isLoggable(Level.FINE)) {
-			final int total = this.fragments.size();
-			int memoryCount = 0;
-			for (int i = 0; i < total; ++i) {
-				final var f = this.fragments.get(i);
-				if (f.segments == null) {
-					++memoryCount;
-				}
-			}
-			LOG.fine(total + " fragments were generated.");
-			LOG.fine(memoryCount + " fragments are on memory, " + (total - memoryCount) + " fragments are on disk.");
-		}
-
-		// Write all fragments in order
-		var fragment = this.first;
-		while (fragment != null) {
-			fragment.writeTo(out);
-			fragment.dispose();
-			fragment = fragment.next;
-		}
-		this.clean();
 	}
 
 	/**
@@ -530,57 +360,97 @@ public abstract class AbstractTempFileOutput implements FragmentedOutput {
 	 * @return total bytes written across all fragments.
 	 */
 	public long getLength() {
-		return this.length;
+		return totalLength;
 	}
 
-	/**
-	 * Releases all resources including the temporary file.
-	 * <p>
-	 * Closes and deletes the random access file, then resets all state.
-	 * </p>
-	 */
-	private void clean() {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("Cleaning resources.");
-		}
-		// Close random access file
-		if (this.raf != null) {
-			try {
-				this.raf.close();
-			} catch (Exception e) {
-				LOG.log(Level.FINE, "Failed to close temporary file.", e);
-			}
-			this.raf = null;
-		}
-		// Delete temporary file
-		if (this.file != null) {
-			try {
-				this.file.delete();
-			} catch (Exception e) {
-				LOG.log(Level.FINE, "Failed to delete temporary file.", e);
-			}
-			this.file = null;
-		}
-		// Reset state
-		this.first = null;
-		this.last = null;
-		this.fragments = null;
-		this.length = 0;
-		this.onMemory = 0;
-		this.lastSegment = 0;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Releases all resources without writing output values.
-	 * Call this to abort output construction.
-	 * </p>
-	 */
 	@Override
 	public void close() throws IOException {
-		if (this.first != null || this.raf != null || this.file != null) {
-			this.clean();
+		clean();
+	}
+
+	protected void finish(OutputStream out) throws IOException {
+		if (first == null) {
+			clean();
+			return;
+		}
+
+		if (LOG.isLoggable(Level.FINE)) {
+			LOG.fine("Finishing output. Total length: " + totalLength + ", Memory usage: " + currentMemoryUsage);
+		}
+
+		byte[] copyBuffer = new byte[8192]; // Buffer for disk-to-stream copies
+
+		Fragment curr = first;
+		while (curr != null) {
+			for (Chunk chunk : curr.chunks) {
+				chunk.writeTo(out, fileChannel, copyBuffer);
+			}
+			curr = curr.next;
+		}
+
+		out.flush();
+		clean();
+	}
+
+	// --- Internal Helpers ---
+
+	private void updateGlobalMemory(long delta) {
+		this.currentMemoryUsage += delta;
+	}
+
+	private void checkSpill() throws IOException {
+		while (currentMemoryUsage >= maxMemory) {
+			// Strategy: Find the fragment with MAX memory usage.
+			Fragment candidate = findMaxMemoryFragment();
+
+			if (candidate == null || candidate.memoryUsage == 0) {
+				// Should not happen if usage > 0, but safety break
+				break;
+			}
+
+			candidate.spill();
+		}
+	}
+
+	private Fragment findMaxMemoryFragment() {
+		Fragment max = null;
+		long maxUsage = -1;
+		for (Fragment f : fragments) {
+			if (f.memoryUsage > maxUsage) {
+				maxUsage = f.memoryUsage;
+				max = f;
+			}
+		}
+		return max;
+	}
+
+	private void ensureFileOpen() throws IOException {
+		if (fileChannel == null) {
+			tempFile = File.createTempFile("pdfg2d-io-fast-", ".tmp");
+			tempFile.deleteOnExit();
+			raf = new RandomAccessFile(tempFile, "rw");
+			fileChannel = raf.getChannel();
+		}
+	}
+
+	private void clean() {
+		try {
+			if (fileChannel != null)
+				fileChannel.close();
+			if (raf != null)
+				raf.close();
+			if (tempFile != null)
+				tempFile.delete();
+		} catch (IOException e) {
+			LOG.log(Level.WARNING, "Failed to clean up temp resources", e);
+		} finally {
+			fileChannel = null;
+			raf = null;
+			tempFile = null;
+			fragments.clear();
+			first = last = null;
+			currentMemoryUsage = 0;
+			totalLength = 0;
 		}
 	}
 }

@@ -110,7 +110,7 @@ public class PdfBoxGraphics2dPerformanceDemo {
 
             try {
                 try (final var pdfWriter = new PDFWriterImpl(
-                        new FileFragmentedOutput(outFile), params)) {
+                        new FileFragmentedOutput(outFile, AbstractTempFileOutput.Config.ON_MEMORY), params)) {
                     final var renderer = new PDFRenderer(sourceDoc);
 
                     for (int i = 0; i < pageCount; i++) {

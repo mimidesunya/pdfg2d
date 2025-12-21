@@ -199,39 +199,69 @@ public class PDFOutput extends FilterOutputStream {
 		this.buffFlush();
 	}
 
+	// Lookup table for fast division by 10 (0-99 mapping)
+	private static final byte[] DIGITS_TENS = { '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
+			'1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '3', '3', '3', '3', '3',
+			'3', '3', '3', '3', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '5', '5', '5', '5', '5', '5',
+			'5', '5', '5', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '7', '7', '7', '7', '7', '7', '7',
+			'7', '7', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8', '9', '9', '9', '9', '9', '9', '9', '9',
+			'9', '9' };
+
+	private static final byte[] DIGITS_ONES = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
+			'4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4',
+			'5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5',
+			'6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6',
+			'7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7',
+			'8', '9' };
+
 	private void buffWriteReal(final double number) {
 		assert !Double.isInfinite(number) : "Infinite number";
 		assert !Double.isNaN(number) : "Undefined number";
 
-		final var lval = this.toLong(number);
-		var v = lval;
-		final var iScale = (long) this.scale;
-		if (v % iScale == 0) {
-			this.buffWriteLong(v / iScale);
-			return;
-		}
+		final long scaled = this.toLong(number);
+		final long iScale = (long) this.scale;
 
+		long v = scaled;
 		if (v < 0) {
 			this.bbuff.put((byte) '-');
 			v = -v;
 		}
-		this.buffWriteLong(v / iScale);
+
+		long ipart = v / iScale;
+
+		// Write integer part using optimized writer
+		buffWriteLongPositive(ipart);
+
+		long fpart = v % iScale;
+		if (fpart == 0) {
+			return;
+		}
+
 		this.bbuff.put((byte) '.');
 
-		var f = (int) (v % iScale);
-		if (this.precision > 0) {
-			final var buf = new byte[this.precision];
-			for (var i = this.precision - 1; i >= 0; --i) {
-				buf[i] = (byte) ('0' + (f % 10));
-				f /= 10;
-			}
-			var last = this.precision - 1;
-			while (last >= 0 && buf[last] == '0') {
-				last--;
-			}
-			if (last >= 0) {
-				this.bbuff.put(buf, 0, last + 1);
-			}
+		// Fast write of fractional part with padding
+		// We know fpart is < iScale (power of 10) and precision is small (usually 1-4)
+		int prec = this.precision;
+		int pos = 0;
+		// Fill temporary buffer backwards
+		while (prec > 0) {
+			long q = fpart / 10;
+			long r = fpart - (q * 10); // faster than % 10
+			numBuf[pos++] = (byte) ('0' + r);
+			fpart = q;
+			prec--;
+		}
+
+		// Skip trailing zeros (which are at the beginning of numBuf since we wrote
+		// backwards)
+		int start = 0;
+		while (start < pos && numBuf[start] == '0') {
+			start++;
+		}
+
+		// Write remaining digits in correct order
+		for (int i = pos - 1; i >= start; i--) {
+			this.bbuff.put(numBuf[i]);
 		}
 	}
 
@@ -244,14 +274,42 @@ public class PDFOutput extends FilterOutputStream {
 			this.bbuff.put((byte) '-');
 			v = -v;
 		}
-		var i = 20;
-		while (v >= 10) {
-			final long q = v / 10;
-			numBuf[--i] = (byte) ('0' + (v - q * 10));
-			v = q;
+		buffWriteLongPositive(v);
+	}
+
+	/**
+	 * Optimized long writer for positive values.
+	 * Writes directly to bbuff using lookup tables for 2-digit blocks.
+	 */
+	private void buffWriteLongPositive(long v) {
+		if (v == 0) {
+			this.bbuff.put((byte) '0');
+			return;
 		}
-		numBuf[--i] = (byte) ('0' + v);
-		this.bbuff.put(numBuf, i, 20 - i);
+
+		// Use local buffer for reversing digits
+		int p = 0;
+		while (v >= 100) {
+			// Do two digits at a time
+			long q = v / 100;
+			int r = (int) (v - (q * 100));
+			v = q;
+			numBuf[p++] = DIGITS_ONES[r];
+			numBuf[p++] = DIGITS_TENS[r];
+		}
+
+		if (v >= 10) {
+			int r = (int) v;
+			numBuf[p++] = DIGITS_ONES[r];
+			numBuf[p++] = DIGITS_TENS[r];
+		} else {
+			numBuf[p++] = (byte) ('0' + v);
+		}
+
+		// Write reversed to buffer
+		while (p > 0) {
+			this.bbuff.put(numBuf[--p]);
+		}
 	}
 
 	/**
