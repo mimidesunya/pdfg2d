@@ -26,6 +26,7 @@ import net.zamasoft.pdfg2d.resolver.util.AbstractSource;
  */
 public class HTTPSource extends AbstractSource {
 	private final CloseableHttpClient httpClient;
+	private final boolean closeClient;
 
 	private String mimeType;
 	private String encoding;
@@ -38,9 +39,14 @@ public class HTTPSource extends AbstractSource {
 	private long lastModified = -1;
 	private long contentLength = -1;
 
-	public HTTPSource(URI uri, CloseableHttpClient httpClient) {
+	public HTTPSource(final URI uri, final CloseableHttpClient httpClient) {
+		this(uri, httpClient, true);
+	}
+
+	public HTTPSource(final URI uri, final CloseableHttpClient httpClient, final boolean closeClient) {
 		super(uri);
 		this.httpClient = httpClient;
+		this.closeClient = closeClient;
 	}
 
 	public CloseableHttpClient getHttpClient() {
@@ -97,7 +103,7 @@ public class HTTPSource extends AbstractSource {
 			this.in = null;
 		}
 		this.tryConnect();
-		HttpEntity entity = this.res.getEntity();
+		final HttpEntity entity = this.res.getEntity();
 		if (entity == null) {
 			throw new FileNotFoundException();
 		}
@@ -139,7 +145,7 @@ public class HTTPSource extends AbstractSource {
 		}
 		final Header lastModifiedHeader = this.res.getLastHeader("Last-Modified");
 		if (lastModifiedHeader != null) {
-			Date date = DateUtils.parseDate(lastModifiedHeader.getValue());
+			final Date date = DateUtils.parseDate(lastModifiedHeader.getValue());
 			if (date != null) {
 				this.lastModified = date.getTime();
 			}
@@ -197,10 +203,12 @@ public class HTTPSource extends AbstractSource {
 				this.res = null;
 				this.req = null;
 				this.in = null;
-				try {
-					this.httpClient.close();
-				} catch (IOException e) {
-					// ignore
+				if (this.closeClient) {
+					try {
+						this.httpClient.close();
+					} catch (IOException e) {
+						// ignore
+					}
 				}
 			}
 		}

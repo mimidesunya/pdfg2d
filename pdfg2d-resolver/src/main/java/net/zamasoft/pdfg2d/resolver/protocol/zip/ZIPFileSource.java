@@ -27,7 +27,8 @@ public class ZIPFileSource extends AbstractSource {
 	private final String encoding;
 	private String mimeType = null;
 
-	public ZIPFileSource(ZipFile zip, String path, URI uri, String mimeType, String encoding) {
+	public ZIPFileSource(final ZipFile zip, final String path, final URI uri, final String mimeType,
+			final String encoding) {
 		super(uri);
 		this.zip = Objects.requireNonNull(zip, "ZipFile must not be null");
 
@@ -46,39 +47,38 @@ public class ZIPFileSource extends AbstractSource {
 		this.encoding = encoding;
 	}
 
-	public ZIPFileSource(ZipFile zip, URI uri, String mimeType, String encoding) {
+	public ZIPFileSource(final ZipFile zip, final URI uri, final String mimeType, final String encoding) {
 		this(zip, null, uri, mimeType, encoding);
 	}
 
-	public ZIPFileSource(ZipFile zip, URI uri, String mimeType) {
+	public ZIPFileSource(final ZipFile zip, final URI uri, final String mimeType) {
 		this(zip, uri, mimeType, null);
 	}
 
-	public ZIPFileSource(ZipFile zip, URI uri) throws IOException {
+	public ZIPFileSource(final ZipFile zip, final URI uri) throws IOException {
 		this(zip, uri, null);
 	}
 
-	public ZIPFileSource(ZipFile zip, String path, URI uri, String mimeType) {
+	public ZIPFileSource(final ZipFile zip, final String path, final URI uri, final String mimeType) {
 		this(zip, path, uri, mimeType, null);
 	}
 
-	public ZIPFileSource(ZipFile zip, String path, URI uri) {
+	public ZIPFileSource(final ZipFile zip, final String path, final URI uri) {
 		this(zip, path, uri, null, null);
 	}
 
 	@Override
 	public String getMimeType() throws IOException {
 		if (this.mimeType == null && this.entry != null) {
-			String name = this.entry.getName();
-			int dot = name.lastIndexOf('.');
+			final String name = this.entry.getName();
+			final int dot = name.lastIndexOf('.');
 			if (dot != -1) {
-				String suffix = name.substring(dot);
-				if (suffix.equalsIgnoreCase(".html") || suffix.equalsIgnoreCase(".htm")) {
-					this.mimeType = "text/html";
-				} else if (suffix.equalsIgnoreCase(".xml") || suffix.equalsIgnoreCase(".xhtml")
-						|| suffix.equalsIgnoreCase(".xht")) {
-					this.mimeType = "text/xml";
-				}
+				final String suffix = name.substring(dot).toLowerCase();
+				this.mimeType = switch (suffix) {
+					case ".html", ".htm" -> "text/html";
+					case ".xml", ".xhtml", ".xht" -> "text/xml";
+					default -> null;
+				};
 			}
 		}
 		return this.mimeType;
@@ -133,7 +133,7 @@ public class ZIPFileSource extends AbstractSource {
 	@Override
 	public long getLength() throws IOException {
 		if (this.exists()) {
-			long size = this.entry.getSize();
+			final long size = this.entry.getSize();
 			return size != -1 ? size : -1;
 		}
 		return 0;
@@ -141,8 +141,8 @@ public class ZIPFileSource extends AbstractSource {
 
 	@Override
 	public SourceValidity getValidity() throws IOException {
-		File file = new File(this.zip.getName());
-		long timestamp = file.lastModified();
+		final File file = new File(this.zip.getName());
+		final long timestamp = file.lastModified();
 		return new ZIPFileSourceValidity(timestamp, file);
 	}
 }

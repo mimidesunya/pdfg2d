@@ -10,12 +10,12 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
  */
 public class FileSourceResolver implements SourceResolver {
 	@Override
-	public Source resolve(URI uri) throws IOException {
+	public Source resolve(final URI uri) throws IOException {
 		return new FileSource(uri);
 	}
 
 	@Override
-	public void release(Source source) {
+	public void release(final Source source) {
 		// ignore
 	}
 }

@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.zamasoft.pdfg2d.resolver.SourceValidity;
@@ -32,37 +33,34 @@ public class URLSource extends AbstractSource {
 	private transient InputStream in = null;
 	private long timestamp = -1L;
 
-	public URLSource(URI uri, URL url, String mimeType, String encoding) {
+	public URLSource(final URI uri, final URL url, final String mimeType, final String encoding) {
 		super(uri);
-		if (url == null) {
-			throw new NullPointerException("URL must not be null");
-		}
-		this.url = url;
+		this.url = Objects.requireNonNull(url, "URL must not be null");
 		this.mimeType = mimeType;
 		this.encoding = encoding;
 	}
 
-	public URLSource(URL url, String mimeType, String encoding) throws URISyntaxException {
+	public URLSource(final URL url, final String mimeType, final String encoding) throws URISyntaxException {
 		this(url.toURI(), url, mimeType, encoding);
 	}
 
-	public URLSource(URL url, String mimeType) throws URISyntaxException {
+	public URLSource(final URL url, final String mimeType) throws URISyntaxException {
 		this(url, mimeType, null);
 	}
 
-	public URLSource(URL url) throws URISyntaxException {
+	public URLSource(final URL url) throws URISyntaxException {
 		this(url, null);
 	}
 
-	public URLSource(URI uri, String mimeType, String encoding) throws MalformedURLException {
+	public URLSource(final URI uri, final String mimeType, final String encoding) throws MalformedURLException {
 		this(uri, uri.toURL(), mimeType, encoding);
 	}
 
-	public URLSource(URI uri, String mimeType) throws MalformedURLException {
+	public URLSource(final URI uri, final String mimeType) throws MalformedURLException {
 		this(uri, uri.toURL(), mimeType, null);
 	}
 
-	public URLSource(URI uri) throws MalformedURLException {
+	public URLSource(final URI uri) throws MalformedURLException {
 		this(uri, uri.toURL(), null, null);
 	}
 
@@ -70,16 +68,15 @@ public class URLSource extends AbstractSource {
 	public String getMimeType() throws IOException {
 		if (this.mimeType == null) {
 			if (this.isFile()) {
-				String filename = this.getFile().getName();
-				int dot = filename.lastIndexOf('.');
+				final String filename = this.getFile().getName();
+				final int dot = filename.lastIndexOf('.');
 				if (dot != -1) {
-					String suffix = filename.substring(dot);
-					if (suffix.equalsIgnoreCase(".html") || suffix.equalsIgnoreCase(".htm")) {
-						this.mimeType = "text/html";
-					} else if (suffix.equalsIgnoreCase(".xml") || suffix.equalsIgnoreCase(".xhtml")
-							|| suffix.equalsIgnoreCase(".xht")) {
-						this.mimeType = "text/xml";
-					}
+					final String suffix = filename.substring(dot).toLowerCase();
+					this.mimeType = switch (suffix) {
+						case ".html", ".htm" -> "text/html";
+						case ".xml", ".xhtml", ".xht" -> "text/xml";
+						default -> null;
+					};
 					if (this.mimeType != null) {
 						return this.mimeType;
 					}

@@ -7,8 +7,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGOMDocument;
@@ -29,9 +27,9 @@ import net.zamasoft.pdfg2d.gc.text.Text;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGC;
 import net.zamasoft.pdfg2d.pdf.gc.PDFGroupImage;
 import net.zamasoft.pdfg2d.pdf.params.PDFParams;
-import net.zamasoft.pdfg2d.svg.SVGDimension;
 import net.zamasoft.pdfg2d.svg.PDFGVTBuilder;
 import net.zamasoft.pdfg2d.svg.SVGBridgeGraphics2D;
+import net.zamasoft.pdfg2d.svg.SVGDimension;
 import net.zamasoft.pdfg2d.svg.SVGUserAgent;
 
 /**
@@ -234,18 +232,16 @@ class EmojiFont implements ImageFont {
 		}
 		final var fileName = "emoji_u" + code + ".svg";
 
-		try (final var zis = new ZipInputStream(
-				new BufferedInputStream(EmojiFontSource.class.getResourceAsStream("emoji.zip")))) {
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				if (!fileName.equals(entry.getName())) {
-					continue;
-				}
-
+		try {
+			final var emojiStream = EmojiFontSource.getEmojiStream(fileName);
+			if (emojiStream == null) {
+				return null;
+			}
+			try (final var is = new BufferedInputStream(emojiStream)) {
 				// Parse SVG document using Batik
 				final var factory = new SAXSVGDocumentFactory(
 						XMLResourceDescriptor.getXMLParserClassName());
-				final var doc = (SVGOMDocument) factory.createDocument(null, zis);
+				final var doc = (SVGOMDocument) factory.createDocument(null, is);
 				final UserAgent ua = new SVGUserAgent(VIEWPORT);
 				final var loader = new DocumentLoader(ua);
 				final var ctx = new BridgeContext(ua, loader);
@@ -254,11 +250,11 @@ class EmojiFont implements ImageFont {
 				final var gvtRoot = gvt.build(ctx, doc);
 
 				// Cache strategy depends on output type and PDF version
-				if (gc instanceof PDFGC pdfGc
+				if (gc instanceof final PDFGC pdfGc
 						&& pdfGc.getPDFGraphicsOutput().getPdfWriter().getParams()
 								.getVersion().v >= PDFParams.Version.V_1_4.v) {
 					// Create cached PDF group image for better performance
-					cacheAsPdfGroupImage(pdfGc, gid, gvtRoot);
+					this.cacheAsPdfGroupImage(pdfGc, gid, gvtRoot);
 				} else {
 					// Cache raw GVT node for non-PDF or older PDF versions
 					this.gidToNode.put(gid, gvtRoot);
@@ -268,7 +264,6 @@ class EmojiFont implements ImageFont {
 		} catch (final Exception e) {
 			throw new RuntimeException("Failed to load emoji: " + fileName, e);
 		}
-		return null;
 	}
 
 	/**

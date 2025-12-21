@@ -12,17 +12,17 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
 public class ZIPFileSourceResolver implements SourceResolver {
 	protected final ZipFile zip;
 
-	public ZIPFileSourceResolver(ZipFile zip) {
+	public ZIPFileSourceResolver(final ZipFile zip) {
 		this.zip = zip;
 	}
 
 	@Override
-	public Source resolve(URI uri) throws IOException {
+	public Source resolve(final URI uri) throws IOException {
 		return new ZIPFileSource(this.zip, uri);
 	}
 
 	@Override
-	public void release(Source source) {
+	public void release(final Source source) {
 		try {
 			source.close();
 		} catch (IOException e) {

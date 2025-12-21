@@ -10,7 +10,7 @@ import net.zamasoft.pdfg2d.resolver.Source;
 public abstract class AbstractSource implements Source {
 	protected final URI uri;
 
-	public AbstractSource(URI uri) {
+	public AbstractSource(final URI uri) {
 		this.uri = uri;
 	}
 
@@ -44,4 +44,3 @@ public abstract class AbstractSource implements Source {
 		return this.uri.toString();
 	}
 }
-

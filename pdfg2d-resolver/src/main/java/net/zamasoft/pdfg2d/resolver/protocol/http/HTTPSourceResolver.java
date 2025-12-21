@@ -14,20 +14,26 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
  * SourceResolver that retrieves data using HttpClient.
  */
 public class HTTPSourceResolver implements SourceResolver {
-	protected CloseableHttpClient createHttpClient() {
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-		return HttpClientBuilder.create().setConnectionManager(cm).build();
+	private CloseableHttpClient sharedClient;
+
+	protected synchronized CloseableHttpClient getSharedClient() {
+		if (this.sharedClient == null) {
+			final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+			cm.setMaxTotal(20);
+			cm.setDefaultMaxPerRoute(2);
+			this.sharedClient = HttpClientBuilder.create().setConnectionManager(cm).build();
+		}
+		return this.sharedClient;
 	}
 
 	@Override
 	public Source resolve(final URI uri) throws IOException {
-		final CloseableHttpClient client = this.createHttpClient();
-		return new HTTPSource(uri, client);
+		return new HTTPSource(uri, this.getSharedClient(), false);
 	}
 
 	@Override
 	public void release(final Source source) {
-		if (source instanceof HTTPSource httpSource) {
+		if (source instanceof final HTTPSource httpSource) {
 			httpSource.close();
 		}
 	}

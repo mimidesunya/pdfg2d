@@ -3,7 +3,6 @@ package net.zamasoft.pdfg2d.font;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,6 +102,19 @@ public class FontFile {
 			int outOffset = out.size() + numTables * 16;
 			final byte[] tagBuff = new byte[4];
 
+			// Store directory info to avoid seeking back to directory table repeatedly if
+			// possible,
+			// but determining optimal order is complex. We stick to seek.
+			// However, to avoid 'new FileInputStream', we use a wrapper around 'raf'.
+
+			// We need to read all directory entries first because we write them
+			// sequentially
+			// to the output file BEFORE writing data.
+			final int[] inOffsets = new int[numTables];
+			final int[] compLens = new int[numTables];
+			final int[] origLens = new int[numTables];
+			final int[] outOffsets = new int[numTables];
+
 			for (int i = 0; i < numTables; i++) {
 				raf.seek(44 + i * 20); // TableDirectory entries start at 44
 				raf.readFully(tagBuff);
@@ -111,43 +123,79 @@ public class FontFile {
 				final int origLen = raf.readInt();
 				final int origChecksum = raf.readInt();
 
+				// Read positions for later data reading
+				raf.seek(44 + i * 20 + 4);
+				inOffsets[i] = raf.readInt();
+				compLens[i] = raf.readInt();
+				origLens[i] = origLen;
+
 				// Write Directory Entry in SFNT format
 				out.write(tagBuff);
 				out.writeInt(origChecksum);
 				out.writeInt(outOffset);
 				out.writeInt(origLen);
+
+				outOffsets[i] = outOffset;
 				outOffset += origLen;
 			}
 
 			// Write table data
-			final byte[] buff = new byte[1024];
-			for (int i = 0; i < numTables; i++) {
-				raf.seek(44 + i * 20 + 4);
-				final int inOffset = raf.readInt();
-				final int compLen = raf.readInt();
-				final int origLen = raf.readInt();
+			final byte[] buff = new byte[4096]; // Increased buffer size
 
+			// Inner class to wrap RAF as InputStream
+			class RAFInputStream extends InputStream {
+				private long remaining;
+
+				RAFInputStream(long length) {
+					this.remaining = length;
+				}
+
+				@Override
+				public int read() throws IOException {
+					if (this.remaining <= 0)
+						return -1;
+					final int b = raf.read();
+					if (b >= 0)
+						this.remaining--;
+					return b;
+				}
+
+				@Override
+				public int read(final byte[] b, final int off, final int len) throws IOException {
+					if (this.remaining <= 0)
+						return -1;
+					final int toRead = (int) Math.min(len, this.remaining);
+					final int read = raf.read(b, off, toRead);
+					if (read > 0)
+						this.remaining -= read;
+					return read;
+				}
+
+				@Override
+				public void close() {
+					// Do not close the underlying RAF
+				}
+			}
+
+			for (int i = 0; i < numTables; i++) {
+				raf.seek(inOffsets[i]);
+				final int compLen = compLens[i];
+				final int origLen = origLens[i];
 				int remainder = origLen;
-				try (final InputStream in = new FileInputStream(originalFile)) {
-					in.skip(inOffset);
-					if (compLen == origLen) {
-						// no compression
-						int len;
-						while (remainder > 0 && (len = in.read(buff, 0, Math.min(remainder, buff.length))) != -1) {
-							out.write(buff, 0, len);
-							remainder -= len;
-						}
-					} else {
-						// gzipped
-						try (final InputStream zin = new InflaterInputStream(in)) {
-							int len;
-							while (remainder > 0 && (len = zin.read(buff, 0, Math.min(remainder, buff.length))) != -1) {
-								out.write(buff, 0, len);
-								remainder -= len;
-							}
-						}
+
+				InputStream source = new RAFInputStream(compLen);
+				if (compLen != origLen) {
+					source = new InflaterInputStream(source);
+				}
+
+				try (final InputStream in = source) {
+					int len;
+					while (remainder > 0 && (len = in.read(buff, 0, Math.min(remainder, buff.length))) != -1) {
+						out.write(buff, 0, len);
+						remainder -= len;
 					}
 				}
+
 				while (remainder > 0) {
 					out.writeByte(0);
 					remainder--;

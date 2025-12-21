@@ -19,9 +19,9 @@ record URLSourceValidity(long timestamp, URL url) implements SourceValidity {
 		return Validity.UNKNOWN;
 	}
 
-	private Validity checkValidity(URL u) {
+	private Validity checkValidity(final URL u) {
 		try {
-			URLConnection conn = u.openConnection();
+			final URLConnection conn = u.openConnection();
 			if (conn.getLastModified() != this.timestamp) {
 				return Validity.INVALID;
 			}
@@ -31,4 +31,3 @@ record URLSourceValidity(long timestamp, URL url) implements SourceValidity {
 		}
 	}
 }
-

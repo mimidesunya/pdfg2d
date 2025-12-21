@@ -14,7 +14,7 @@ import net.zamasoft.pdfg2d.resolver.SourceValidity;
 public class SourceWrapper implements Source {
 	protected final Source source;
 
-	public SourceWrapper(Source source) {
+	public SourceWrapper(final Source source) {
 		this.source = source;
 	}
 
@@ -88,4 +88,3 @@ public class SourceWrapper implements Source {
 		return this.source.toString();
 	}
 }
-

@@ -2,6 +2,7 @@ package net.zamasoft.pdfg2d.font.truetype;
 
 import java.awt.geom.GeneralPath;
 import java.lang.ref.SoftReference;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import net.zamasoft.pdfg2d.font.Glyph;
 import net.zamasoft.pdfg2d.font.GlyphList;
@@ -16,21 +17,21 @@ public class TrueTypeGlyphList implements GlyphList {
 
 	private final HeadTable head;
 	private final GlyfTable glyf;
-	private final SoftReference<Glyph>[] glyphs;
+	private final AtomicReferenceArray<SoftReference<Glyph>> glyphs;
 
-	@SuppressWarnings("unchecked")
 	public TrueTypeGlyphList(final GlyfTable glyf, final HeadTable head, final MaxpTable maxp) {
 		this.head = head;
 		this.glyf = glyf;
-		this.glyphs = new SoftReference[maxp.getNumGlyphs()];
+		this.glyphs = new AtomicReferenceArray<>(maxp.getNumGlyphs());
 	}
 
 	@Override
-	public synchronized Glyph getGlyph(final int ix) {
-		if (ix >= this.glyphs.length) {
+	public Glyph getGlyph(final int ix) {
+		if (ix >= this.glyphs.length()) {
 			return null;
 		}
-		Glyph glyph = this.glyphs[ix] == null ? null : this.glyphs[ix].get();
+		final SoftReference<Glyph> ref = this.glyphs.get(ix);
+		Glyph glyph = (ref != null) ? ref.get() : null;
 		if (glyph != null) {
 			return glyph;
 		}
@@ -182,7 +183,7 @@ public class TrueTypeGlyphList implements GlyphList {
 		}
 
 		glyph = new Glyph(path, null);
-		this.glyphs[ix] = new SoftReference<>(glyph);
+		this.glyphs.set(ix, new SoftReference<>(glyph));
 		return glyph;
 	}
 

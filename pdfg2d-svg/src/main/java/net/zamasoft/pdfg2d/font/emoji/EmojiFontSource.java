@@ -221,6 +221,31 @@ public class EmojiFontSource extends AbstractFontSource {
 		return null;
 	}
 
+	private static java.util.zip.ZipFile emojiZip;
+
+	public static synchronized java.io.InputStream getEmojiStream(final String name) throws java.io.IOException {
+		if (emojiZip == null) {
+			final java.io.File tempFile = java.io.File.createTempFile("emoji", ".zip");
+			tempFile.deleteOnExit();
+			try (final var is = EmojiFontSource.class.getResourceAsStream("emoji.zip")) {
+				if (is == null) {
+					throw new java.io.FileNotFoundException("emoji.zip not found in classpath");
+				}
+				java.nio.file.Files.copy(is, tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+			}
+			emojiZip = new java.util.zip.ZipFile(tempFile);
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+				try {
+					emojiZip.close();
+				} catch (final Exception e) {
+					// ignore
+				}
+			}));
+		}
+		final ZipEntry entry = emojiZip.getEntry(name);
+		return entry != null ? emojiZip.getInputStream(entry) : null;
+	}
+
 	/**
 	 * Creates a new font instance from this font source.
 	 *

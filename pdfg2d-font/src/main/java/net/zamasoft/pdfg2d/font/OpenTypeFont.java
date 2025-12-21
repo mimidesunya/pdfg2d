@@ -69,9 +69,9 @@ public class OpenTypeFont implements AutoCloseable {
 		this.tables = new Table[this.tableDirectory.getNumTables()];
 
 		// Get references to commonly used tables
-		this.head = (HeadTable) getTable(Table.HEAD);
-		this.hhea = (HheaTable) getTable(Table.HHEA);
-		this.maxp = (MaxpTable) getTable(Table.MAXP);
+		this.head = (HeadTable) this.getTable(Table.HEAD);
+		this.hhea = (HheaTable) this.getTable(Table.HHEA);
+		this.maxp = (MaxpTable) this.getTable(Table.MAXP);
 
 		if (this.hhea != null && this.maxp != null) {
 			final DirectoryEntry entry = this.tableDirectory.getEntryByTag(Table.HMTX);
@@ -86,7 +86,7 @@ public class OpenTypeFont implements AutoCloseable {
 		}
 		LOG.fine("Reading head, hhea, hmtx table");
 
-		this.vhea = (VheaTable) getTable(Table.VHEA);
+		this.vhea = (VheaTable) this.getTable(Table.VHEA);
 		if (this.vhea != null && this.maxp != null) {
 			final DirectoryEntry entry = this.tableDirectory.getEntryByTag(Table.VMTX);
 			if (entry != null) {
@@ -114,7 +114,7 @@ public class OpenTypeFont implements AutoCloseable {
 		} else {
 			this.loca = null;
 			this.glyf = null;
-			final CFFTable cff = (CFFTable) getTable(Table.CFF);
+			final CFFTable cff = (CFFTable) this.getTable(Table.CFF);
 			if (cff != null) {
 				this.glyphList = new CFFGlyphList(cff, this.head, this.maxp);
 			} else {

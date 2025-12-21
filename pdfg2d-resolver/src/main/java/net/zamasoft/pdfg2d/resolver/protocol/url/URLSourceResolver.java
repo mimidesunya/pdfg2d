@@ -12,9 +12,9 @@ import net.zamasoft.pdfg2d.resolver.SourceResolver;
  */
 public class URLSourceResolver implements SourceResolver {
 	@Override
-	public Source resolve(URI uri) throws IOException {
+	public Source resolve(final URI uri) throws IOException {
 		try {
-			URL url = uri.toURL();
+			final URL url = uri.toURL();
 			try {
 				return new URLSource(url, null, null);
 			} catch (URISyntaxException e) {
@@ -26,8 +26,8 @@ public class URLSourceResolver implements SourceResolver {
 	}
 
 	@Override
-	public void release(Source source) {
-		if (source instanceof URLSource urlSource) {
+	public void release(final Source source) {
+		if (source instanceof final URLSource urlSource) {
 			urlSource.close();
 		}
 	}

@@ -20,14 +20,14 @@ public class FileSource extends AbstractSource {
 	private final String encoding;
 	private String mimeType = null;
 
-	public FileSource(File file, URI uri, String mimeType, String encoding) {
+	public FileSource(final File file, final URI uri, final String mimeType, final String encoding) {
 		super(uri);
 		this.file = Objects.requireNonNull(file);
 		this.mimeType = mimeType;
 		this.encoding = encoding;
 	}
 
-	public FileSource(URI uri) throws IOException {
+	public FileSource(final URI uri) throws IOException {
 		super(uri);
 		String path = uri.getSchemeSpecificPart();
 		path = URIHelper.decode(path);
@@ -36,31 +36,30 @@ public class FileSource extends AbstractSource {
 		this.encoding = null;
 	}
 
-	public FileSource(File file, String mimeType, String encoding) {
+	public FileSource(final File file, final String mimeType, final String encoding) {
 		this(file, file.toURI(), mimeType, encoding);
 	}
 
-	public FileSource(File file, String mimeType) {
+	public FileSource(final File file, final String mimeType) {
 		this(file, mimeType, null);
 	}
 
-	public FileSource(File file) {
+	public FileSource(final File file) {
 		this(file, null);
 	}
 
 	@Override
 	public String getMimeType() throws IOException {
 		if (this.mimeType == null) {
-			String filename = this.file.getName();
-			int dot = filename.lastIndexOf('.');
+			final String filename = this.file.getName();
+			final int dot = filename.lastIndexOf('.');
 			if (dot != -1) {
-				String suffix = filename.substring(dot);
-				if (suffix.equalsIgnoreCase(".html") || suffix.equalsIgnoreCase(".htm")) {
-					this.mimeType = "text/html";
-				} else if (suffix.equalsIgnoreCase(".xml") || suffix.equalsIgnoreCase(".xhtml")
-						|| suffix.equalsIgnoreCase(".xht")) {
-					this.mimeType = "text/xml";
-				}
+				final String suffix = filename.substring(dot).toLowerCase();
+				this.mimeType = switch (suffix) {
+					case ".html", ".htm" -> "text/html";
+					case ".xml", ".xhtml", ".xht" -> "text/xml";
+					default -> null;
+				};
 			}
 		}
 		return this.mimeType;
@@ -116,7 +115,7 @@ public class FileSource extends AbstractSource {
 
 	@Override
 	public SourceValidity getValidity() throws IOException {
-		long timestamp = this.file.lastModified();
+		final long timestamp = this.file.lastModified();
 		return new FileSourceValidity(timestamp, this.file);
 	}
 }

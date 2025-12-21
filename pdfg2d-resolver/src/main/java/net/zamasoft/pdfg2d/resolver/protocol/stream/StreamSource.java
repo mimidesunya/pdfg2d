@@ -26,7 +26,8 @@ public class StreamSource extends AbstractSource {
 	private final BufferedReader reader;
 	private final long length;
 
-	public StreamSource(URI uri, InputStream in, String mimeType, String encoding, long length)
+	public StreamSource(final URI uri, final InputStream in, final String mimeType, final String encoding,
+			final long length)
 			throws UnsupportedEncodingException {
 		super(uri);
 		Objects.requireNonNull(in, "InputStream must not be null");
@@ -43,7 +44,7 @@ public class StreamSource extends AbstractSource {
 		this.length = length;
 	}
 
-	public StreamSource(URI uri, InputStream in, String mimeType, long length) {
+	public StreamSource(final URI uri, final InputStream in, final String mimeType, final long length) {
 		super(uri);
 		Objects.requireNonNull(in, "InputStream must not be null");
 		this.mimeType = mimeType;
@@ -59,7 +60,8 @@ public class StreamSource extends AbstractSource {
 		this.length = length;
 	}
 
-	public StreamSource(URI uri, Reader reader, String mimeType, String encoding, long length) throws IOException {
+	public StreamSource(final URI uri, final Reader reader, final String mimeType, final String encoding,
+			final long length) throws IOException {
 		super(uri);
 		Objects.requireNonNull(reader, "Reader must not be null");
 		this.mimeType = mimeType;
@@ -75,27 +77,29 @@ public class StreamSource extends AbstractSource {
 		this.length = length;
 	}
 
-	public StreamSource(URI uri, InputStream in, String mimeType, String encoding) throws UnsupportedEncodingException {
+	public StreamSource(final URI uri, final InputStream in, final String mimeType, final String encoding)
+			throws UnsupportedEncodingException {
 		this(uri, in, mimeType, encoding, -1L);
 	}
 
-	public StreamSource(URI uri, InputStream in, String mimeType) {
+	public StreamSource(final URI uri, final InputStream in, final String mimeType) {
 		this(uri, in, mimeType, -1L);
 	}
 
-	public StreamSource(URI uri, InputStream in) {
+	public StreamSource(final URI uri, final InputStream in) {
 		this(uri, in, null, -1L);
 	}
 
-	public StreamSource(URI uri, Reader reader, String mimeType, String encoding) throws IOException {
+	public StreamSource(final URI uri, final Reader reader, final String mimeType, final String encoding)
+			throws IOException {
 		this(uri, reader, mimeType, encoding, -1L);
 	}
 
-	public StreamSource(URI uri, Reader reader, String mimeType) throws IOException {
+	public StreamSource(final URI uri, final Reader reader, final String mimeType) throws IOException {
 		this(uri, reader, mimeType, null, -1L);
 	}
 
-	public StreamSource(URI uri, Reader reader) throws IOException {
+	public StreamSource(final URI uri, final Reader reader) throws IOException {
 		this(uri, reader, null, null, -1L);
 	}
 
