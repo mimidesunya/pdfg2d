@@ -1,7 +1,7 @@
 # 双方向テキストの論理出力 API（2026-09-04）
 
 foliojet の段落単位 UBA（batch A-1b 以降）は glyph run を視覚順に描く。抽出器・支援技術へ論理順を渡すため、
-copperpdf4 `docs/bidi-logical-output-spike.md` の結論（untagged は論理行単位の ActualText、tagged は描画順を
+検討記録の結論（untagged は論理行単位の ActualText、tagged は描画順を
 変えず `/K` だけ論理順、鏡像は CID alias で ToUnicode も正す）に従い、pdfg2d に次を追加した。実装は codex に
 委託し、維持者が全モジュールの試験（core 76 / demo 161 / font 27 / pdf 128 / svg 15 / svg-emoji 3）で確認した。
 
@@ -40,7 +40,7 @@ vector replay の BDC/EMC・BT/ET stack 整合。veraPDF は pdfg2d のテスト
 ## 既定 OFF への変更(同日、実測)
 
 foliojet が生成した bidi 文書を PyMuPDF(MuPDF)と pypdfium2(PDFium)で抽出し、`/ActualText` を潰した複製と比較した
-(copperpdf4 `docs/bidi-logical-output-spike.md` §7)。PDFium は ActualText 無しで論理順 `אבג ABC`、有りで視覚順
+(検討記録より)。PDFium は ActualText 無しで論理順 `אבג ABC`、有りで視覚順
 `ABC גבא`。MuPDF はどちらも不完全。spike の予測(MuPDF は ActualText を正しく使う)は外れた。ブラウザの PDF
 出力も bidi に ActualText を使わないので、`PDFGC.beginTextReplacement` は `PDFParams.actualTextReplacement`
 (既定 false)が真のときだけ ActualText を書くように変えた。低水準の `beginActualText/endActualText`、`/K` 論理順、

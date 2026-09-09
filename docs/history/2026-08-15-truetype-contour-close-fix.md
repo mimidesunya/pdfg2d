@@ -47,7 +47,7 @@ pdfg2d: segs=22 quad=18   M 116.2 -379.9 (始点が誤り) / 最後の曲線が�
 修正後 pdfg2d: segs=24 quad=20  ← AWTと一致
 ```
 
-診断ツールを追加: `copperpdf4/dev`の`glyphDiff`タスク
+診断ツールを追加: 製品側の`glyphDiff`タスク
 (`jp.cssj.test.image.GlyphOutlineDiffTool`)。同一フォントの同一文字を
 pdfg2dとAWTで描き比べ、パスをダンプする。
 
