@@ -804,7 +804,8 @@ public class PDFWriterImpl implements PDFWriter, FontStore {
 	 */
 	public ColorConverter colorConverter() throws IOException {
 		if (this.colorConverter == null) {
-			this.colorConverter = new ColorConverter(OutputIntentWriter.cmykProfile(this.params));
+			this.colorConverter = new ColorConverter(OutputIntentWriter.cmykProfile(this.params),
+					this.params.cmykConversion());
 		}
 		return this.colorConverter;
 	}

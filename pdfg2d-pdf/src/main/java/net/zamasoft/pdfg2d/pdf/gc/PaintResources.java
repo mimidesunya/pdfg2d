@@ -303,7 +303,7 @@ final class PaintResources {
 					? ((PDFWriterImpl) pout.getPdfWriter()).colorConverter()
 					: null;
 			final var mesh = createConicMesh(gradient, at, pout.getWidth(), pout.getHeight(), colorType, false,
-					converter, allStopsNeutral(gradient.colors()));
+					converter, converter != null && allStopsNeutral(gradient.colors(), converter));
 			name = pout.getPdfWriter().createType4ShadingPattern(pout.getHeight(), at, colorType,
 					mesh.decode(), mesh.vertexData());
 		} catch (IOException e) {
@@ -474,7 +474,8 @@ final class PaintResources {
 			}
 			case CMYK -> {
 				final var cmyk = neutralGradient
-						? new float[] { 0, 0, 0, 1 - color.getRed() }
+						? new float[] { 0, 0, 0,
+								converter.neutralK(color.getRed(), color.getGreen(), color.getBlue()) }
 						: converter.toCMYKNoNeutralRule(color.getRed(), color.getGreen(), color.getBlue());
 				writeUInt16(out, quantize16(cmyk[CMYKColor.C]));
 				writeUInt16(out, quantize16(cmyk[CMYKColor.M]));
@@ -534,17 +535,23 @@ final class PaintResources {
 		final var colorType = shadingColorType(params, colors);
 		writeShadingFunction(sout, colorType, colors, fractions,
 				colorType == Color.Type.CMYK ? writer.colorConverter() : null,
-				colorType == Color.Type.CMYK && allStopsNeutral(colors),
+				colorType == Color.Type.CMYK && allStopsNeutral(colors, writer.colorConverter()),
 				colorType == Color.Type.RGB ? writer.pdfXRGBProfileRef() : null);
 	}
 
-	private static boolean allStopsNeutral(final Color[] colors) {
+	/**
+	 * Whether every stop counts as achromatic for the converter (exact grays, or within its tolerance). A stop given
+	 * in CMYK counts only when exactly gray, as before the tolerance: its plates pass through otherwise (codex review
+	 * 2026-10-20: a near-gray CMYK gradient lost its plates to K).
+	 */
+	private static boolean allStopsNeutral(final Color[] colors, final ColorConverter converter) {
 		if (colors.length == 0) {
 			return false;
 		}
 		for (final var color : colors) {
 			final var red = color.getRed();
-			if (red != color.getGreen() || red != color.getBlue()) {
+			if (color.getColorType() == Color.Type.CMYK ? red != color.getGreen() || red != color.getBlue()
+					: !converter.isNeutral(red, color.getGreen(), color.getBlue())) {
 				return false;
 			}
 		}
@@ -951,7 +958,8 @@ final class PaintResources {
 					sout.writeReal(color.getComponent(CMYKColor.K));
 				} else {
 					final var cmyk = neutralGradient
-							? new float[] { 0, 0, 0, 1 - color.getRed() }
+							? new float[] { 0, 0, 0,
+									converter.neutralK(color.getRed(), color.getGreen(), color.getBlue()) }
 							: converter.toCMYKNoNeutralRule(color.getRed(), color.getGreen(), color.getBlue());
 					sout.writeReal(cmyk[CMYKColor.C]);
 					sout.writeReal(cmyk[CMYKColor.M]);

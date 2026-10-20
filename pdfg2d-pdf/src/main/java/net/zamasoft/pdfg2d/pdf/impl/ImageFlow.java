@@ -220,6 +220,90 @@ class ImageFlow {
 		}
 	}
 
+	/**
+	 * Encodes an opaque CMYK image as an Adobe-style four-component JPEG: inverted samples behind an APP14 marker
+	 * with transform 0, the form Photoshop writes and pass-through CMYK JPEGs take (they get the same inverted
+	 * {@code /Decode}). Before 2026-10-20 CMYK output always fell back to Flate, ignoring a JPEG request
+	 * (a publishing report: a 132 MB CMYK book against 18.6 MB in gray).
+	 *
+	 * @param image  opaque CMYK image
+	 * @param writer JPEG writer chosen for the request; replaced by one that accepts rasters if it does not
+	 * @param param  write parameters (quality)
+	 * @param out    destination of the JPEG bytes
+	 */
+	private static void writeAdobeCmykJpeg(final BufferedImage image, final ImageWriter writer,
+			final ImageWriteParam param, final OutputStream out) throws IOException {
+		final var cm = image.getColorModel();
+		final var source = image.getRaster();
+		final var width = image.getWidth();
+		final var height = image.getHeight();
+		final var raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
+		final var pixel = source.getDataElements(0, 0, null);
+		final var components = new float[cm.getNumComponents()];
+		final var inverted = new int[4];
+		for (var y = 0; y < height; ++y) {
+			for (var x = 0; x < width; ++x) {
+				source.getDataElements(x, y, pixel);
+				cm.getNormalizedComponents(pixel, components, 0);
+				for (var c = 0; c < 4; ++c) {
+					inverted[c] = 255 - Math.round(components[c] * 255);
+				}
+				raster.setPixel(x, y, inverted);
+			}
+		}
+		var rasterWriter = writer;
+		if (!rasterWriter.canWriteRasters()) {
+			rasterWriter = null;
+			for (final var i = ImageIO.getImageWritersByFormatName("jpeg"); i.hasNext();) {
+				final var candidate = i.next();
+				if (candidate.canWriteRasters()) {
+					rasterWriter = candidate;
+					break;
+				}
+				candidate.dispose();
+			}
+			if (rasterWriter == null) {
+				throw new IOException("No JPEG encoder that writes four-component rasters is available.");
+			}
+		}
+		// The JDK writer writes a raster as is (no color conversion); its own APP14 is replaced below
+		final var encoded = new java.io.ByteArrayOutputStream();
+		try (final var ios = new javax.imageio.stream.MemoryCacheImageOutputStream(encoded)) {
+			rasterWriter.setOutput(ios);
+			rasterWriter.write(null, new IIOImage(raster, null, null), param);
+		} finally {
+			if (rasterWriter != writer) {
+				rasterWriter.dispose();
+			}
+		}
+		out.write(withAdobeApp14(encoded.toByteArray()));
+	}
+
+	/**
+	 * Returns the JPEG with every APP14 segment before the scan removed and one Adobe APP14 (version 100, no flags,
+	 * transform 0) inserted after SOI.
+	 */
+	static byte[] withAdobeApp14(final byte[] jpeg) {
+		final var out = new java.io.ByteArrayOutputStream(jpeg.length + 16);
+		out.write(jpeg, 0, 2);
+		out.write(new byte[] { (byte) 0xFF, (byte) 0xEE, 0x00, 0x0E, 'A', 'd', 'o', 'b', 'e', 0x00, 0x64, 0x00, 0x00,
+				0x00, 0x00, 0x00 }, 0, 16);
+		var pos = 2;
+		while (pos + 4 <= jpeg.length && (jpeg[pos] & 0xFF) == 0xFF) {
+			final var marker = jpeg[pos + 1] & 0xFF;
+			if (marker == 0xDA) {
+				break;
+			}
+			final var length = ((jpeg[pos + 2] & 0xFF) << 8) | (jpeg[pos + 3] & 0xFF);
+			if (marker != 0xEE) {
+				out.write(jpeg, pos, length + 2);
+			}
+			pos += length + 2;
+		}
+		out.write(jpeg, pos, jpeg.length - pos);
+		return out.toByteArray();
+	}
+
 	private static int imageColorComponents(final ImageReader reader) throws IOException {
 		var type = reader.getRawImageType(0);
 		if (type == null) {
@@ -569,7 +653,6 @@ class ImageFlow {
 			final int sourceColorComponents = sourceJpegComponents >= 0 ? sourceJpegComponents
 					: (ir == null ? -1 : imageColorComponents(ir));
 			final int adobeTransform = sourceJpegComponents == 4 ? adobeApp14Transform(imageIn) : -1;
-			boolean forceFlate = false;
 			if (colorMode == PDFParams.ColorMode.CMYK && sourceJpegComponents == 4
 					&& this.params.jpegImage() == PDFParams.JPEGImage.RAW) {
 				// CMYK is already in the document process space; preserve the JPEG bytes.
@@ -579,8 +662,8 @@ class ImageFlow {
 					|| (imageType == PDFParams.ImageCompression.JPEG2000 && sourceColorComponents == 4)) {
 				// YCCK needs ImageIO's conversion to CMYK. Four-component JPX is decoded
 				// as well because its color interpretation cannot be checked safely here.
+				// Both are re-encoded below like any decoded image.
 				imageType = PDFParams.ImageCompression.FLATE;
-				forceFlate = true;
 			}
 
 			boolean iccErrorHuck = false;
@@ -707,10 +790,8 @@ class ImageFlow {
 					image.flush();
 					image = converted;
 					imageType = PDFParams.ImageCompression.FLATE;
-					forceFlate = true;
 				} else if (colorMode == PDFParams.ColorMode.CMYK && colorComponents == 4) {
 					imageType = PDFParams.ImageCompression.FLATE;
-					forceFlate = true;
 				}
 			}
 			final boolean pdfXPreservesRGB = pdfVersion.isPdfX()
@@ -877,8 +958,7 @@ class ImageFlow {
 					try {
 						cm = image.getColorModel();
 
-						if (!forceFlate && !generated
-								&& (width + height) > this.params.imageCompressionLossless()) {
+						if (!generated && (width + height) > this.params.imageCompressionLossless()) {
 							imageType = imageCompression;
 						}
 						if (imageType != PDFParams.ImageCompression.FLATE && cm.hasAlpha()
@@ -886,6 +966,11 @@ class ImageFlow {
 							// The alpha-stripped copy handed to the encoder is gray or RGB;
 							// a /DeviceCMYK dictionary would not match a 3-channel JPEG
 							imageType = PDFParams.ImageCompression.FLATE;
+						}
+						if (imageType == PDFParams.ImageCompression.JPEG2000 && cm.getNumColorComponents() == 4) {
+							// Four-component JPX is not written (its reading is not checked either, see above);
+							// a lossy CMYK request falls back to JPEG as below PDF 1.5
+							imageType = PDFParams.ImageCompression.JPEG;
 						}
 						ImageWriter iw;
 						ImageWriteParam iwParams;
@@ -949,6 +1034,18 @@ class ImageFlow {
 						}
 						this.objectsFlow.breakBefore();
 
+						if (deviceCMYK && imageType == PDFParams.ImageCompression.JPEG) {
+							// writeAdobeCmykJpeg stores inverted samples, as a pass-through Adobe CMYK JPEG
+							this.objectsFlow.writeName("Decode");
+							this.objectsFlow.startArray();
+							for (var c = 0; c < 4; ++c) {
+								this.objectsFlow.writeInt(1);
+								this.objectsFlow.writeInt(0);
+							}
+							this.objectsFlow.endArray();
+							this.objectsFlow.breakBefore();
+						}
+
 						this.objectsFlow.writeName("Filter");
 						this.objectsFlow.startArray();
 						switch (streamCompression) {
@@ -1001,6 +1098,15 @@ class ImageFlow {
 						}
 						switch (imageType) {
 							case JPEG, JPEG2000 -> {
+								if (deviceCMYK) {
+									// Only JPEG reaches here for CMYK (no alpha, JPX fell back above)
+									try {
+										writeAdobeCmykJpeg(image, iw, iwParams, out);
+									} finally {
+										iw.dispose();
+									}
+									break;
+								}
 								var ximage = image;
 								if (cm.hasAlpha()) {
 									ximage = new BufferedImage(width, height,

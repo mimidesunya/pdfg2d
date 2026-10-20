@@ -1,5 +1,6 @@
 package net.zamasoft.pdfg2d.pdf;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
@@ -18,6 +20,7 @@ import java.util.List;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 
@@ -54,6 +57,7 @@ public class PdfXImageTest {
 	private static final int H = 2;
 
 	private static File rgbPng;
+	private static File flatPng;
 	private static File grayPng;
 	private static File alphaPng;
 	private static File rgbJpeg;
@@ -65,6 +69,13 @@ public class PdfXImageTest {
 	@BeforeAll
 	public static void createFixtures() throws Exception {
 		rgbPng = writePng("rgb.png", sampleRgb(BufferedImage.TYPE_INT_RGB));
+		final var flat = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+		for (var y = 0; y < 16; ++y) {
+			for (var x = 0; x < 16; ++x) {
+				flat.setRGB(x, y, 0xB2363E);
+			}
+		}
+		flatPng = writePng("flat.png", flat);
 		grayPng = writePng("gray.png", sampleGray());
 		alphaPng = writePng("alpha.png", sampleRgb(BufferedImage.TYPE_INT_ARGB));
 		rgbJpeg = writeJpeg("rgb.jpg", sampleRgb(BufferedImage.TYPE_INT_RGB));
@@ -325,6 +336,51 @@ public class PdfXImageTest {
 			assertColorSpaceName("DeviceCMYK", loaded.image());
 			assertFalse(filters(loaded.image()).contains("DCTDecode"), "CMYK+alpha must not be JPEG encoded as RGB");
 			assertEquals(W * H * 4, decoded(loaded.image()).length);
+		}
+	}
+
+	/**
+	 * A JPEG request in CMYK output gives an Adobe-style CMYK JPEG (inverted samples, APP14 transform 0, inverted
+	 * {@code /Decode}) instead of falling back to Flate (2026-10-20, a publishing report). A flat color keeps the
+	 * samples of the Flate encoding, so the inversion and the absence of a color transform are both checked.
+	 */
+	@Test
+	public void testX1aLossyRgbPngBecomesAdobeCmykJpeg() throws Exception {
+		final byte[] flate;
+		try (final var loaded = singleImage(generate("x1a-flat-png.pdf", PDFParams.Version.V_PDFX1A, flatPng, false))) {
+			flate = decoded(loaded.image());
+		}
+		final var params = params(PDFParams.Version.V_PDFX1A)
+				.withImageCompression(PDFParams.ImageCompression.JPEG).withImageCompressionLossless(0);
+		final var bytes = generate("x1a-lossy-flat-png.pdf", params, flatPng, false);
+		try (final var loaded = singleImage(bytes)) {
+			final var image = loaded.image();
+			assertColorSpaceName("DeviceCMYK", image);
+			assertEquals(List.of("DCTDecode"), filters(image));
+			final var decode = image.getCOSArray(COSName.DECODE);
+			assertNotNull(decode, "inverted samples need an inverted /Decode");
+			assertArrayEquals(new float[] { 1, 0, 1, 0, 1, 0, 1, 0 }, decode.toFloatArray());
+			final var jpeg = decodedRaw(image);
+			assertEquals(4, jpegComponents(jpeg));
+			assertEquals(List.of(0), app14Transforms(jpeg), "exactly one Adobe APP14 with transform 0");
+			final var samples = rawJpegSamples(jpeg);
+			assertEquals(flate.length, samples.length);
+			for (var i = 0; i < samples.length; ++i) {
+				assertEquals(flate[i] & 0xFF, 255 - samples[i], 3, "component " + i);
+			}
+		}
+		PdfXPreflight.assertConforms(bytes, Flavour.X1A);
+	}
+
+	/** A JPEG 2000 request in CMYK output falls back to JPEG too (no four-component JPX is written). */
+	@Test
+	public void testX4CmykJpeg2000RequestFallsBackToJpeg() throws Exception {
+		final var params = params(PDFParams.Version.V_PDFX4).withColorMode(PDFParams.ColorMode.CMYK)
+				.withImageCompression(PDFParams.ImageCompression.JPEG2000).withImageCompressionLossless(0);
+		try (final var loaded = singleImage(generate("x4-cmyk-jpx-request.pdf", params, flatPng, false))) {
+			assertColorSpaceName("DeviceCMYK", loaded.image());
+			assertEquals(List.of("DCTDecode"), filters(loaded.image()));
+			assertNotNull(loaded.image().getCOSArray(COSName.DECODE));
 		}
 	}
 
@@ -639,6 +695,40 @@ public class PdfXImageTest {
 	private static byte[] decodedRaw(final COSStream stream) throws Exception {
 		try (final var in = stream.createRawInputStream()) {
 			return in.readAllBytes();
+		}
+	}
+
+	/** Transform bytes of the Adobe APP14 segments before the scan, in order. */
+	private static List<Integer> app14Transforms(final byte[] jpeg) {
+		final var transforms = new ArrayList<Integer>();
+		var pos = 2;
+		while (pos + 4 <= jpeg.length && (jpeg[pos] & 0xFF) == 0xFF && (jpeg[pos + 1] & 0xFF) != 0xDA) {
+			final var length = ((jpeg[pos + 2] & 0xFF) << 8) | (jpeg[pos + 3] & 0xFF);
+			if ((jpeg[pos + 1] & 0xFF) == 0xEE && length >= 14 && jpeg[pos + 4] == 'A' && jpeg[pos + 8] == 'e') {
+				transforms.add(jpeg[pos + 15] & 0xFF);
+			}
+			pos += length + 2;
+		}
+		return transforms;
+	}
+
+	/** Samples as stored in the JPEG: the JDK reader's readRaster does no color conversion. */
+	private static int[] rawJpegSamples(final byte[] jpeg) throws Exception {
+		ImageReader reader = null;
+		for (final var itr = ImageIO.getImageReadersByFormatName("jpeg"); itr.hasNext();) {
+			final var candidate = itr.next();
+			if (candidate.getClass().getName().startsWith("com.sun.imageio.")) {
+				reader = candidate;
+				break;
+			}
+		}
+		assertNotNull(reader, "the JDK JPEG reader");
+		try (final var in = ImageIO.createImageInputStream(new ByteArrayInputStream(jpeg))) {
+			reader.setInput(in);
+			final var raster = reader.readRaster(0, null);
+			return raster.getPixels(0, 0, raster.getWidth(), raster.getHeight(), (int[]) null);
+		} finally {
+			reader.dispose();
 		}
 	}
 
